@@ -173,6 +173,31 @@ function createAlchemyInteractable(
   };
 }
 
+function createDialogueInteractable(
+  id: string,
+  object: THREE.Object3D,
+  title: string,
+  promptMessage: string
+): Interactable {
+  return {
+    id,
+    object,
+    actionDistance: 2.65,
+    kind: "dialogue",
+    getPrompt: () => ({
+      title,
+      actionLabel: "[E] Speak",
+      blockedReason: `${title} is too far away.`
+    }),
+    onFocus: (focused) => setHighlight(object, focused),
+    interact: () => ({
+      type: "dialogue",
+      dialogueTitle: title,
+      message: promptMessage
+    })
+  };
+}
+
 export interface CastleInteractableSeeds {
   bedsideCandles: THREE.Object3D[];
   footLocker: THREE.Object3D | null;
@@ -180,6 +205,7 @@ export interface CastleInteractableSeeds {
   alchemyBottles: THREE.Object3D[];
   alchemyBoard: THREE.Object3D | null;
   arch: THREE.Object3D | null;
+  stewardProxy: THREE.Object3D | null;
 }
 
 export function createCastleInteractables(seeds: CastleInteractableSeeds): Interactable[] {
@@ -257,6 +283,17 @@ export function createCastleInteractables(seeds: CastleInteractableSeeds): Inter
         seeds.arch,
         "Moon arch",
         "A ceremonial arch frames the alchemy station and suggests this room's ritual purpose."
+      )
+    );
+  }
+
+  if (seeds.stewardProxy) {
+    interactables.push(
+      createDialogueInteractable(
+        "steward-rowan",
+        seeds.stewardProxy,
+        "Steward Rowan",
+        "The steward looks up from the keep ledger, ready to assign practical work."
       )
     );
   }

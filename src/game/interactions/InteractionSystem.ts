@@ -3,6 +3,7 @@ import type RAPIER from "@dimforge/rapier3d-compat";
 
 import type { InventoryStore } from "../inventory/InventoryStore";
 import type { AlchemyPanelController } from "../../ui/alchemyPanel";
+import type { DialoguePanelController } from "../../ui/dialoguePanel";
 import type { DroppedItemSaveState, InteractionSaveState } from "../persistence/SaveManager";
 import type {
   HeldItemState,
@@ -46,6 +47,7 @@ export interface InteractionSystemOptions {
   inventoryStore: InventoryStore;
   inventoryPanel: InventoryPanelController;
   alchemyPanel: AlchemyPanelController;
+  dialoguePanel: DialoguePanelController;
   onStateDirty?: () => void;
 }
 
@@ -71,6 +73,7 @@ export class InteractionSystem {
   private readonly inventoryStore: InventoryStore;
   private readonly inventoryPanel: InventoryPanelController;
   private readonly alchemyPanel: AlchemyPanelController;
+  private readonly dialoguePanel: DialoguePanelController;
   private readonly raycaster = new THREE.Raycaster();
   private readonly workingDirection = new THREE.Vector3();
   private readonly workingOrigin = new THREE.Vector3();
@@ -103,6 +106,7 @@ export class InteractionSystem {
     this.inventoryStore = options.inventoryStore;
     this.inventoryPanel = options.inventoryPanel;
     this.alchemyPanel = options.alchemyPanel;
+    this.dialoguePanel = options.dialoguePanel;
     this.initialPickupIds = options.interactables
       .filter((interactable) => interactable.kind === "pickup")
       .map((interactable) => interactable.id);
@@ -128,6 +132,11 @@ export class InteractionSystem {
       if (event.code === "Escape") {
         if (this.alchemyPanel.isOpen()) {
           this.closeAlchemyPanel();
+          return;
+        }
+
+        if (this.dialoguePanel.isOpen()) {
+          this.closeDialoguePanel();
           return;
         }
 
@@ -164,7 +173,9 @@ export class InteractionSystem {
         targetLabel: "none",
         prompt: this.alchemyPanel.isOpen()
           ? "Alchemy open. Craft at the station or press Escape to close."
-          : "Inventory open. Transfer items with the panel or press Escape to close.",
+          : this.dialoguePanel.isOpen()
+            ? "Dialogue open. Respond to the steward or press Escape to close."
+            : "Inventory open. Transfer items with the panel or press Escape to close.",
         heldItemLabel
       };
     }
@@ -243,7 +254,8 @@ export class InteractionSystem {
       targetKind === "inspect" ||
       targetKind === "container" ||
       targetKind === "toggle" ||
-      targetKind === "alchemy"
+      targetKind === "alchemy" ||
+      targetKind === "dialogue"
         ? "inspect"
         : "ready";
 
@@ -394,7 +406,7 @@ export class InteractionSystem {
 
   private tryInteract(): void {
     if (this.isPanelOpen()) {
-      this.setStatusMessage("Close the inventory panel before interacting with the world.", 1.6);
+      this.setStatusMessage("Close the open panel before interacting with the world.", 1.6);
       return;
     }
 
@@ -429,7 +441,7 @@ export class InteractionSystem {
 
   private tryHoldCurrentTarget(): void {
     if (this.isPanelOpen()) {
-      this.setStatusMessage("Close the inventory panel before grabbing an item.", 1.6);
+      this.setStatusMessage("Close the open panel before grabbing an item.", 1.6);
       return;
     }
 
@@ -501,6 +513,14 @@ export class InteractionSystem {
         this.alchemyPanel.open(result.alchemyTitle ?? fallbackTitle);
         this.setStatusMessage(result.message ?? `Opened ${result.alchemyTitle ?? fallbackTitle}.`, 1.8);
         return;
+      case "dialogue":
+        this.inventoryPanel.close();
+        this.alchemyPanel.close();
+        this.shouldRecapturePointerLock = document.pointerLockElement === this.domElement;
+        document.exitPointerLock?.();
+        this.dialoguePanel.open();
+        this.setStatusMessage(result.message ?? `Speaking with ${result.dialogueTitle ?? fallbackTitle}.`, 1.8);
+        return;
       case "message":
         this.setStatusMessage(result.message ?? `${fallbackTitle} inspected.`, 2.2);
         return;
@@ -526,6 +546,14 @@ export class InteractionSystem {
 
   closeAlchemyPanel(): void {
     this.alchemyPanel.close();
+    if (this.shouldRecapturePointerLock) {
+      this.shouldRecapturePointerLock = false;
+      void this.domElement.requestPointerLock();
+    }
+  }
+
+  closeDialoguePanel(): void {
+    this.dialoguePanel.close();
     if (this.shouldRecapturePointerLock) {
       this.shouldRecapturePointerLock = false;
       void this.domElement.requestPointerLock();
@@ -598,6 +626,10 @@ export class InteractionSystem {
       this.closeAlchemyPanel();
     }
 
+    if (this.dialoguePanel.isOpen()) {
+      this.closeDialoguePanel();
+    }
+
     if (this.inventoryPanel.isOpen()) {
       this.closeInventoryPanel();
       return;
@@ -609,7 +641,7 @@ export class InteractionSystem {
   }
 
   private isPanelOpen(): boolean {
-    return this.inventoryPanel.isOpen() || this.alchemyPanel.isOpen();
+    return this.inventoryPanel.isOpen() || this.alchemyPanel.isOpen() || this.dialoguePanel.isOpen();
   }
 
   private beginHoldingItem(

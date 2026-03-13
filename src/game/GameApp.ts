@@ -7,6 +7,8 @@ import { ALCHEMY_RECIPES, ALCHEMY_STATION_TITLE } from "./alchemy/prototypeRecip
 import { InventoryStore } from "./inventory/InventoryStore";
 import { CONTAINER_SEEDS, ITEM_DEFINITIONS } from "./inventory/prototypeContent";
 import { InteractionSystem } from "./interactions/InteractionSystem";
+import { ObjectiveSystem } from "./objectives/ObjectiveSystem";
+import { STEWARD_OBJECTIVES } from "./objectives/prototypeObjectives";
 import { SaveManager } from "./persistence/SaveManager";
 import { PlayerController } from "./player/PlayerController";
 import { ViewModelController } from "./viewmodel/ViewModelController";
@@ -17,9 +19,11 @@ import {
   type GraphicsQuality
 } from "../ui/debugOverlay";
 import { createAlchemyPanel, type AlchemyPanelController } from "../ui/alchemyPanel";
+import { createDialoguePanel, type DialoguePanelController } from "../ui/dialoguePanel";
 import { createInventoryPanel, type InventoryPanelController } from "../ui/inventoryPanel";
+import { createObjectiveTracker, type ObjectiveTrackerController } from "../ui/objectiveTracker";
 
-const PHASE_LABEL = "Phase 9 - Alchemy Loop and Item-System Depth";
+const PHASE_LABEL = "Phase 10 - Objectives, Dialogue, and Quest Tracking";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
@@ -62,7 +66,10 @@ export class GameApp {
   private readonly overlay: DebugOverlayController;
   private readonly inventoryPanel: InventoryPanelController;
   private readonly alchemyPanel: AlchemyPanelController;
+  private readonly dialoguePanel: DialoguePanelController;
+  private readonly objectiveTracker: ObjectiveTrackerController;
   private readonly inventoryStore: InventoryStore;
+  private readonly objectiveSystem: ObjectiveSystem;
   private readonly player: PlayerController;
   private readonly interactionSystem: InteractionSystem;
   private readonly viewModelController: ViewModelController;
@@ -89,7 +96,10 @@ export class GameApp {
     overlay: DebugOverlayController,
     inventoryPanel: InventoryPanelController,
     alchemyPanel: AlchemyPanelController,
+    dialoguePanel: DialoguePanelController,
+    objectiveTracker: ObjectiveTrackerController,
     inventoryStore: InventoryStore,
+    objectiveSystem: ObjectiveSystem,
     player: PlayerController,
     interactionSystem: InteractionSystem,
     viewModelController: ViewModelController,
@@ -103,7 +113,10 @@ export class GameApp {
     this.overlay = overlay;
     this.inventoryPanel = inventoryPanel;
     this.alchemyPanel = alchemyPanel;
+    this.dialoguePanel = dialoguePanel;
+    this.objectiveTracker = objectiveTracker;
     this.inventoryStore = inventoryStore;
+    this.objectiveSystem = objectiveSystem;
     this.player = player;
     this.interactionSystem = interactionSystem;
     this.viewModelController = viewModelController;
@@ -175,9 +188,12 @@ export class GameApp {
     });
     const inventoryStore = new InventoryStore(ITEM_DEFINITIONS);
     const alchemySystem = new AlchemySystem(inventoryStore, ALCHEMY_RECIPES, ALCHEMY_STATION_TITLE);
+    const objectiveSystem = new ObjectiveSystem(inventoryStore, STEWARD_OBJECTIVES);
     const saveManager = new SaveManager(window.localStorage);
     let inventoryPanel!: InventoryPanelController;
     let alchemyPanel!: AlchemyPanelController;
+    let dialoguePanel!: DialoguePanelController;
+    const objectiveTracker = createObjectiveTracker(shell);
     let interactionSystem!: InteractionSystem;
     CONTAINER_SEEDS.forEach((container) => {
       inventoryStore.registerContainer(container.id, container.title, container.items);
@@ -208,6 +224,18 @@ export class GameApp {
         return result;
       }
     });
+    dialoguePanel = createDialoguePanel(shell, {
+      onClose: () => {
+        interactionSystem.closeDialoguePanel();
+      },
+      onAction: (actionId) => {
+        const result = objectiveSystem.performAction(actionId);
+        if (result.success) {
+          app?.queueSave();
+        }
+        return result;
+      }
+    });
 
     const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
     world.integrationParameters.dt = FIXED_STEP;
@@ -232,6 +260,7 @@ export class GameApp {
       inventoryStore,
       inventoryPanel,
       alchemyPanel,
+      dialoguePanel,
       onStateDirty: () => {
         app?.queueSave();
       }
@@ -246,13 +275,25 @@ export class GameApp {
     if (savedState?.player) {
       player.restorePersistenceState(savedState.player);
     }
+    if (savedState?.objective) {
+      objectiveSystem.restore(savedState.objective);
+    }
     inventoryStore.subscribe(() => {
       inventoryPanel.sync(inventoryStore.getSnapshot());
       alchemyPanel.sync(alchemySystem.getSnapshot());
+      dialoguePanel.sync(objectiveSystem.getDialogueSnapshot());
+      objectiveTracker.sync(objectiveSystem.getTrackerSnapshot());
+      app?.queueSave();
+    });
+    objectiveSystem.subscribe(() => {
+      dialoguePanel.sync(objectiveSystem.getDialogueSnapshot());
+      objectiveTracker.sync(objectiveSystem.getTrackerSnapshot());
       app?.queueSave();
     });
     inventoryPanel.sync(inventoryStore.getSnapshot());
     alchemyPanel.sync(alchemySystem.getSnapshot());
+    dialoguePanel.sync(objectiveSystem.getDialogueSnapshot());
+    objectiveTracker.sync(objectiveSystem.getTrackerSnapshot());
 
     overlay.setMetrics({
       camera: "first_person",
@@ -273,7 +314,10 @@ export class GameApp {
       overlay,
       inventoryPanel,
       alchemyPanel,
+      dialoguePanel,
+      objectiveTracker,
       inventoryStore,
+      objectiveSystem,
       player,
       interactionSystem,
       viewModelController,
@@ -288,7 +332,7 @@ export class GameApp {
   }
 
   private update(deltaSeconds: number): void {
-    if (this.inventoryPanel.isOpen() || this.alchemyPanel.isOpen()) {
+    if (this.inventoryPanel.isOpen() || this.alchemyPanel.isOpen() || this.dialoguePanel.isOpen()) {
       this.player.clearTransientInput();
     } else {
       this.player.update(deltaSeconds);
@@ -330,9 +374,11 @@ export class GameApp {
         ? "Inventory open. Move items with the panel, press I or Escape to close, and use Drop 1 to place items back into the world."
         : this.alchemyPanel.isOpen()
           ? "Alchemy open. Brew using ingredients from your pack, then press Escape to close the station."
-        : playerState.pointerLocked
-          ? interactionState.prompt || "Use E to interact, F to hold, I to open inventory, Q to release a held item, and V to toggle camera."
-          : "Click the scene to capture the mouse. Use WASD to move, Space to jump, I to open inventory, and V to toggle camera."
+          : this.dialoguePanel.isOpen()
+            ? "Dialogue open. Accept, track, or turn in steward tasks, then press Escape to close the panel."
+            : playerState.pointerLocked
+            ? interactionState.prompt || "Use E to interact, F to hold, I to open inventory, Q to release a held item, and V to toggle camera."
+            : "Click the scene to capture the mouse. Use WASD to move, Space to jump, I to open inventory, and V to toggle camera."
     );
 
     this.dirtySaveAccumulator += deltaSeconds;
@@ -394,7 +440,8 @@ export class GameApp {
       savedAt: new Date().toISOString(),
       player: this.player.getPersistenceState(),
       inventory: this.inventoryStore.getSaveState(),
-      interaction: this.interactionSystem.getPersistenceState()
+      interaction: this.interactionSystem.getPersistenceState(),
+      objective: this.objectiveSystem.getSaveState()
     });
     this.saveDirty = false;
     this.dirtySaveAccumulator = 0;

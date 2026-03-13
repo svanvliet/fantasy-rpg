@@ -1,4 +1,5 @@
 import type { InventorySaveState } from "../inventory/InventoryStore";
+import type { ObjectiveSaveState } from "../objectives/types";
 import type { PlayerPersistenceState } from "../player/PlayerController";
 
 export const SAVE_STORAGE_KEY = "fantasy-rpg-save-v1";
@@ -37,6 +38,7 @@ export interface GameSaveState {
   player: PlayerPersistenceState;
   inventory: InventorySaveState;
   interaction: InteractionSaveState;
+  objective?: ObjectiveSaveState;
 }
 
 export interface StorageLike {

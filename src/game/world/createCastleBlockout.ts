@@ -39,6 +39,62 @@ const PICKUP_BOTTLE_CONTACT_SKIN = 0.008;
 const CANDLE_BODY_FRICTION = 1.0;
 const SCONCE_HEIGHT = 2.1;
 
+function addStewardProxy(scene: THREE.Scene, position: THREE.Vector3): THREE.Group {
+  const root = new THREE.Group();
+  root.position.copy(position);
+
+  const bodyMaterial = new THREE.MeshStandardMaterial({
+    color: 0x5a4738,
+    roughness: 0.92,
+    metalness: 0.02
+  });
+  const skinMaterial = new THREE.MeshStandardMaterial({
+    color: 0xd3b18d,
+    roughness: 0.82,
+    metalness: 0.02
+  });
+
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 0.24), bodyMaterial);
+  torso.position.set(0, 1.0, 0);
+  root.add(torso);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12), skinMaterial);
+  head.position.set(0, 1.62, 0);
+  root.add(head);
+
+  const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.7, 0.16), bodyMaterial);
+  leftArm.position.set(-0.34, 0.98, 0);
+  root.add(leftArm);
+
+  const rightArm = leftArm.clone();
+  rightArm.position.x = 0.34;
+  root.add(rightArm);
+
+  const ledger = new THREE.Mesh(
+    new THREE.BoxGeometry(0.42, 0.08, 0.28),
+    new THREE.MeshStandardMaterial({
+      color: 0x6b4f38,
+      roughness: 0.9,
+      metalness: 0.02
+    })
+  );
+  ledger.position.set(0.22, 0.8, 0.2);
+  ledger.rotation.set(-0.25, -0.35, 0.08);
+  root.add(ledger);
+
+  root.traverse((child) => {
+    const mesh = child as THREE.Mesh;
+    if (!mesh.isMesh) {
+      return;
+    }
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+  });
+
+  scene.add(root);
+  return root;
+}
+
 function addStaticBox(
   scene: THREE.Scene,
   world: RAPIER.World,
@@ -697,6 +753,7 @@ export function createCastleBlockout(
     position: new THREE.Vector3(-13.55, 1.1, -1.55),
     scale: new THREE.Vector3(1.05, 2.2, 1.25)
   });
+  const stewardProxy = addStewardProxy(scene, new THREE.Vector3(-8.9, 0, -1.45));
   const bedsideCandles = addCandles(
     scene,
     world,
@@ -893,7 +950,8 @@ export function createCastleBlockout(
     cabinetDoors: [cabinetDoorLeft, cabinetDoorRight],
     alchemyBottles: [alchemyBottle1, alchemyBottle2, alchemyBottle3, alchemyBottle4],
     alchemyBoard,
-    arch: focalArch
+    arch: focalArch,
+    stewardProxy
   });
 
   return {

@@ -183,3 +183,17 @@
   Inventory-facing UI may surface stack-cap context and stack breakdowns so we can validate stack behavior now, while station UIs can continue to show gross totals when stacks are not the relevant player concern.
   UI stack context should not yet be treated as a full “inventory management game” mechanic.
   A future inventory-depth phase can build on the current item-level stack metadata instead of inventing stack semantics later from scratch.
+
+## TD-016: Phase 10 Uses A Scripted Objective State Machine Before Broader Quest Systems
+
+- Status: `accepted`
+- Active since: `Phase 10`
+- Date: `2026-03-13`
+- Decision:
+  Implement early world-purpose as a very small authored objective list with explicit tracked-quest selection and a lightweight HUD tracker, rather than introducing a generalized quest framework or AI-driven behavior system.
+- Why:
+  The prototype needs to prove that directed RPG structure is both functional and readable in moment-to-moment play, without dragging in unnecessary quest-system abstraction before we know the loop is worth deepening.
+- Consequences:
+  Phase 10 can use a small authored objective list, explicit dialogue states, and one tracked-quest HUD summary.
+  Objective progress should persist in the same explicit save model as player, inventory, and interaction state.
+  Broader quest tooling, open-ended concurrent quest management, and richer NPC systems remain future work until this smaller directed loop is validated.

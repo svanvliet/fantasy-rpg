@@ -18,7 +18,7 @@
 | --- | --- | --- |
 | 8 | accepted | Add first-person hands/arms and improve embodiment without breaking carry/interaction feel |
 | 9 | accepted | Add alchemy recipes, item tags, and a station-gated crafting loop |
-| 10 | planned | Add lightweight objectives, dialogue, and one directed NPC/world-purpose flow |
+| 10 | internally_validated | Add lightweight objectives, dialogue, quest tracking, and one directed NPC/world-purpose flow |
 | 11 | planned | Improve asset reuse, GLB integration, and scalable performance instrumentation |
 
 ## Current Known Issues And Constraints
@@ -87,7 +87,7 @@ Acceptance summary:
 - the debug third-person mode was useful for tuning and remains explicitly scoped as a troubleshooting aid rather than a roadmap expansion
 - the prototype now has a strong enough embodiment baseline to move on to alchemy-system depth in Phase 9
 
-## Current Phase
+## Phase 9 Closeout
 
 ### Phase 9: Alchemy Loop and Item-System Depth
 Objective:
@@ -165,6 +165,71 @@ Acceptance summary:
 - Add one scripted objective flow spanning ingredient gathering, brewing, and a return/deposit step.
 - Introduce a minimal dialogue panel and one world-purpose giver or proxy NPC.
 - Persist objective progression through the existing save path.
+
+## Current Phase
+
+### Phase 10: Lightweight Objectives And NPC Scaffolding
+Objective:
+- Add minimal authored structure so the prototype proves directed RPG play rather than only freeform interaction.
+
+Implementation approach:
+- Use a lightweight scripted objective state machine instead of a broader AI or behavior-tree system.
+- Add one dialogue-driven steward proxy who can assign and complete a small authored task list.
+- Build a lightweight quest tracker HUD so active work is visible outside the dialogue panel.
+- Validate one complete loop while also proving that multiple accepted tasks can coexist and one can be explicitly tracked.
+
+Important interfaces:
+- `ObjectiveSystem`
+- `ObjectiveDefinition`
+- `ObjectiveSnapshot`
+- `DialogueSnapshot`
+- `ObjectiveTrackerSnapshot`
+
+Acceptance criteria:
+- a player can accept steward tasks, brew the required mixtures, and complete at least one full turn-in loop
+- a player can have more than one active task and clearly see which one is being tracked
+- dialogue/objective state persists through reload
+- the new directed flow does not destabilize inventory, crafting, or persistence behavior
+
+Current implementation status:
+- `implemented`
+- `internally_validated`
+- `accepted`
+
+Implemented work:
+- added the scripted objective layer in [src/game/objectives/ObjectiveSystem.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/objectives/ObjectiveSystem.ts)
+- added the authored objective definition in [src/game/objectives/prototypeObjectives.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/objectives/prototypeObjectives.ts)
+- added objective and dialogue view types in [src/game/objectives/types.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/objectives/types.ts)
+- added an objective regression suite in [src/game/objectives/ObjectiveSystem.test.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/objectives/ObjectiveSystem.test.ts)
+- added a dialogue panel in [src/ui/dialoguePanel.ts](/Users/svanvliet/repos/fantasy-rpg/src/ui/dialoguePanel.ts)
+- added a HUD quest tracker in [src/ui/objectiveTracker.ts](/Users/svanvliet/repos/fantasy-rpg/src/ui/objectiveTracker.ts)
+- updated [src/game/interactions/InteractionSystem.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/interactions/InteractionSystem.ts) and [src/game/interactions/types.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/interactions/types.ts) to support dialogue interactions and panel gating
+- added a steward world proxy in [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) and [src/game/world/castleInteractables.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/castleInteractables.ts)
+- updated [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) and [src/game/persistence/SaveManager.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/persistence/SaveManager.ts) to wire dialogue/objective state into runtime flow and persistence
+- later extended the Phase 10 work so the steward can expose two authored quests and the player can choose which active task is tracked
+
+Validation checklist:
+- [x] verify `E` on Steward Rowan opens the dialogue panel
+- [x] verify at least two steward quests can be browsed and accepted from the dialogue panel
+- [x] verify the tracker HUD shows the currently tracked active quest
+- [x] verify tracking can be switched when more than one active quest exists
+- [x] verify brewing a requested mixture updates the matching objective so it becomes ready to turn in when the item is in the player pack
+- [x] verify turning in a requested brew completes that objective and consumes the required item
+- [x] verify objective and tracked-quest progress restore correctly after reload, including mid-objective and ready-to-turn-in states
+
+Current findings:
+- the current prototype still does not need a generalized quest framework; a very small authored quest list is enough to validate world-purpose structure and HUD tracking
+- the existing inventory and alchemy systems were already strong enough to support a simple directed loop without introducing separate quest inventories or station-only state
+- a dialogue panel fits the current DOM/CSS UI approach well and gives us a reusable shell for later NPC/world-purpose interactions
+- the debug third-person camera remains strictly a troubleshooting aid and is not being expanded as part of Phase 10
+- playtest feedback on the first steward task showed the core objective loop worked, but also highlighted that the prototype lacked a visible quest tracker, which made the system harder to evaluate moment-to-moment than it should be
+- in response, Phase 10 was extended to support multiple authored steward quests, explicit tracked-quest selection, and a lightweight HUD tracker that stays visible during play
+- final playtest signoff confirmed that accepting, tracking, persisting, and turning in multiple steward quests all work as expected, including mid-quest reload behavior
+
+Acceptance summary:
+- Phase 10 successfully proved that the prototype can support directed RPG play with authored quest structure rather than only freeform systems
+- the steward dialogue, multi-quest objective state, tracked quest HUD, brewing progress, and turn-in flow now form a coherent lightweight quest baseline
+- this gives Phase 11 a cleaner foundation for asset/pipeline hardening without needing to revisit core quest readability first
 
 ## Deferred Backlog
 - third-person camera

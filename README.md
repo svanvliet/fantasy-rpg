@@ -21,6 +21,7 @@ The playable slice currently includes:
 - physically droppable loose items with tuned collision behavior
 - persistence for player position, inventory, containers, collected pickups, and dropped loose items
 - a station-gated alchemy loop with authored recipes and crafted outputs
+- steward dialogue, two authored quests, and a lightweight quest tracker HUD
 - a live lighting slider in the prototype overlay for Phase 6 room-light tuning
 
 ## Tech Stack
@@ -116,9 +117,10 @@ Accepted phases:
 - Phase 7: evaluation build and roadmap rebaseline
 - Phase 8: first-person embodiment and interaction readability
 - Phase 9: alchemy loop and item-system depth
+- Phase 10: lightweight objectives, dialogue, and quest tracking
 
 Current active milestone:
-- Phase 10: lightweight objectives and NPC scaffolding
+- Phase 11: asset reuse, GLB integration, and performance hardening
 
 ## Notes
 
