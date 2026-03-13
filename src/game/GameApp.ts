@@ -3,10 +3,10 @@ import * as THREE from "three";
 
 import { createFixedStepLoop } from "./core/loop";
 import { PlayerController } from "./player/PlayerController";
-import { createDebugRoom } from "./world/createDebugRoom";
+import { createCastleBlockout } from "./world/createCastleBlockout";
 import { createDebugOverlay, type DebugOverlayController } from "../ui/debugOverlay";
 
-const PHASE_LABEL = "Phase 1 - Traversal Foundation";
+const PHASE_LABEL = "Phase 2 - Castle Blockout and Atmosphere";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
@@ -73,8 +73,8 @@ export class GameApp {
     renderer.toneMappingExposure = 1.08;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0b0a08);
-    scene.fog = new THREE.Fog(0x0f0b08, 8, 22);
+    scene.background = new THREE.Color(0x090807);
+    scene.fog = new THREE.Fog(0x0d0a08, 9, 32);
 
     const camera = new THREE.PerspectiveCamera(75, 1, 0.05, 100);
 
@@ -88,7 +88,7 @@ export class GameApp {
     const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
     world.integrationParameters.dt = FIXED_STEP;
 
-    const room = createDebugRoom(scene, world, RAPIER);
+    const room = createCastleBlockout(scene, world, RAPIER);
     const player = new PlayerController({
       camera,
       domElement: renderer.domElement,
@@ -137,7 +137,7 @@ export class GameApp {
 
     this.overlay.setHint(
       playerState.pointerLocked
-        ? "Use WASD to move and Space to jump. Phase 1 is focused on feel and collision stability."
+        ? "Use WASD to move and Space to jump. Phase 2 is focused on traversing the castle slice and reading each room."
         : "Click the scene to capture the mouse. Use WASD to move and Space to jump."
     );
   }
@@ -163,4 +163,3 @@ export class GameApp {
     }
   }
 }
-

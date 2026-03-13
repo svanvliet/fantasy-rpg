@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | 0 | done | Bootstrap the project, docs, toolchain, and runnable app shell |
 | 1 | accepted | Deliver a playable first-person traversal foundation with a debug room |
-| 2 | planned | Replace the debug room with the 3-room castle blockout and establish atmosphere |
+| 2 | accepted | Replace the debug room with the 3-room castle blockout and establish atmosphere |
 | 3 | planned | Add interaction targeting, prompts, pickup/drop behavior, and physical object handling |
 | 4 | planned | Add inventory, containers, transfer rules, and prototype item content |
 | 5 | planned | Add persistence for player, item, and container world state |
@@ -109,12 +109,15 @@ Acceptance criteria:
 - lighting supports atmosphere without hiding critical geometry
 
 Validation checklist:
-- [ ] verify all three rooms connect cleanly with no traversal dead ends
-- [ ] verify bedchamber, storage room, and alchemy room are visually distinguishable by layout and prop language
-- [ ] verify ceilings, walls, and openings read as intentional castle architecture rather than disconnected blockout pieces
-- [ ] verify furniture blockouts do not create unfair snag points during normal traversal
-- [ ] verify lighting creates atmosphere while preserving navigation and object readability
-- [ ] verify performance remains acceptable across the full connected slice
+- [x] verify all three rooms connect cleanly with no traversal dead ends
+- [x] verify bedchamber, storage room, and alchemy room are visually distinguishable by layout and prop language
+- [x] verify ceilings, walls, and openings read as intentional castle architecture rather than disconnected blockout pieces
+- [x] verify furniture blockouts do not create unfair snag points during normal traversal
+- [x] verify lighting creates atmosphere while preserving navigation and object readability
+- [x] verify performance remains acceptable across the full connected slice
+
+Result:
+- accepted after user playtest
 
 ### Phase 3: Interaction Foundation
 Objective:
@@ -185,6 +188,7 @@ Objective:
 Planned changes:
 - Tune movement feel, camera settings, interaction range, prompt timing, and room readability.
 - Replace the roughest placeholders with better prototype-value assets where needed.
+- Add a lighting fidelity pass for interiors using room-level indirect fill strategy, environment/reflection setup, and if warranted a baked-lighting pipeline for static geometry.
 - Add lightweight presentation improvements only after core stability is confirmed.
 
 Acceptance criteria:
@@ -326,6 +330,67 @@ Feedback-driven changes:
 - Reworked horizontal movement so air motion uses persistent velocity with separate ground and air acceleration/deceleration, preserving momentum mid-jump.
 - Replaced the instant landing stop with a short landing-brake deceleration window when there is no movement input.
 - Left the jump/gravity checklist item open for retest after the new controller pass.
+
+### Phase 2 Update
+Status:
+- accepted
+
+Step tracking:
+
+| Step | Status | Goal |
+| --- | --- | --- |
+| 1 | done | Replace the debug room with a three-room castle blockout |
+| 2 | done | Add room-specific furniture silhouettes and traversal constraints |
+| 3 | done | Add Phase 2 lighting, fog, and scene tuning |
+| 4 | done | Validate build, tests, and local boot for the castle slice |
+
+Completed work:
+- replaced the Phase 1 debug chamber with a connected 3-room castle slice
+- built distinct bedchamber, storage, and alchemy spaces with ceilings, partitions, and open passages
+- added room-specific blockout furniture including a bed, foot locker, cabinets, shelves, tables, crates, and an alchemy setup
+- updated the Phase label and overlay messaging for Phase 2
+
+Validation results:
+- `npm run build` passed after the Phase 2 world replacement
+- `npm run test` passed after the Phase 2 world replacement
+- local dev boot succeeded for the castle slice
+- user playtest accepted the Phase 2 checklist items, including architecture readability, traversal, furniture readability, lighting readability, and performance acceptability
+
+Learned / changed:
+- replacing the entire debug room was cleaner than trying to grow the old test arena into the castle layout
+- the current blockout is visually readable through layout, prop silhouette, rugs, and room-local lighting, even before asset imports
+- port `5173` may already be occupied during validation if the user has the game running locally, so alternate local ports are useful for smoke checks
+
+Feedback notes:
+- User feedback: the initial Phase 2 lighting was too sparse and too dark to read all the room elements comfortably.
+- User feedback: even after the first brightness pass, the room lighting still did not feel like a believable Elder Scrolls-style interior, and the table tops visibly floated above the legs.
+- User feedback: after the second pass, the interiors are more readable but still do not feel like the final intended RPG interior lighting target, and the tables are still proportioned too tall.
+- User feedback: tabletop items in the alchemy room were still floating because their placement did not follow the corrected table geometry.
+- User feedback: visible candle meshes on tables were still floating above surfaces, and the alchemy tabletop composition had overlapping props.
+- User feedback: some candle meshes were still clipping into or floating above end tables because candle placement heights were inconsistent across furniture types.
+- User feedback: all Phase 2 checklist items now look good and Phase 2 playtest is complete.
+
+Decisions from feedback:
+- Keep the grounded candle-lit mood, but increase readable local illumination with more candle-style point lights and a slightly stronger ambient/fill base.
+- Add hidden bounce/fill lights and reduce interior fog influence so surfaces read more like a game-lit interior with motivated indirect light instead of only explicit practicals.
+- Fix table construction so support geometry visibly connects to the tabletop.
+- Defer high-fidelity interior lighting to a later polish pass rather than blocking Phase 2 on a full lighting pipeline change.
+- Fix table proportions by lowering the tabletop height to a more believable first-person scale.
+- Anchor tabletop props to the corrected table surface height instead of room-relative placeholder offsets.
+- Anchor decorative candle meshes to the corrected furniture surfaces and give the alchemy tabletop a cleaner prop layout.
+- Standardize candle placement so all candles are surface-anchored and their light sources are offset from a consistent candle body height.
+- Accept the current lighting/readability level for Phase 2 and defer higher-fidelity Skyrim-like interior lighting to the planned later polish pass.
+
+Feedback-driven changes:
+- Added extra candle-style lights near tables, shelves, cabinets, and the alchemy setup.
+- Raised ambient and hemisphere fill slightly so room silhouettes and furniture read more clearly without flattening the scene.
+- Added non-visible bounce/fill lights to simulate indirect room illumination and reduced the strength of interior fogging.
+- Fixed table leg placement and added apron supports so the tabletops no longer float above the legs.
+- Lowered table geometry so tabletops sit at a more believable usable height.
+- Repositioned alchemy bottles and tabletop props to sit on the corrected table surface.
+- Repositioned candle meshes to the corrected table and shelf heights.
+- Spread out the alchemy tabletop props and moved the focal arch so the composition no longer collides visually.
+- Reworked candle placement to use consistent surface-height anchors with a separate flame/light offset above the candle mesh.
 
 ## Current Risks and Watchpoints
 - Rapier character motion may need iteration to reduce jitter around walls, corners, and future denser furniture layouts.
