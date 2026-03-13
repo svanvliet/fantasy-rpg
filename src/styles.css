@@ -88,6 +88,16 @@ canvas {
   accent-color: #c99755;
 }
 
+.debug-control select {
+  width: 100%;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid rgba(255, 220, 170, 0.14);
+  border-radius: 8px;
+  background: rgba(36, 26, 18, 0.92);
+  color: #f4e8d6;
+  font: inherit;
+}
+
 .debug-overlay dt {
   color: #aa9a7e;
 }

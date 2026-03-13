@@ -15,7 +15,7 @@
 | 3 | accepted | Add interaction targeting, prompts, pickup/drop behavior, and physical object handling |
 | 4 | accepted | Add inventory, containers, transfer rules, and prototype item content |
 | 5 | accepted | Add persistence for player, item, and container world state |
-| 6 | in_progress | Tune feel, readability, and prototype polish |
+| 6 | accepted | Tune feel, readability, and prototype polish |
 | 7 | planned | Produce an evaluation build and revise the roadmap from actual findings |
 
 ## Core Implementation Decisions
@@ -218,14 +218,16 @@ Acceptance criteria:
 - atmosphere and usability improve without destabilizing core systems
 
 Validation checklist:
-- [ ] verify movement, camera, and interaction tuning feel more intentional than the prior phase
-- [ ] verify lighting and material adjustments improve mood without harming readability
-- [ ] verify placeholder replacements improve comprehension or atmosphere
-- [ ] verify polish changes do not introduce regressions in traversal or interaction
+- [x] verify movement, camera, and interaction tuning feel more intentional than the prior phase
+- [x] verify lighting and material adjustments improve mood without harming readability
+- [x] verify placeholder replacements improve comprehension or atmosphere
+- [x] verify polish changes do not introduce regressions in traversal or interaction
 
 Current implementation status:
-- `in_progress`
-- initial focus on lighting readability, presentation polish, and low-friction usability improvements
+- `accepted`
+- implemented
+- internally_validated
+- accepted after user playtest
 
 ### Phase 7: Evaluation Build and Rebaseline
 Objective:
@@ -349,10 +351,12 @@ Validation results:
 - [x] `npm run test` passes after the first Phase 6 polish pass
 
 Phase 6 user validation checklist:
-- [ ] Verify the new room lighting feels more intentional and readable than the previous Phase 5 state
-- [ ] Verify the sconces and ceiling beams improve room identity without creating navigation clutter
-- [ ] Verify the overlay and bottom hint still read clearly while feeling less developer-placeholder
-- [ ] Verify Phase 1-5 movement, interaction, inventory, and persistence behavior still work after the presentation changes
+- [x] Verify the new room lighting feels more intentional and readable than the previous Phase 5 state
+- [x] Verify the sconces and ceiling beams improve room identity without creating navigation clutter
+- [x] Verify the overlay and bottom hint still read clearly while feeling less developer-placeholder
+- [x] Verify Phase 1-5 movement, interaction, inventory, and persistence behavior still work after the presentation changes
+- [x] Verify the lighting slider is interactive and useful for tuning room lights
+- [x] Verify the new graphics presets provide prototype-stage performance guardrails without breaking the visual baseline
 
 Feedback / decisions:
 - User feedback on the first Phase 6 pass was that the ceiling beams helped the room, but the cross-beam proportions felt chunky and visually awkward.
@@ -439,6 +443,17 @@ Feedback / decisions:
   [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) now captures direct scene lights again for slider scaling and starts from a slightly brighter default.
   Resolution:
   implemented and awaiting user evaluation.
+- Early MacBook testing showed high GPU use and aggressive fan activity, which is too expensive a baseline even for a prototype.
+  Decision:
+  Add prototype-stage graphics guardrails now: default to lower-power rendering, cap render scale more aggressively, and expose a graphics-quality preset that controls render scale and shadows.
+  Implementation change:
+  [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) now uses a low-power WebGL preference, defaults to a balanced quality preset, and applies quality-based pixel ratio and shadow settings; [src/ui/debugOverlay.ts](/Users/svanvliet/repos/fantasy-rpg/src/ui/debugOverlay.ts) and [src/styles.css](/Users/svanvliet/repos/fantasy-rpg/src/styles.css) now expose a graphics quality control in the overlay.
+  Resolution:
+  accepted.
+
+Phase acceptance summary:
+- User playtest accepted the Phase 6 room-polish pass as a good prototype baseline, including lighting direction, room composition, overlay usability, and laptop-safe graphics guardrails.
+- We intentionally did not pursue a heavier interior-lighting pipeline in this phase; the accepted baseline favors direct-light tuning, clearer room staging, and practical performance controls over a more expensive rendering stack.
 
 Validation results:
 - `npm install` succeeded and created the lockfile

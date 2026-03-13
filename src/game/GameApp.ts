@@ -8,7 +8,11 @@ import { InteractionSystem } from "./interactions/InteractionSystem";
 import { SaveManager } from "./persistence/SaveManager";
 import { PlayerController } from "./player/PlayerController";
 import { createCastleBlockout } from "./world/createCastleBlockout";
-import { createDebugOverlay, type DebugOverlayController } from "../ui/debugOverlay";
+import {
+  createDebugOverlay,
+  type DebugOverlayController,
+  type GraphicsQuality
+} from "../ui/debugOverlay";
 import { createInventoryPanel, type InventoryPanelController } from "../ui/inventoryPanel";
 
 const PHASE_LABEL = "Phase 6 - Feel and Prototype Polish";
@@ -18,6 +22,26 @@ const MAX_SUB_STEPS = 5;
 const PLAYER_AUTOSAVE_INTERVAL = 1.1;
 const DIRTY_SAVE_DELAY = 0.35;
 const DEFAULT_LIGHTING_LEVEL = 0.55;
+const DEFAULT_GRAPHICS_QUALITY: GraphicsQuality = "balanced";
+
+const GRAPHICS_QUALITY_SETTINGS: Record<
+  GraphicsQuality,
+  { pixelRatioCap: number; shadowsEnabled: boolean; shadowType?: THREE.ShadowMapType }
+> = {
+  performance: {
+    pixelRatioCap: 1,
+    shadowsEnabled: false
+  },
+  balanced: {
+    pixelRatioCap: 1.25,
+    shadowsEnabled: false
+  },
+  quality: {
+    pixelRatioCap: 1.5,
+    shadowsEnabled: true,
+    shadowType: THREE.PCFSoftShadowMap
+  }
+};
 
 export class GameApp {
   private readonly mount: HTMLElement;
@@ -41,6 +65,7 @@ export class GameApp {
   private dirtySaveAccumulator = 0;
   private autosaveAccumulator = 0;
   private lightingLevel = DEFAULT_LIGHTING_LEVEL;
+  private graphicsQuality = DEFAULT_GRAPHICS_QUALITY;
 
   private constructor(
     mount: HTMLElement,
@@ -83,6 +108,7 @@ export class GameApp {
     document.addEventListener("visibilitychange", this.handleVisibilityChange);
     window.addEventListener("beforeunload", this.handleBeforeUnload);
 
+    this.setGraphicsQuality(DEFAULT_GRAPHICS_QUALITY);
     this.handleResize();
     this.captureDirectLightState();
     this.setLightingLevel(DEFAULT_LIGHTING_LEVEL);
@@ -93,9 +119,9 @@ export class GameApp {
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
-      powerPreference: "high-performance"
+      powerPreference: "low-power"
     });
-    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = false;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -115,8 +141,12 @@ export class GameApp {
     let app: GameApp | null = null;
     const overlay = createDebugOverlay(shell, {
       initialLightingLevel: DEFAULT_LIGHTING_LEVEL,
+      initialGraphicsQuality: DEFAULT_GRAPHICS_QUALITY,
       onLightingLevelChange: (value) => {
         app?.setLightingLevel(value);
+      },
+      onGraphicsQualityChange: (value) => {
+        app?.setGraphicsQuality(value);
       }
     });
     const inventoryStore = new InventoryStore(ITEM_DEFINITIONS);
@@ -263,12 +293,13 @@ export class GameApp {
   private handleResize(): void {
     const width = this.mount.clientWidth;
     const height = this.mount.clientHeight;
+    const qualitySettings = GRAPHICS_QUALITY_SETTINGS[this.graphicsQuality];
 
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, qualitySettings.pixelRatioCap));
   }
 
   private handleVisibilityChange(): void {
@@ -313,6 +344,18 @@ export class GameApp {
         baseIntensity: light.intensity
       });
     });
+  }
+
+  private setGraphicsQuality(value: GraphicsQuality): void {
+    this.graphicsQuality = value;
+    const qualitySettings = GRAPHICS_QUALITY_SETTINGS[value];
+    this.renderer.shadowMap.enabled = qualitySettings.shadowsEnabled;
+    if (qualitySettings.shadowType) {
+      this.renderer.shadowMap.type = qualitySettings.shadowType;
+    }
+    this.renderer.shadowMap.needsUpdate = true;
+    this.handleResize();
+    this.overlay.setGraphicsQuality(value);
   }
 
   private setLightingLevel(value: number): void {

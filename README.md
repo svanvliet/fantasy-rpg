@@ -74,6 +74,7 @@ npm run test
 - `I` open player inventory
 - `Esc` close inventory or container UI
 - `Lighting` slider in the overlay tunes direct room lights during Phase 6 polish
+- `Graphics` control in the overlay switches between performance, balanced, and quality rendering presets
 
 ## Project Structure
 
@@ -104,9 +105,10 @@ Accepted phases:
 - Phase 3: interaction foundation
 - Phase 4: inventory and containers
 - Phase 5: persistence
+- Phase 6: feel and prototype polish
 
 Current active milestone:
-- Phase 6: feel, lighting, room composition, and prototype polish
+- Phase 7: evaluation build and roadmap rebaseline
 
 ## Notes
 

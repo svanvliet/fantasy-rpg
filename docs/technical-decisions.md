@@ -216,3 +216,16 @@ Statuses:
 - Consequences:
   Phase 6 lighting can be dialed in collaboratively during playtest.
   Once the preferred range stabilizes, we can bake the chosen default back into the scene tuning.
+
+## TD-015: Prototype Defaults Should Favor Laptop-Safe Graphics Baselines
+
+- Status: `accepted`
+- Phase: `6`
+- Date: `2026-03-13`
+- Decision:
+  Default the prototype to lower-power rendering and expose coarse graphics presets that control render scale and shadows.
+- Why:
+  Even at prototype scale, a hot Retina render path with unrestricted quality settings creates a misleading baseline and makes iteration physically unpleasant on laptop hardware.
+- Consequences:
+  Prototype visuals should be evaluated against the `balanced` preset first, not the most expensive possible renderer settings.
+  Render-scale caps and shadow policy are now explicit product decisions for the prototype, not hidden engine defaults.
