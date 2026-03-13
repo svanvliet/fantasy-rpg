@@ -11,12 +11,13 @@ import { createCastleBlockout } from "./world/createCastleBlockout";
 import { createDebugOverlay, type DebugOverlayController } from "../ui/debugOverlay";
 import { createInventoryPanel, type InventoryPanelController } from "../ui/inventoryPanel";
 
-const PHASE_LABEL = "Phase 5 - Persistence";
+const PHASE_LABEL = "Phase 6 - Feel and Prototype Polish";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
 const PLAYER_AUTOSAVE_INTERVAL = 1.1;
 const DIRTY_SAVE_DELAY = 0.35;
+const DEFAULT_LIGHTING_LEVEL = 0.55;
 
 export class GameApp {
   private readonly mount: HTMLElement;
@@ -31,6 +32,7 @@ export class GameApp {
   private readonly interactionSystem: InteractionSystem;
   private readonly saveManager: SaveManager;
   private readonly loop: ReturnType<typeof createFixedStepLoop>;
+  private readonly sceneLights: Array<{ light: THREE.Light; baseIntensity: number }> = [];
 
   private frameCount = 0;
   private fps = 0;
@@ -38,6 +40,7 @@ export class GameApp {
   private saveDirty = false;
   private dirtySaveAccumulator = 0;
   private autosaveAccumulator = 0;
+  private lightingLevel = DEFAULT_LIGHTING_LEVEL;
 
   private constructor(
     mount: HTMLElement,
@@ -81,6 +84,8 @@ export class GameApp {
     window.addEventListener("beforeunload", this.handleBeforeUnload);
 
     this.handleResize();
+    this.captureDirectLightState();
+    this.setLightingLevel(DEFAULT_LIGHTING_LEVEL);
   }
 
   static async create(mount: HTMLElement): Promise<GameApp> {
@@ -107,7 +112,13 @@ export class GameApp {
     shell.append(renderer.domElement);
     mount.append(shell);
 
-    const overlay = createDebugOverlay(shell);
+    let app: GameApp | null = null;
+    const overlay = createDebugOverlay(shell, {
+      initialLightingLevel: DEFAULT_LIGHTING_LEVEL,
+      onLightingLevelChange: (value) => {
+        app?.setLightingLevel(value);
+      }
+    });
     const inventoryStore = new InventoryStore(ITEM_DEFINITIONS);
     const saveManager = new SaveManager(window.localStorage);
     let inventoryPanel!: InventoryPanelController;
@@ -141,7 +152,6 @@ export class GameApp {
       rapier: RAPIER,
       spawnPosition: room.spawnPosition
     });
-    let app: GameApp | null = null;
     interactionSystem = new InteractionSystem({
       camera,
       domElement: renderer.domElement,
@@ -288,5 +298,28 @@ export class GameApp {
     this.saveDirty = false;
     this.dirtySaveAccumulator = 0;
     this.autosaveAccumulator = 0;
+  }
+
+  private captureDirectLightState(): void {
+    this.sceneLights.length = 0;
+    this.scene.traverse((object) => {
+      if (!(object as THREE.Light).isLight) {
+        return;
+      }
+
+      const light = object as THREE.Light;
+      this.sceneLights.push({
+        light,
+        baseIntensity: light.intensity
+      });
+    });
+  }
+
+  private setLightingLevel(value: number): void {
+    this.lightingLevel = value;
+    this.sceneLights.forEach(({ light, baseIntensity }) => {
+      light.intensity = baseIntensity * value;
+    });
+    this.overlay.setLightingLevel(value);
   }
 }

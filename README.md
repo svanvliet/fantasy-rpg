@@ -19,6 +19,8 @@ The playable slice currently includes:
 - inventory and container storage
 - separate storage contents across the foot locker and cabinets
 - physically droppable loose items with tuned collision behavior
+- persistence for player position, inventory, containers, collected pickups, and dropped loose items
+- a live lighting slider in the prototype overlay for Phase 6 room-light tuning
 
 ## Tech Stack
 
@@ -71,6 +73,7 @@ npm run test
 - `Q` release a held item
 - `I` open player inventory
 - `Esc` close inventory or container UI
+- `Lighting` slider in the overlay tunes direct room lights during Phase 6 polish
 
 ## Project Structure
 
@@ -78,6 +81,7 @@ npm run test
 - [src/ui](/Users/svanvliet/repos/fantasy-rpg/src/ui) overlays and UI panels
 - [docs/gdd.md](/Users/svanvliet/repos/fantasy-rpg/docs/gdd.md) high-level game design document
 - [docs/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/implementation-plan.md) master phased roadmap and validation history
+- [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) concise technical and architectural decision log
 
 ## Development Approach
 
@@ -99,9 +103,10 @@ Accepted phases:
 - Phase 2: castle blockout and atmosphere
 - Phase 3: interaction foundation
 - Phase 4: inventory and containers
+- Phase 5: persistence
 
-Next major milestone:
-- Phase 5: persistence for inventory, containers, collected items, and dropped world objects
+Current active milestone:
+- Phase 6: feel, lighting, room composition, and prototype polish
 
 ## Notes
 

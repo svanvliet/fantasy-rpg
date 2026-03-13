@@ -333,6 +333,113 @@ Initial planned work:
 - improve visual hierarchy and material readability on key furniture and room landmarks
 - make small UX/presentation refinements only where they help comprehension
 
+### Phase 6 Update
+Status:
+- in_progress
+- first polish pass implemented
+- awaiting user playtest and follow-up tuning
+
+Implemented work:
+- added wall-sconce practicals and supporting bounce/fill lighting in [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts)
+- added ceiling beams to give each room more architectural rhythm in [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts)
+- refined overlay and hint presentation for a more intentional fantasy tone in [src/styles.css](/Users/svanvliet/repos/fantasy-rpg/src/styles.css)
+
+Validation results:
+- [x] `npm run build` passes after the first Phase 6 polish pass
+- [x] `npm run test` passes after the first Phase 6 polish pass
+
+Phase 6 user validation checklist:
+- [ ] Verify the new room lighting feels more intentional and readable than the previous Phase 5 state
+- [ ] Verify the sconces and ceiling beams improve room identity without creating navigation clutter
+- [ ] Verify the overlay and bottom hint still read clearly while feeling less developer-placeholder
+- [ ] Verify Phase 1-5 movement, interaction, inventory, and persistence behavior still work after the presentation changes
+
+Feedback / decisions:
+- User feedback on the first Phase 6 pass was that the ceiling beams helped the room, but the cross-beam proportions felt chunky and visually awkward.
+  Decision:
+  Keep the beam idea, but rebalance it toward slimmer timber proportions that support room rhythm without dominating the ceiling plane.
+  Implementation change:
+  [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) now uses thinner beam geometry with a subtler profile.
+  Resolution:
+  superseded by a second beam pass.
+- User feedback on the second Phase 6 pass was that one cross beam still read as chonky, did not span cleanly edge to edge, and the sconces still felt visually strange.
+  Decision:
+  Simplify both elements toward stronger silhouette-first forms: thin edge-to-edge ceiling spans and a clearer forged-bracket candle sconce.
+  Implementation change:
+  [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) now uses a thinner full-span beam profile and a simpler wall sconce made from a backplate, arm, cup, candle, and flame.
+  Resolution:
+  partially correct, but follow-up feedback showed the wrong ceiling elements had been tuned.
+- User feedback clarified that the actual problem geometry was the chunky partition lintels over the room openings, while the long ceiling strips were already working. The same feedback also identified a sconce that was visibly floating because it was not mounted on a wall surface.
+  Decision:
+  Tune the partition lintels directly and treat sconce placement as a wall-mounting problem rather than a shape-only problem.
+  Implementation change:
+  [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) now uses slimmer doorway lintels and places sconces on actual wall surfaces with a small mount offset.
+  Resolution:
+  partially correct, with one more geometry correction requested.
+- User feedback clarified that the doorway lintels should span edge to edge across the opening, and that the long ceiling beams should be restored to the thicker first-pass profile instead of staying slimmed down.
+  Decision:
+  Treat the opening lintels and the long ceiling beams as separate elements with different target proportions.
+  Implementation change:
+  [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) now restores the long ceiling beams to their earlier thicker dimensions and widens the partition lintels to span the full opening width.
+  Resolution:
+  fixed and awaiting user retest.
+- User feedback requested that all sconces be removed from their awkward current placements and re-placed only on real wall surfaces, with the candle projecting into the room.
+  Decision:
+  Treat sconces as wall-mounted room lighting, not transitional hallway ornaments.
+  Implementation change:
+  [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) now places sconces flush on outer room walls in a more believable distribution across the castle slice.
+  Resolution:
+  fixed and awaiting user retest.
+- User feedback asked for the rooms to feel more believable through better furniture arrangement, with the bed specifically anchored flush to the wall between the sconces and the foot locker moving with it.
+  Decision:
+  Treat room composition as part of Phase 6 polish, not just decorative placement.
+  Implementation change:
+  [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) now re-stages the bedchamber, storage room, and alchemy room so major furniture pieces sit against walls and read as intentional room groupings.
+  Resolution:
+  partially complete; follow-up composition fixes still needed.
+- User feedback on the alchemy-room layout showed that centering the table on the rug was not enough by itself because some of the surrounding station dressing was left behind, notably the focal arch and nearby table candles.
+  Decision:
+  Treat the alchemy station as a single composed grouping rather than moving only the table mesh.
+  Implementation change:
+  [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) now re-centers the focal arch, nearby table candles, and the main alchemy light around the rug-centered workstation.
+  Resolution:
+  fixed and awaiting user retest.
+- We revisited the earlier lighting research and implemented the practical next step for Three.js interiors: image-based lighting for the PBR materials already in the scene.
+  Decision:
+  Add `RoomEnvironment` + `PMREMGenerator` based environment lighting now, instead of waiting for a heavier baking pipeline.
+  Implementation change:
+  [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) now assigns a generated environment map to `scene.environment`, and [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) now tunes `envMapIntensity` on key materials.
+  Resolution:
+  implemented and awaiting user evaluation.
+- The first environment-lighting pass improved readability but overshot the room brightness.
+  Decision:
+  Add a live lighting slider in the overlay so we can tune light and environment response interactively during Phase 6.
+  Implementation change:
+  [src/ui/debugOverlay.ts](/Users/svanvliet/repos/fantasy-rpg/src/ui/debugOverlay.ts), [src/styles.css](/Users/svanvliet/repos/fantasy-rpg/src/styles.css), and [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) now expose a lighting control that scales direct light intensity and `envMapIntensity`, with a lower default starting level.
+  Resolution:
+  implemented and awaiting user evaluation.
+- The first slider pass still bottomed out too bright, and the overlay itself was initially hard to use because pointer-lock captured the click.
+  Decision:
+  Make the overlay interactive, lower the slider baseline and floor significantly, and make environment-lighting scale more aggressively than direct light on the low end.
+  Implementation change:
+  [src/ui/debugOverlay.ts](/Users/svanvliet/repos/fantasy-rpg/src/ui/debugOverlay.ts) now allows interaction and exposes a `0.05` to `1.15` lighting range with a lower starting value, [src/styles.css](/Users/svanvliet/repos/fantasy-rpg/src/styles.css) now lets the overlay receive pointer events, and [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) now scales `envMapIntensity` quadratically so darker slider values produce meaningfully dimmer rooms.
+  Resolution:
+  implemented and awaiting user evaluation.
+- Playtest feedback showed that even with the slider at its minimum, the IBL pass still made the rooms feel washed out rather than moody and grounded.
+  Decision:
+  Back out the `RoomEnvironment` image-based lighting pass for now and keep the slider focused on direct light tuning only. We can revisit higher-fidelity interior-lighting techniques later without forcing the prototype through a washed-out baseline.
+  Implementation change:
+  [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) no longer assigns a generated environment map to `scene.environment` or scales material `envMapIntensity`, and the lighting slider now tunes only direct scene lights from a slightly higher default baseline.
+  Resolution:
+  implemented and awaiting user evaluation.
+- After the revert, playtest feedback showed the mood was much better, but the rooms were still too dark and the slider no longer changed anything.
+  Decision:
+  Restore direct-light registration for the slider and raise the default lighting baseline modestly without reintroducing the washed-out material lighting path.
+  Implementation change:
+  [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) now captures direct scene lights again for slider scaling and starts from a slightly brighter default.
+  Resolution:
+  implemented and awaiting user evaluation.
+
 Validation results:
 - `npm install` succeeded and created the lockfile
 - `npm run build` succeeded after TypeScript config alignment

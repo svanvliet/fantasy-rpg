@@ -164,3 +164,55 @@ Statuses:
 - Consequences:
   Save writes happen automatically during playtesting.
   Future manual save/load UX should build on this behavior intentionally rather than accidentally fighting it.
+
+## TD-011: Phase 6 Interior Polish Uses Layered Practicals, Fill, and Architectural Rhythm
+
+- Status: `accepted`
+- Phase: `6`
+- Date: `2026-03-12`
+- Decision:
+  Improve interior readability and mood through layered practical lights, hidden bounce/fill, and stronger architectural/furniture silhouettes before attempting any heavier baked-lighting pipeline.
+- Why:
+  This gives us a meaningful visual upgrade inside the current prototype constraints without stalling Phase 6 on a more expensive lighting toolchain.
+- Consequences:
+  Phase 6 lighting work should favor deliberate room composition and hierarchy first.
+  If we later add baked lighting, it should be an explicit enhancement to this strategy rather than a replacement for basic room readability.
+
+## TD-012: Room Composition Should Be Anchored to Architecture
+
+- Status: `accepted`
+- Phase: `6`
+- Date: `2026-03-12`
+- Decision:
+  Major furniture should be staged relative to walls, openings, and room functions rather than distributed evenly through open floor area.
+- Why:
+  Believable room layout depends as much on composition as on prop count or lighting. Anchoring furniture to architecture makes the prototype read more like intentional interior design and less like scattered blockout pieces.
+- Consequences:
+  Future room polish should prefer wall-based staging, stronger focal groupings, and clearer circulation space.
+  Prop moves that improve believability are architectural decisions and should be documented, not treated as incidental cosmetic edits.
+
+## TD-013: Phase 6 Uses RoomEnvironment-Based IBL for Interior Readability
+
+- Status: `revised`
+- Phase: `6`
+- Date: `2026-03-12`
+- Decision:
+  We tested Three.js `RoomEnvironment` and `PMREMGenerator` for interior image-based lighting, but reverted that pass for the current prototype baseline.
+- Why:
+  In practice, the result made the rooms feel washed out and too broadly lit for the grounded indoor mood we want, even after adding a live tuning slider.
+- Consequences:
+  Phase 6 now returns to direct-light hierarchy as the active baseline.
+  Higher-fidelity interior lighting remains a future option, but it should come back only with a more intentional pipeline such as baked lighting, probes, or a room-by-room material pass.
+
+## TD-014: Phase 6 Exposes Lighting Tuning in the Overlay
+
+- Status: `accepted`
+- Phase: `6`
+- Date: `2026-03-12`
+- Decision:
+  Expose a lighting-level slider in the overlay that scales the room's direct light intensities.
+- Why:
+  Lighting feel is still being tuned interactively, and a live control is faster and more reliable than repeatedly hardcoding guesses.
+- Consequences:
+  Phase 6 lighting can be dialed in collaboratively during playtest.
+  Once the preferred range stabilizes, we can bake the chosen default back into the scene tuning.

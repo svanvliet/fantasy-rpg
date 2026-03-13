@@ -7,12 +7,21 @@ export interface DebugOverlayMetrics {
   target: string;
 }
 
+export interface DebugOverlayOptions {
+  initialLightingLevel?: number;
+  onLightingLevelChange?: (value: number) => void;
+}
+
 export interface DebugOverlayController {
   setMetrics(metrics: DebugOverlayMetrics): void;
   setHint(message: string): void;
+  setLightingLevel(value: number): void;
 }
 
-export function createDebugOverlay(parent: HTMLElement): DebugOverlayController {
+export function createDebugOverlay(
+  parent: HTMLElement,
+  options: DebugOverlayOptions = {}
+): DebugOverlayController {
   const overlay = document.createElement("aside");
   overlay.className = "debug-overlay";
   overlay.innerHTML = `
@@ -25,6 +34,11 @@ export function createDebugOverlay(parent: HTMLElement): DebugOverlayController 
       <dt>Pointer Lock</dt><dd data-key="pointerLock"></dd>
       <dt>Target</dt><dd data-key="target"></dd>
     </dl>
+    <div class="debug-control">
+      <label for="lighting-level">Lighting</label>
+      <input id="lighting-level" type="range" min="0.05" max="1.15" step="0.01" />
+      <span data-key="lightingLevel"></span>
+    </div>
   `;
 
   const reticle = document.createElement("div");
@@ -44,6 +58,22 @@ export function createDebugOverlay(parent: HTMLElement): DebugOverlayController 
     }
   });
 
+  const lightingSlider = overlay.querySelector<HTMLInputElement>("#lighting-level")!;
+  const initialLightingLevel = options.initialLightingLevel ?? 0.25;
+  lightingSlider.value = initialLightingLevel.toFixed(2);
+  fields.get("lightingLevel")!.textContent = initialLightingLevel.toFixed(2);
+  overlay.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+  });
+  overlay.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+  lightingSlider.addEventListener("input", () => {
+    const nextValue = Number(lightingSlider.value);
+    fields.get("lightingLevel")!.textContent = nextValue.toFixed(2);
+    options.onLightingLevelChange?.(nextValue);
+  });
+
   return {
     setMetrics(metrics) {
       fields.get("phase")!.textContent = metrics.phase;
@@ -55,6 +85,10 @@ export function createDebugOverlay(parent: HTMLElement): DebugOverlayController 
     },
     setHint(message) {
       hint.textContent = message;
+    },
+    setLightingLevel(value) {
+      lightingSlider.value = value.toFixed(2);
+      fields.get("lightingLevel")!.textContent = value.toFixed(2);
     }
   };
 }

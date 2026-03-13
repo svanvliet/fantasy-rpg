@@ -1,9 +1,9 @@
 :root {
   color-scheme: dark;
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-family: "Palatino Linotype", "Book Antiqua", "Iowan Old Style", serif;
   background:
-    radial-gradient(circle at top, rgba(108, 82, 39, 0.28), transparent 45%),
-    linear-gradient(180deg, #191410 0%, #0e0c0a 100%);
+    radial-gradient(circle at top, rgba(159, 111, 49, 0.18), transparent 42%),
+    linear-gradient(180deg, #1d1612 0%, #0d0b09 100%);
   color: #f0e7da;
 }
 
@@ -39,20 +39,22 @@ canvas {
   left: 1rem;
   min-width: 18rem;
   padding: 0.85rem 1rem;
-  border: 1px solid rgba(255, 235, 205, 0.18);
+  border: 1px solid rgba(255, 220, 170, 0.18);
   border-radius: 14px;
-  background: rgba(15, 12, 9, 0.74);
+  background:
+    linear-gradient(180deg, rgba(22, 16, 12, 0.84), rgba(11, 9, 7, 0.8)),
+    radial-gradient(circle at top left, rgba(170, 116, 58, 0.14), transparent 48%);
   backdrop-filter: blur(10px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
-  pointer-events: none;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.32);
+  pointer-events: auto;
 }
 
 .debug-overlay h1 {
   margin: 0 0 0.75rem;
-  font-size: 0.95rem;
-  letter-spacing: 0.08em;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #d7bf91;
+  color: #dfc18e;
 }
 
 .debug-overlay dl {
@@ -61,6 +63,29 @@ canvas {
   gap: 0.4rem 0.8rem;
   margin: 0;
   font-size: 0.82rem;
+}
+
+.debug-control {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.55rem;
+  align-items: center;
+  margin-top: 0.9rem;
+  font-size: 0.8rem;
+}
+
+.debug-control label {
+  color: #aa9a7e;
+}
+
+.debug-control span {
+  color: #f8f1e7;
+  font-variant-numeric: tabular-nums;
+}
+
+.debug-control input[type="range"] {
+  width: 100%;
+  accent-color: #c99755;
 }
 
 .debug-overlay dt {
@@ -111,14 +136,18 @@ canvas {
   left: 50%;
   transform: translateX(-50%);
   max-width: 30rem;
-  padding: 0.8rem 1rem;
+  padding: 0.85rem 1.15rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 235, 205, 0.12);
-  background: rgba(20, 15, 11, 0.8);
+  border: 1px solid rgba(255, 220, 170, 0.12);
+  background:
+    linear-gradient(180deg, rgba(31, 21, 15, 0.86), rgba(18, 12, 9, 0.82)),
+    radial-gradient(circle at top, rgba(191, 137, 74, 0.12), transparent 52%);
   color: #f4e6d0;
   font-size: 0.9rem;
+  line-height: 1.35;
   text-align: center;
   pointer-events: none;
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
 }
 
 .inventory-panel {
@@ -153,7 +182,7 @@ canvas {
 
 .inventory-header h1 {
   margin: 0.15rem 0 0;
-  font-size: 1.7rem;
+  font-size: 1.85rem;
   color: #f5ead9;
 }
 
