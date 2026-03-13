@@ -1,231 +1,134 @@
-# Technical Decision Log
+# Active Technical Decisions
 
-This document is the compact architectural memory for the prototype.
+## Continuity Summary
+- This is the compact working decision log for the next phase cycle.
+- It carries forward only the active technical constraints that still shape implementation after Phases 1-7.
+- Historical detail, superseded reasoning, and phase-by-phase evolution live in the archive.
+- The evaluation report is the bridge between the archived prototype cycle and the next roadmap.
+- Update this file only when a decision changes how future work must be implemented.
 
-Use it to capture material technical decisions without forcing a future reader to reconstruct intent from code diffs, playtest notes, or long phase history.
-
-## How We Use This Log
-
-- Record decisions that change how the project is structured, how systems interact, or what constraints future work should assume.
-- Keep entries short and high-signal.
-- Prefer updating an existing entry when a decision evolves instead of scattering the same decision across multiple docs.
-- Use the implementation plan for phase progress and validation history.
-- Use this file for stable architectural context and the reasoning behind it.
-
-## Entry Format
-
-Each decision should include:
-- `ID`
-- `Status`
-- `Phase`
-- `Date`
-- `Decision`
-- `Why`
-- `Consequences`
-
-Statuses:
-- `accepted`
-- `superseded`
-- `in_progress`
-- `deferred`
-
----
+## References
+- Archived technical decisions: [docs/archive/2026-03-13-phase-0-7/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-13-phase-0-7/technical-decisions.md)
+- Archived implementation history: [docs/archive/2026-03-13-phase-0-7/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-13-phase-0-7/implementation-plan.md)
+- Current evaluation summary: [docs/evaluation-report.md](/Users/svanvliet/repos/fantasy-rpg/docs/evaluation-report.md)
 
 ## TD-001: Browser-First Runtime Stack
 
 - Status: `accepted`
-- Phase: `0`
-- Date: `2026-03-12`
+- Active since: `Phase 0`
 - Decision:
-  Build the prototype as a browser-first TypeScript app using `Vite`, `Three.js`, and `@dimforge/rapier3d-compat`.
+  Keep the prototype browser-first using `Vite`, `Three.js`, and `@dimforge/rapier3d-compat`.
 - Why:
-  We want the fastest path to a shareable first-person prototype across web, Mac, and PC, with modern browser delivery as the first validation target.
+  The current vertical slice has already validated the browser-first delivery path as the fastest way to iterate and share.
 - Consequences:
-  We optimize for desktop browser iteration first.
-  Native packaging is deferred until the browser slice proves the core loop.
+  New features should preserve desktop-browser operability as the primary validation target.
 
-## TD-002: UI Uses Plain DOM/CSS, Not a Frontend Framework
+## TD-002: UI Uses Plain DOM/CSS
 
 - Status: `accepted`
-- Phase: `0`
-- Date: `2026-03-12`
+- Active since: `Phase 0`
 - Decision:
-  Keep HUD, debug UI, inventory, and container panels in plain DOM/CSS instead of introducing React or another UI framework.
+  Keep HUD, inventory, dialogue, and other prototype UI in plain DOM/CSS rather than introducing a frontend framework.
 - Why:
-  The prototype needs low-friction iteration on runtime systems more than a complex UI stack.
+  The project is still optimizing for rapid systems iteration over UI-framework complexity.
 - Consequences:
-  UI logic stays lightweight and colocated with the game shell.
-  If UI complexity grows later, we can revisit this decision with actual prototype pressure rather than assumptions.
+  New interface work should fit the current lightweight UI stack unless a later phase proves that constraint untenable.
 
-## TD-003: Central Runtime Composition Through `GameApp`
+## TD-003: `GameApp` Remains the Composition Root
 
 - Status: `accepted`
-- Phase: `1`
-- Date: `2026-03-12`
+- Active since: `Phase 1`
 - Decision:
-  `GameApp` owns boot, renderer, scene, camera, main loop, and top-level system composition.
+  Keep `GameApp` as the central boot and orchestration layer for renderer, scene, loop, player, interaction, inventory, and persistence systems.
 - Why:
-  A single composition root keeps the prototype understandable while the system count is still small.
+  The current system scale is still small enough that a single composition root is the clearest structure.
 - Consequences:
-  Cross-system wiring is easy to follow.
-  If the project becomes materially larger, we may need to split orchestration responsibilities more aggressively.
+  New major systems should integrate through `GameApp` unless the next phase explicitly introduces a new orchestration boundary.
 
-## TD-004: Fixed-Step Simulation With Separate Render
+## TD-004: Fixed-Step Simulation Is the Baseline
 
 - Status: `accepted`
-- Phase: `1`
-- Date: `2026-03-12`
+- Active since: `Phase 1`
 - Decision:
-  Use a fixed-step update loop for gameplay and physics, with rendering kept separate.
+  Continue using fixed-step updates for gameplay and physics with rendering kept separate.
 - Why:
-  Movement, collision, and object handling feel more stable with a fixed simulation step.
+  Movement, carry behavior, and persistence-sensitive world interaction already rely on this stability.
 - Consequences:
-  Physics tuning is more predictable.
-  Runtime systems should be written with deterministic fixed-step updates in mind.
+  New gameplay systems should be authored with fixed-step assumptions in mind.
 
-## TD-005: First-Person Interaction Input Split
+## TD-005: First-Person Interaction Input Split Is Stable
 
 - Status: `accepted`
-- Phase: `3-4`
-- Date: `2026-03-12`
+- Active since: `Phases 3-4`
 - Decision:
-  Use:
-  `E` for interact/take/stow,
-  `F` for physical hold/carry,
-  `Q` for release/drop,
-  `I` for inventory.
+  Keep `E` for interact/take/stow, `F` for hold/carry, `Q` for release/drop, and `I` for inventory.
 - Why:
-  This keeps direct inventory actions separate from physical manipulation and avoids overloaded interaction behavior.
+  This input model has already been validated through playtest and supports a clear distinction between inventory actions and physical manipulation.
 - Consequences:
-  The interaction model is easier to reason about during prototyping.
-  If we later move toward a single contextual action model, that should be treated as an intentional polish-phase change rather than an ad hoc remap.
+  New embodiment, crafting, and dialogue features should respect this mapping unless a future phase explicitly redesigns input.
 
-## TD-006: Holdable and Stowable Are Separate Capabilities
+## TD-006: Holdable And Stowable Are Separate Capabilities
 
 - Status: `accepted`
-- Phase: `4`
-- Date: `2026-03-12`
+- Active since: `Phase 4`
 - Decision:
-  Item definitions distinguish `stowable` from general physical interaction.
+  Continue treating holdability and stowability as separate item capabilities.
 - Why:
-  We expect future props that can be moved in the world but should not be pocketed.
+  The next phases will likely add props and station interactions that can be manipulated physically without belonging in inventory.
 - Consequences:
-  Inventory logic should never assume that all physically interactive props are inventory items.
-  Future world props can participate in carry physics without entering the inventory loop.
+  New items and props should not assume that all interactable things are inventory items.
 
-## TD-007: Inventory and Containers Are Data-Driven
+## TD-007: Physical Carry Uses A Reticle-Anchored Model
 
 - Status: `accepted`
-- Phase: `4`
-- Date: `2026-03-12`
+- Active since: `Phase 3`
 - Decision:
-  Keep item definitions and initial container contents in prototype content data instead of hardcoding behavior into UI or interaction logic.
+  Preserve the reticle-anchored soft-follow carry model and pickup orientation behavior as the gameplay authority for held objects.
 - Why:
-  This makes it easier to tune the prototype loop and later swap content without rewriting systems.
+  This is one of the strongest validated parts of the current prototype feel.
 - Consequences:
-  Content additions should usually start in data definitions.
-  Save/restore systems can serialize item ids and quantities instead of bespoke object state per item type.
+  First-person hands/arms in Phase 8 must present this behavior, not replace it.
 
-## TD-008: Physical Carry Uses a Reticle-Anchored Soft Follow
+## TD-008: Persistence Stays Local And Explicit
 
 - Status: `accepted`
-- Phase: `3`
-- Date: `2026-03-12`
+- Active since: `Phase 5`
 - Decision:
-  Held props preserve pickup orientation, anchor to the grabbed point under the reticle, and move by soft-following depth toward the carry distance.
+  Keep persistence in browser local storage with explicit save structure for player, inventory, containers, collected pickups, and loose world items.
 - Why:
-  This produced a more natural first-person manipulation feel than snapping to a canned orientation or locking the object rigidly to camera space.
+  This is sufficient for the prototype goals and already validated.
 - Consequences:
-  Carry behavior is closer to diegetic object handling than inventory abstraction.
-  Future hand/arm rendering should respect this carry anchor model rather than replacing it blindly.
+  New systems such as crafting outcomes, dialogue/objective state, and NPC/world scripts should integrate into the same explicit save model.
 
-## TD-009: Phase 5 Persistence Uses Local Browser Storage
+## TD-009: Direct-Light Hierarchy Is The Active Interior-Lighting Baseline
 
 - Status: `accepted`
-- Phase: `5`
-- Date: `2026-03-12`
+- Active since: `Phase 6`
 - Decision:
-  Persist prototype state to browser local storage with a versioned save payload covering player state, inventory, containers, collected pickups, and loose world items.
+  Keep direct-light tuning, room composition, and practical lighting as the active interior baseline rather than reintroducing the reverted IBL approach.
 - Why:
-  This is the fastest way to validate persistence behavior without introducing backend or platform-specific save infrastructure.
+  The reverted environment-lighting pass washed out the mood and did not hold up in playtest.
 - Consequences:
-  Saves are single-device and browser-local for now.
-  The save format should stay explicit and versioned so it can evolve safely as the prototype grows.
+  Future lighting work should treat heavier interior-lighting solutions as a deliberate new phase, not an implicit default.
 
-## TD-010: Persistence Uses Debounced Autosave Plus Lifecycle Flushes
+## TD-010: Balanced Graphics Preset Is The Evaluation Baseline
 
 - Status: `accepted`
-- Phase: `5`
-- Date: `2026-03-12`
+- Active since: `Phase 6`
 - Decision:
-  Save world state shortly after meaningful changes and also flush state on page hide and unload.
+  Treat the `balanced` graphics preset as the default evaluation mode for future playtests.
 - Why:
-  This keeps the prototype resilient to reloads without forcing the player to use a manual save flow during systems validation.
+  It provides laptop-safe rendering behavior without collapsing the visual baseline.
 - Consequences:
-  Save writes happen automatically during playtesting.
-  Future manual save/load UX should build on this behavior intentionally rather than accidentally fighting it.
+  New rendering or embodiment work should be judged first against the balanced preset, not the quality preset.
 
-## TD-011: Phase 6 Interior Polish Uses Layered Practicals, Fill, and Architectural Rhythm
+## TD-011: Post-Prototype Priorities Favor First-Person Depth Before Scope Expansion
 
 - Status: `accepted`
-- Phase: `6`
-- Date: `2026-03-12`
+- Active since: `Phase 7`
 - Decision:
-  Improve interior readability and mood through layered practical lights, hidden bounce/fill, and stronger architectural/furniture silhouettes before attempting any heavier baked-lighting pipeline.
+  Prioritize first-person embodiment, alchemy/item-system depth, and lightweight world-purpose systems before third-person support or heavier rendering expansion.
 - Why:
-  This gives us a meaningful visual upgrade inside the current prototype constraints without stalling Phase 6 on a more expensive lighting toolchain.
+  The engine direction is already validated; the largest remaining gaps are now gameplay depth and embodied interaction.
 - Consequences:
-  Phase 6 lighting work should favor deliberate room composition and hierarchy first.
-  If we later add baked lighting, it should be an explicit enhancement to this strategy rather than a replacement for basic room readability.
-
-## TD-012: Room Composition Should Be Anchored to Architecture
-
-- Status: `accepted`
-- Phase: `6`
-- Date: `2026-03-12`
-- Decision:
-  Major furniture should be staged relative to walls, openings, and room functions rather than distributed evenly through open floor area.
-- Why:
-  Believable room layout depends as much on composition as on prop count or lighting. Anchoring furniture to architecture makes the prototype read more like intentional interior design and less like scattered blockout pieces.
-- Consequences:
-  Future room polish should prefer wall-based staging, stronger focal groupings, and clearer circulation space.
-  Prop moves that improve believability are architectural decisions and should be documented, not treated as incidental cosmetic edits.
-
-## TD-013: Phase 6 Uses RoomEnvironment-Based IBL for Interior Readability
-
-- Status: `revised`
-- Phase: `6`
-- Date: `2026-03-12`
-- Decision:
-  We tested Three.js `RoomEnvironment` and `PMREMGenerator` for interior image-based lighting, but reverted that pass for the current prototype baseline.
-- Why:
-  In practice, the result made the rooms feel washed out and too broadly lit for the grounded indoor mood we want, even after adding a live tuning slider.
-- Consequences:
-  Phase 6 now returns to direct-light hierarchy as the active baseline.
-  Higher-fidelity interior lighting remains a future option, but it should come back only with a more intentional pipeline such as baked lighting, probes, or a room-by-room material pass.
-
-## TD-014: Phase 6 Exposes Lighting Tuning in the Overlay
-
-- Status: `accepted`
-- Phase: `6`
-- Date: `2026-03-12`
-- Decision:
-  Expose a lighting-level slider in the overlay that scales the room's direct light intensities.
-- Why:
-  Lighting feel is still being tuned interactively, and a live control is faster and more reliable than repeatedly hardcoding guesses.
-- Consequences:
-  Phase 6 lighting can be dialed in collaboratively during playtest.
-  Once the preferred range stabilizes, we can bake the chosen default back into the scene tuning.
-
-## TD-015: Prototype Defaults Should Favor Laptop-Safe Graphics Baselines
-
-- Status: `accepted`
-- Phase: `6`
-- Date: `2026-03-13`
-- Decision:
-  Default the prototype to lower-power rendering and expose coarse graphics presets that control render scale and shadows.
-- Why:
-  Even at prototype scale, a hot Retina render path with unrestricted quality settings creates a misleading baseline and makes iteration physically unpleasant on laptop hardware.
-- Consequences:
-  Prototype visuals should be evaluated against the `balanced` preset first, not the most expensive possible renderer settings.
-  Render-scale caps and shadow policy are now explicit product decisions for the prototype, not hidden engine defaults.
+  Near-term phases should deepen the current loop rather than broadening feature scope prematurely.

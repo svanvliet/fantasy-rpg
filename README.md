@@ -81,8 +81,10 @@ npm run test
 - [src/game](/Users/svanvliet/repos/fantasy-rpg/src/game) runtime systems
 - [src/ui](/Users/svanvliet/repos/fantasy-rpg/src/ui) overlays and UI panels
 - [docs/gdd.md](/Users/svanvliet/repos/fantasy-rpg/docs/gdd.md) high-level game design document
-- [docs/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/implementation-plan.md) master phased roadmap and validation history
-- [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) concise technical and architectural decision log
+- [docs/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/implementation-plan.md) active roadmap for the current phase cycle
+- [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) active technical constraints for the current phase cycle
+- [docs/evaluation-report.md](/Users/svanvliet/repos/fantasy-rpg/docs/evaluation-report.md) current vertical-slice evaluation and roadmap rebaseline
+- [docs/archive/2026-03-13-phase-0-7](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-13-phase-0-7) archived Phase 0-7 planning history and technical decisions
 
 ## Development Approach
 
@@ -96,6 +98,7 @@ This repo follows a phased implementation model:
 - Phase 7: evaluation build and roadmap rebaseline
 
 We record implementation progress, feedback, design decisions, validation checklists, and acceptance status in the implementation plan instead of keeping that process separate from the code.
+Older planning history is archived once a phase cycle closes so the active docs stay compact.
 
 ## Current Status
 
@@ -106,9 +109,10 @@ Accepted phases:
 - Phase 4: inventory and containers
 - Phase 5: persistence
 - Phase 6: feel and prototype polish
+- Phase 7: evaluation build and roadmap rebaseline
 
 Current active milestone:
-- Phase 7: evaluation build and roadmap rebaseline
+- Phase 8: first-person embodiment and interaction readability
 
 ## Notes
 
