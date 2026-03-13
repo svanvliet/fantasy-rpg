@@ -2,6 +2,8 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
 
 import { createFixedStepLoop } from "./core/loop";
+import { AlchemySystem } from "./alchemy/AlchemySystem";
+import { ALCHEMY_RECIPES, ALCHEMY_STATION_TITLE } from "./alchemy/prototypeRecipes";
 import { InventoryStore } from "./inventory/InventoryStore";
 import { CONTAINER_SEEDS, ITEM_DEFINITIONS } from "./inventory/prototypeContent";
 import { InteractionSystem } from "./interactions/InteractionSystem";
@@ -14,9 +16,10 @@ import {
   type DebugOverlayController,
   type GraphicsQuality
 } from "../ui/debugOverlay";
+import { createAlchemyPanel, type AlchemyPanelController } from "../ui/alchemyPanel";
 import { createInventoryPanel, type InventoryPanelController } from "../ui/inventoryPanel";
 
-const PHASE_LABEL = "Phase 8 - First-Person Embodiment and Interaction Readability";
+const PHASE_LABEL = "Phase 9 - Alchemy Loop and Item-System Depth";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
@@ -24,6 +27,12 @@ const PLAYER_AUTOSAVE_INTERVAL = 1.1;
 const DIRTY_SAVE_DELAY = 0.35;
 const DEFAULT_LIGHTING_LEVEL = 0.55;
 const DEFAULT_GRAPHICS_QUALITY: GraphicsQuality = "balanced";
+const DEBUG_REAGENT_RESTOCK = [
+  { itemId: "bittermoss-extract", quantity: 2 },
+  { itemId: "moonwater-vial", quantity: 2 },
+  { itemId: "emberflower-oil", quantity: 2 },
+  { itemId: "golden-resin-tonic", quantity: 2 }
+] as const;
 
 const GRAPHICS_QUALITY_SETTINGS: Record<
   GraphicsQuality,
@@ -52,6 +61,7 @@ export class GameApp {
   private readonly world: RAPIER.World;
   private readonly overlay: DebugOverlayController;
   private readonly inventoryPanel: InventoryPanelController;
+  private readonly alchemyPanel: AlchemyPanelController;
   private readonly inventoryStore: InventoryStore;
   private readonly player: PlayerController;
   private readonly interactionSystem: InteractionSystem;
@@ -68,6 +78,7 @@ export class GameApp {
   private autosaveAccumulator = 0;
   private lightingLevel = DEFAULT_LIGHTING_LEVEL;
   private graphicsQuality = DEFAULT_GRAPHICS_QUALITY;
+  private resettingProgress = false;
 
   private constructor(
     mount: HTMLElement,
@@ -77,6 +88,7 @@ export class GameApp {
     world: RAPIER.World,
     overlay: DebugOverlayController,
     inventoryPanel: InventoryPanelController,
+    alchemyPanel: AlchemyPanelController,
     inventoryStore: InventoryStore,
     player: PlayerController,
     interactionSystem: InteractionSystem,
@@ -90,6 +102,7 @@ export class GameApp {
     this.world = world;
     this.overlay = overlay;
     this.inventoryPanel = inventoryPanel;
+    this.alchemyPanel = alchemyPanel;
     this.inventoryStore = inventoryStore;
     this.player = player;
     this.interactionSystem = interactionSystem;
@@ -152,11 +165,19 @@ export class GameApp {
       },
       onGraphicsQualityChange: (value) => {
         app?.setGraphicsQuality(value);
+      },
+      onResetProgress: () => {
+        app?.resetProgress();
+      },
+      onRestockReagents: () => {
+        app?.restockReagents();
       }
     });
     const inventoryStore = new InventoryStore(ITEM_DEFINITIONS);
+    const alchemySystem = new AlchemySystem(inventoryStore, ALCHEMY_RECIPES, ALCHEMY_STATION_TITLE);
     const saveManager = new SaveManager(window.localStorage);
     let inventoryPanel!: InventoryPanelController;
+    let alchemyPanel!: AlchemyPanelController;
     let interactionSystem!: InteractionSystem;
     CONTAINER_SEEDS.forEach((container) => {
       inventoryStore.registerContainer(container.id, container.title, container.items);
@@ -173,6 +194,18 @@ export class GameApp {
       },
       onTransferContainerToPlayer: (containerId, itemId, quantity) => {
         inventoryStore.transferContainerToPlayer(containerId, itemId, quantity);
+      }
+    });
+    alchemyPanel = createAlchemyPanel(shell, {
+      onClose: () => {
+        interactionSystem.closeAlchemyPanel();
+      },
+      onCraft: (recipeId) => {
+        const result = alchemySystem.craft(recipeId);
+        if (result.success) {
+          app?.queueSave();
+        }
+        return result;
       }
     });
 
@@ -198,6 +231,7 @@ export class GameApp {
       interactables: room.interactables,
       inventoryStore,
       inventoryPanel,
+      alchemyPanel,
       onStateDirty: () => {
         app?.queueSave();
       }
@@ -214,9 +248,11 @@ export class GameApp {
     }
     inventoryStore.subscribe(() => {
       inventoryPanel.sync(inventoryStore.getSnapshot());
+      alchemyPanel.sync(alchemySystem.getSnapshot());
       app?.queueSave();
     });
     inventoryPanel.sync(inventoryStore.getSnapshot());
+    alchemyPanel.sync(alchemySystem.getSnapshot());
 
     overlay.setMetrics({
       camera: "first_person",
@@ -236,6 +272,7 @@ export class GameApp {
       world,
       overlay,
       inventoryPanel,
+      alchemyPanel,
       inventoryStore,
       player,
       interactionSystem,
@@ -251,7 +288,7 @@ export class GameApp {
   }
 
   private update(deltaSeconds: number): void {
-    if (this.inventoryPanel.isOpen()) {
+    if (this.inventoryPanel.isOpen() || this.alchemyPanel.isOpen()) {
       this.player.clearTransientInput();
     } else {
       this.player.update(deltaSeconds);
@@ -291,6 +328,8 @@ export class GameApp {
     this.overlay.setHint(
       this.inventoryPanel.isOpen()
         ? "Inventory open. Move items with the panel, press I or Escape to close, and use Drop 1 to place items back into the world."
+        : this.alchemyPanel.isOpen()
+          ? "Alchemy open. Brew using ingredients from your pack, then press Escape to close the station."
         : playerState.pointerLocked
           ? interactionState.prompt || "Use E to interact, F to hold, I to open inventory, Q to release a held item, and V to toggle camera."
           : "Click the scene to capture the mouse. Use WASD to move, Space to jump, I to open inventory, and V to toggle camera."
@@ -326,12 +365,18 @@ export class GameApp {
 
   private handleVisibilityChange(): void {
     if (document.hidden) {
+      if (this.resettingProgress) {
+        return;
+      }
       this.player.clearTransientInput();
       this.persistState();
     }
   }
 
   private handleBeforeUnload(): void {
+    if (this.resettingProgress) {
+      return;
+    }
     this.persistState();
   }
 
@@ -341,6 +386,9 @@ export class GameApp {
   }
 
   private persistState(): void {
+    if (this.resettingProgress) {
+      return;
+    }
     this.saveManager.save({
       version: 1,
       savedAt: new Date().toISOString(),
@@ -386,5 +434,22 @@ export class GameApp {
       light.intensity = baseIntensity * value;
     });
     this.overlay.setLightingLevel(value);
+  }
+
+  private resetProgress(): void {
+    this.resettingProgress = true;
+    this.saveDirty = false;
+    this.dirtySaveAccumulator = 0;
+    this.autosaveAccumulator = 0;
+    this.saveManager.clear();
+    window.location.reload();
+  }
+
+  private restockReagents(): void {
+    this.inventoryStore.addManyToPlayer([...DEBUG_REAGENT_RESTOCK]);
+    if (this.alchemyPanel.isOpen()) {
+      this.alchemyPanel.setStatus("Added fresh reagents to your pack.", "success");
+    }
+    this.queueSave();
   }
 }

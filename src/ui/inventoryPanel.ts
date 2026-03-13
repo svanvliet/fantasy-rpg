@@ -44,7 +44,7 @@ function renderInventoryList(
               <li class="inventory-row">
                 <div class="inventory-entry-copy">
                   <strong>${entry.label}</strong>
-                  <span>${entry.quantity} / ${entry.maxStack}</span>
+                  <span>${renderStackLabel(entry)}</span>
                   ${entry.description ? `<small>${entry.description}</small>` : ""}
                 </div>
                 <div class="inventory-actions">${controls(entry)}</div>
@@ -55,6 +55,17 @@ function renderInventoryList(
       </ul>
     </section>
   `;
+}
+
+function renderStackLabel(entry: InventoryEntryView): string {
+  if (entry.stackQuantities.length <= 1) {
+    return `${entry.quantity} / ${entry.maxStack}`;
+  }
+
+  const stackSummary = entry.stackQuantities
+    .map((quantity) => `${quantity}/${entry.maxStack}`)
+    .join(" + ");
+  return `${entry.quantity} total · stacks ${stackSummary}`;
 }
 
 export function createInventoryPanel(

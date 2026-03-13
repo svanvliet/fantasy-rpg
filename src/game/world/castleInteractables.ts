@@ -149,6 +149,30 @@ function createContainerInteractable(
   };
 }
 
+function createAlchemyInteractable(
+  id: string,
+  object: THREE.Object3D,
+  title: string
+): Interactable {
+  return {
+    id,
+    object,
+    actionDistance: 2.5,
+    kind: "alchemy",
+    getPrompt: () => ({
+      title,
+      actionLabel: "[E] Brew",
+      blockedReason: `${title} is too far away.`
+    }),
+    onFocus: (focused) => setHighlight(object, focused),
+    interact: () => ({
+      type: "alchemy",
+      alchemyTitle: title,
+      message: "The station notes are laid out for brewing."
+    })
+  };
+}
+
 export interface CastleInteractableSeeds {
   bedsideCandles: THREE.Object3D[];
   footLocker: THREE.Object3D | null;
@@ -218,11 +242,10 @@ export function createCastleInteractables(seeds: CastleInteractableSeeds): Inter
 
   if (seeds.alchemyBoard) {
     interactables.push(
-      createInspectInteractable(
-        "alchemy-notes",
+      createAlchemyInteractable(
+        "alchemy-station",
         seeds.alchemyBoard,
-        "Alchemy board",
-        "Scored markings and stains hint at recipes that will become craftable in a later phase."
+        "Alchemy Table"
       )
     );
   }

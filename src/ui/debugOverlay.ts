@@ -13,6 +13,8 @@ export interface DebugOverlayOptions {
   initialGraphicsQuality?: GraphicsQuality;
   onLightingLevelChange?: (value: number) => void;
   onGraphicsQualityChange?: (value: GraphicsQuality) => void;
+  onResetProgress?: () => void;
+  onRestockReagents?: () => void;
 }
 
 export interface DebugOverlayController {
@@ -55,6 +57,10 @@ export function createDebugOverlay(
       </select>
       <span data-key="graphicsQuality"></span>
     </div>
+    <div class="debug-actions">
+      <button type="button" data-action="restock">Add Reagents</button>
+      <button type="button" data-action="reset">Reset Progress</button>
+    </div>
   `;
 
   const reticle = document.createElement("div");
@@ -87,6 +93,12 @@ export function createDebugOverlay(
   });
   overlay.addEventListener("click", (event) => {
     event.stopPropagation();
+  });
+  overlay.querySelector<HTMLButtonElement>('[data-action="restock"]')?.addEventListener("click", () => {
+    options.onRestockReagents?.();
+  });
+  overlay.querySelector<HTMLButtonElement>('[data-action="reset"]')?.addEventListener("click", () => {
+    options.onResetProgress?.();
   });
   lightingSlider.addEventListener("input", () => {
     const nextValue = Number(lightingSlider.value);

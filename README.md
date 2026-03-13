@@ -20,6 +20,7 @@ The playable slice currently includes:
 - separate storage contents across the foot locker and cabinets
 - physically droppable loose items with tuned collision behavior
 - persistence for player position, inventory, containers, collected pickups, and dropped loose items
+- a station-gated alchemy loop with authored recipes and crafted outputs
 - a live lighting slider in the prototype overlay for Phase 6 room-light tuning
 
 ## Tech Stack
@@ -73,8 +74,11 @@ npm run test
 - `Q` release a held item
 - `I` open player inventory
 - `Esc` close inventory or container UI
+- `V` toggle the debug third-person camera
 - `Lighting` slider in the overlay tunes direct room lights during Phase 6 polish
 - `Graphics` control in the overlay switches between performance, balanced, and quality rendering presets
+- `Add Reagents` in the overlay restocks alchemy inputs for testing
+- `Reset Progress` in the overlay clears local prototype progress and reloads the seeded slice
 
 ## Project Structure
 
@@ -110,9 +114,11 @@ Accepted phases:
 - Phase 5: persistence
 - Phase 6: feel and prototype polish
 - Phase 7: evaluation build and roadmap rebaseline
+- Phase 8: first-person embodiment and interaction readability
+- Phase 9: alchemy loop and item-system depth
 
 Current active milestone:
-- Phase 8: first-person embodiment and interaction readability
+- Phase 10: lightweight objectives and NPC scaffolding
 
 ## Notes
 

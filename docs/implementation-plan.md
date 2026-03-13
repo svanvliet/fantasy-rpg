@@ -17,7 +17,7 @@
 | Phase | Status | Goal |
 | --- | --- | --- |
 | 8 | accepted | Add first-person hands/arms and improve embodiment without breaking carry/interaction feel |
-| 9 | planned | Add alchemy recipes, item tags, and a station-gated crafting loop |
+| 9 | accepted | Add alchemy recipes, item tags, and a station-gated crafting loop |
 | 10 | planned | Add lightweight objectives, dialogue, and one directed NPC/world-purpose flow |
 | 11 | planned | Improve asset reuse, GLB integration, and scalable performance instrumentation |
 
@@ -28,7 +28,7 @@
 - Persistence is browser-local only and should remain simple unless a later phase explicitly changes that.
 - The first-person carry model and interaction key split are validated and should be treated as stable constraints.
 
-## Current Phase
+## Recent Phase History
 
 ### Phase 8: First-Person Embodiment and Interaction Readability
 Objective:
@@ -87,12 +87,84 @@ Acceptance summary:
 - the debug third-person mode was useful for tuning and remains explicitly scoped as a troubleshooting aid rather than a roadmap expansion
 - the prototype now has a strong enough embodiment baseline to move on to alchemy-system depth in Phase 9
 
-## Next Phase Preview
+## Current Phase
 
 ### Phase 9: Alchemy Loop and Item-System Depth
-- Add `RecipeDefinition` and station-gated crafting at the alchemy table.
-- Expand item metadata with lightweight gameplay tags such as `ingredient`, `solvent`, and `crafted`.
-- Start with 3-5 authored recipes and persist crafted results through the existing save pipeline.
+Objective:
+- Turn the alchemy room from collect/store scenery into a real station-gated gameplay loop.
+
+Implementation approach:
+- Add an authored recipe system tied to the alchemy table only.
+- Expand item definitions with lightweight alchemy roles and tags.
+- Keep ingredients and crafted outputs in the existing inventory system so persistence stays simple and explicit.
+
+Important interfaces:
+- `AlchemySystem`
+- `RecipeDefinition`
+- `AlchemySnapshot`
+- `CraftResult`
+
+Acceptance criteria:
+- gather ingredients, craft a result, store or retrieve it, reload, and keep state intact
+- alchemy table interaction is readable and constrained to the station
+- crafted outputs behave like normal inventory items and persist through the existing save model
+
+Current implementation status:
+- `implemented`
+- `internally_validated`
+- `accepted`
+
+Implemented work:
+- added authored Phase 9 recipes in [src/game/alchemy/prototypeRecipes.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/alchemy/prototypeRecipes.ts)
+- added the crafting logic layer in [src/game/alchemy/AlchemySystem.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/alchemy/AlchemySystem.ts)
+- expanded item definitions with alchemy roles and tags plus crafted outputs in [src/game/inventory/prototypeContent.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/inventory/prototypeContent.ts)
+- extended [src/game/inventory/InventoryStore.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/inventory/InventoryStore.ts) with batched add/consume helpers used by crafting
+- added a dedicated alchemy panel in [src/ui/alchemyPanel.ts](/Users/svanvliet/repos/fantasy-rpg/src/ui/alchemyPanel.ts)
+- updated [src/game/interactions/InteractionSystem.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/interactions/InteractionSystem.ts) and [src/game/world/castleInteractables.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/castleInteractables.ts) so the alchemy board now opens a brewing station flow instead of only inspect text
+- updated [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) to wire alchemy crafting into the existing runtime and autosave flow
+
+Validation checklist:
+- [x] verify `E` on the alchemy table opens the station panel and keeps interaction station-gated
+- [x] verify at least one valid recipe can be crafted from carried inventory ingredients
+- [x] verify invalid recipes remain disabled or fail clearly when ingredients are missing
+- [x] verify crafted outputs land in player inventory and can be moved into containers or dropped like other items
+- [x] verify crafted outputs and consumed ingredients restore correctly after reload
+
+Current findings:
+- the existing inventory/persistence path was already strong enough to support authored crafting without introducing a second save model
+- authored recipes give us a readable gameplay loop quickly while keeping the design space open for future expansion
+- the alchemy board works well as a station anchor for Phase 9 because it is already visually established as the room's focal work surface
+- playtest feedback showed the original Pack Reagents column was too broad because it included general inventory items rather than only true alchemy inputs
+- in response, the station summary now filters to reagent-appropriate inventory entries using explicit item alchemy roles
+- playtest feedback also showed the craft status could scroll out of view after brewing, so the station status bar is now pinned within the panel to keep crafting feedback visible while browsing recipes
+- follow-up playtest feedback showed the first pinned-status implementation was visually messy and could overlap the recipe list, which made the station UI feel unfinished
+- in response, the panel layout was reworked into a fixed header, dedicated scroll region, and separate footer/status region so feedback stays visible without sitting on top of the recipe content
+- follow-up playtest feedback also showed that the craft status was persisting across close/reopen cycles, which made the station feel stale when returning to it later
+- in response, the alchemy panel now resets its status message whenever it closes or reopens
+- playtest also surfaced the practical issue of exhausting reagents while iterating on the crafting loop, so the debug overlay now includes buttons to restock Phase 9 reagents and reset local prototype progress entirely
+- follow-up playtest feedback showed that reagent restocking was surfacing as multiple duplicate lines in both the alchemy summary and the inventory UI because the snapshot view was exposing physical stack entries directly
+- in response, the inventory snapshot layer now aggregates duplicate stacks for display while preserving the existing stack-based internal/save model
+- playtest also showed that the first reset-progress implementation was clearing storage but then immediately writing the old runtime state back during reload
+- in response, reset-progress now suppresses save-on-hide/save-on-unload behavior for the reset transition so the prototype actually returns to its seeded initial state
+- playtest discussion also highlighted that crafted items like Verdant Restorative already read in the UI as `1 / 6`, which reflects the current per-item stack cap rather than a true inventory-capacity system
+- in response, Phase 9 keeps per-item stack metadata as useful groundwork for crafting and future inventory pressure, while deliberately deferring slot limits, encumbrance, and broader inventory-choice pressure to a later dedicated inventory-depth phase
+- follow-up playtest feedback clarified that the inventory screen should help validate stack behavior directly, while the alchemy screen should stay focused on gross reagent totals
+- in response, the inventory UI now preserves aggregated item rows but surfaces explicit stack breakdown text when multiple stacks exist, while the alchemy station continues to show only total reagent counts
+- a later cross-phase playtest note also highlighted that the debug third-person embodiment proxy was anchored too high relative to the actual first-person eye point, which made that troubleshooting camera less trustworthy than it should be
+- in response, the debug third-person camera focus was lowered to the real first-person eye height and the proxy body was re-proportioned beneath that head anchor so the debug view reads as a believable avatar rather than a floating camera marker
+
+Acceptance summary:
+- Phase 9 successfully turned the alchemy room into a real authored gameplay loop with station-gated crafting, explicit item roles, and persistence-safe recipe consumption/output behavior
+- the inventory and station UIs are now tuned enough to validate both gross reagent totals and stack-aware inventory behavior without conflating those concerns
+- debug affordances for restocking and reset made iteration much faster during playtest and are acceptable prototype-only tools
+- the temporary third-person proxy still has minor polish room left, but because it remains a debug-only aid and not a Phase 9 success criterion, it is not blocking acceptance
+
+## Next Phase Preview
+
+### Phase 10: Lightweight Objectives And NPC Scaffolding
+- Add one scripted objective flow spanning ingredient gathering, brewing, and a return/deposit step.
+- Introduce a minimal dialogue panel and one world-purpose giver or proxy NPC.
+- Persist objective progression through the existing save path.
 
 ## Deferred Backlog
 - third-person camera

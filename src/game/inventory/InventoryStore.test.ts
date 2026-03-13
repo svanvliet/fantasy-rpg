@@ -4,16 +4,21 @@ import { InventoryStore } from "./InventoryStore";
 import { ITEM_DEFINITIONS } from "./prototypeContent";
 
 describe("InventoryStore", () => {
-  it("merges stacks up to the item stack limit", () => {
+  it("aggregates duplicate stacks in the snapshot view while preserving stack breakdown metadata", () => {
     const store = new InventoryStore(ITEM_DEFINITIONS);
 
     store.addToPlayer("moonwater-vial", 10);
 
     const snapshot = store.getSnapshot();
-    const moonwaterStacks = snapshot.player.filter((entry) => entry.itemId === "moonwater-vial");
-    expect(moonwaterStacks).toHaveLength(2);
-    expect(moonwaterStacks[0].quantity).toBe(8);
-    expect(moonwaterStacks[1].quantity).toBe(2);
+    const moonwater = snapshot.player.find((entry) => entry.itemId === "moonwater-vial");
+    expect(snapshot.player).toHaveLength(1);
+    expect(moonwater?.quantity).toBe(10);
+    expect(moonwater?.stackQuantities).toEqual([8, 2]);
+
+    const saveState = store.getSaveState();
+    expect(saveState.player).toHaveLength(2);
+    expect(saveState.player[0]).toMatchObject({ itemId: "moonwater-vial", quantity: 8 });
+    expect(saveState.player[1]).toMatchObject({ itemId: "moonwater-vial", quantity: 2 });
   });
 
   it("transfers a partial quantity between player and container", () => {

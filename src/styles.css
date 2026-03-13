@@ -98,6 +98,23 @@ canvas {
   font: inherit;
 }
 
+.debug-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+}
+
+.debug-actions button {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(255, 220, 170, 0.14);
+  border-radius: 10px;
+  background: rgba(36, 26, 18, 0.92);
+  color: #f4e8d6;
+  font: inherit;
+  cursor: pointer;
+}
+
 .debug-overlay dt {
   color: #aa9a7e;
 }
@@ -182,7 +199,41 @@ canvas {
   display: none;
 }
 
+.alchemy-panel {
+  position: absolute;
+  inset: 4.5rem auto auto 50%;
+  width: min(64rem, calc(100vw - 3rem));
+  height: min(46rem, calc(100vh - 7rem));
+  transform: translateX(-50%);
+  padding: 1rem 1rem 1.1rem;
+  border: 1px solid rgba(208, 190, 154, 0.2);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(34, 26, 19, 0.97), rgba(16, 12, 9, 0.96)),
+    radial-gradient(circle at top, rgba(114, 152, 116, 0.1), transparent 42%),
+    radial-gradient(circle at top right, rgba(137, 163, 197, 0.08), transparent 38%);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  overflow: hidden;
+  z-index: 6;
+}
+
+.alchemy-panel.hidden {
+  display: none;
+}
+
 .inventory-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.alchemy-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -196,6 +247,12 @@ canvas {
   color: #f5ead9;
 }
 
+.alchemy-header h1 {
+  margin: 0.15rem 0 0;
+  font-size: 1.85rem;
+  color: #eef0e6;
+}
+
 .inventory-eyebrow {
   margin: 0;
   font-size: 0.72rem;
@@ -204,14 +261,30 @@ canvas {
   color: #caa977;
 }
 
+.alchemy-eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #a8c193;
+}
+
 .inventory-help {
   margin: 0 0 1rem;
   color: #cdbca1;
   font-size: 0.88rem;
 }
 
+.alchemy-help {
+  margin: 0 0 1rem;
+  color: #c7d2c0;
+  font-size: 0.88rem;
+}
+
 .inventory-close,
-.inventory-actions button {
+.inventory-actions button,
+.alchemy-close,
+.alchemy-recipe button {
   border: 1px solid rgba(244, 222, 178, 0.18);
   border-radius: 999px;
   background: rgba(87, 57, 30, 0.34);
@@ -219,8 +292,147 @@ canvas {
   cursor: pointer;
 }
 
-.inventory-close {
+.inventory-close,
+.alchemy-close {
   padding: 0.55rem 0.95rem;
+}
+
+.alchemy-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 1fr);
+  gap: 1rem;
+}
+
+.alchemy-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.alchemy-column {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid rgba(201, 220, 192, 0.12);
+  border-radius: 16px;
+  background: rgba(15, 11, 8, 0.56);
+}
+
+.alchemy-column h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #c8d8b8;
+}
+
+.alchemy-empty {
+  margin: 0;
+  color: #a7ae9f;
+}
+
+.alchemy-recipe-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.alchemy-recipe {
+  padding: 0.9rem;
+  border: 1px solid rgba(201, 220, 192, 0.12);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(25, 20, 16, 0.72), rgba(17, 13, 10, 0.74)),
+    radial-gradient(circle at top left, rgba(104, 138, 102, 0.08), transparent 40%);
+}
+
+.alchemy-recipe.craftable {
+  border-color: rgba(170, 207, 145, 0.2);
+}
+
+.alchemy-recipe h3 {
+  margin: 0 0 0.35rem;
+  color: #f0eadf;
+  font-size: 1rem;
+}
+
+.alchemy-recipe p {
+  margin: 0;
+  color: #bdb6ab;
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.alchemy-recipe-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.alchemy-recipe-meta h4 {
+  margin: 0 0 0.45rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a6bb9a;
+}
+
+.alchemy-recipe-meta ul,
+.alchemy-inventory-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.alchemy-recipe-meta li,
+.alchemy-inventory-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.86rem;
+  color: #eee5d9;
+}
+
+.alchemy-recipe-meta li.sufficient span {
+  color: #a8d89b;
+}
+
+.alchemy-recipe-meta li.insufficient span {
+  color: #d89484;
+}
+
+.alchemy-recipe button {
+  padding: 0.5rem 0.9rem;
+}
+
+.alchemy-recipe button:disabled {
+  opacity: 0.56;
+  cursor: default;
+}
+
+.alchemy-footer {
+  flex: 0 0 auto;
+  padding-top: 0.1rem;
+  border-top: 1px solid rgba(201, 220, 192, 0.1);
+  background:
+    linear-gradient(180deg, rgba(18, 14, 11, 0.88), rgba(16, 12, 9, 0.98));
+}
+
+.alchemy-status {
+  margin: 0;
+  padding: 0 0.1rem;
+  min-height: 1.2rem;
+  font-size: 0.88rem;
+  color: #d7d1c4;
+}
+
+.alchemy-status[data-tone="success"] {
+  color: #aedda1;
+}
+
+.alchemy-status[data-tone="warning"] {
+  color: #e0a088;
 }
 
 .inventory-grid {
@@ -309,7 +521,18 @@ canvas {
     transform: none;
   }
 
+  .alchemy-panel {
+    inset: 1rem;
+    width: auto;
+    transform: none;
+  }
+
   .inventory-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .alchemy-grid,
+  .alchemy-recipe-meta {
     grid-template-columns: 1fr;
   }
 }

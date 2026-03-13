@@ -155,3 +155,31 @@
   We need a practical way to inspect player-facing embodiment state without changing the roadmap priority that keeps full third-person support deferred.
 - Consequences:
   Debug third-person support can exist as an inspection tool, but future roadmap decisions should not treat it as equivalent to a production third-person feature.
+
+## TD-014: Phase 9 Alchemy Uses Authored Recipes At A Station
+
+- Status: `accepted`
+- Active since: `Phase 9`
+- Decision:
+  Implement alchemy as a station-gated authored recipe system driven by player inventory ingredients, rather than a freeform combination system.
+- Why:
+  The prototype needs a readable and testable gameplay loop quickly, and authored recipes are enough to validate station flow, item taxonomy, and persistence.
+- Consequences:
+  Phase 9 crafting should stay constrained to the alchemy table and a small recipe list.
+  Inventory remains the source of truth for ingredients and crafted outputs, which keeps persistence simple and explicit.
+  Item definitions should carry explicit crafting-oriented metadata so station UIs can distinguish reagents from general inventory items without inventing per-panel heuristics.
+
+## TD-015: Stack Rules Stay Item-Scoped Before Inventory Pressure Systems
+
+- Status: `accepted`
+- Active since: `Phase 9`
+- Date: `2026-03-13`
+- Decision:
+  Keep per-item `maxStack` rules active now, but defer broader inventory-pressure systems such as slot caps, encumbrance, or forced pack-tradeoff mechanics to a later dedicated inventory-depth pass.
+- Why:
+  Stack metadata is already useful for crafting outputs and item taxonomy, but full inventory pressure would change player decision-making enough that it should be introduced deliberately rather than incidentally during alchemy work.
+- Consequences:
+  Ingredients, solvents, crafted mixtures, and utility items can continue to define their own stack limits now.
+  Inventory-facing UI may surface stack-cap context and stack breakdowns so we can validate stack behavior now, while station UIs can continue to show gross totals when stacks are not the relevant player concern.
+  UI stack context should not yet be treated as a full “inventory management game” mechanic.
+  A future inventory-depth phase can build on the current item-level stack metadata instead of inventing stack semantics later from scratch.

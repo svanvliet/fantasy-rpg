@@ -1,7 +1,8 @@
 import type * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 
-export type InteractionKind = "inspect" | "pickup" | "toggle" | "container" | "blocked";
+export type InteractionKind = "inspect" | "pickup" | "toggle" | "container" | "alchemy" | "blocked";
+export type ItemAlchemyRole = "ingredient" | "solvent" | "crafted" | "utility";
 
 export interface InteractionPrompt {
   title: string;
@@ -20,6 +21,8 @@ export interface PickupItemDefinition {
   description?: string;
   color: number;
   shape: "bottle" | "book" | "satchel" | "ingredient";
+  alchemyRole: ItemAlchemyRole;
+  alchemyTags: string[];
   size: THREE.Vector3;
   maxStack: number;
   stowable: boolean;
@@ -47,7 +50,7 @@ export interface Interactable {
 }
 
 export interface InteractionResult {
-  type: "none" | "message" | "pickup" | "toggle" | "container";
+  type: "none" | "message" | "pickup" | "toggle" | "container" | "alchemy";
   message?: string;
   pickupItem?: PickupItemDefinition;
   pickupPersistenceId?: string;
@@ -57,6 +60,7 @@ export interface InteractionResult {
   pickupDistance?: number;
   containerId?: string;
   containerTitle?: string;
+  alchemyTitle?: string;
 }
 
 export interface HeldItemState {

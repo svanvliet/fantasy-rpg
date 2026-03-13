@@ -70,8 +70,8 @@ const CEILING_NORMAL_THRESHOLD = -0.35;
 const GROUND_SNAP_DISTANCE = 0.18;
 const THIRD_PERSON_DISTANCE = 2.8;
 const THIRD_PERSON_SIDE_OFFSET = 0.36;
-const THIRD_PERSON_FOCUS_HEIGHT = 1.18;
-const THIRD_PERSON_HEIGHT = 1.15;
+const THIRD_PERSON_FOCUS_HEIGHT = CAMERA_HEIGHT_OFFSET;
+const THIRD_PERSON_HEIGHT = 0.72;
 
 const JUMP_PROFILE = createJumpProfile(JUMP_HEIGHT, TIME_TO_APEX, TIME_TO_DESCENT);
 
@@ -459,21 +459,21 @@ export class PlayerController {
       new THREE.BoxGeometry(0.42, 0.7, 0.22),
       new THREE.MeshStandardMaterial({ color: 0x5b4737, roughness: 0.92, metalness: 0.02 })
     );
-    torso.position.set(0, 1.05, 0);
+    torso.position.set(0, 0.1, 0);
     this.avatarRoot.add(torso);
 
     const head = new THREE.Mesh(
       new THREE.SphereGeometry(0.16, 10, 10),
       new THREE.MeshStandardMaterial({ color: 0xd7b48b, roughness: 0.82, metalness: 0.02 })
     );
-    head.position.set(0, 1.56, 0);
+    head.position.set(0, CAMERA_HEIGHT_OFFSET, 0);
     this.avatarRoot.add(head);
 
     const rightArm = new THREE.Mesh(
       new THREE.BoxGeometry(0.14, 0.58, 0.14),
       new THREE.MeshStandardMaterial({ color: 0x654d3a, roughness: 0.94, metalness: 0.02 })
     );
-    rightArm.position.set(0.32, 1.03, 0);
+    rightArm.position.set(0.32, 0.08, 0);
     this.avatarRoot.add(rightArm);
 
     const leftArm = rightArm.clone();
@@ -484,7 +484,7 @@ export class PlayerController {
       new THREE.BoxGeometry(0.34, 0.2, 0.2),
       new THREE.MeshStandardMaterial({ color: 0x443226, roughness: 0.94, metalness: 0.02 })
     );
-    hips.position.set(0, 0.62, 0);
+    hips.position.set(0, -0.34, 0);
     this.avatarRoot.add(hips);
 
     [torso, head, rightArm, leftArm, hips].forEach((mesh) => {

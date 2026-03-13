@@ -9,6 +9,7 @@ export interface InventoryEntryView extends InventoryStack {
   label: string;
   description?: string;
   maxStack: number;
+  stackQuantities: number[];
 }
 
 export interface ContainerState {
@@ -68,11 +69,11 @@ export class InventoryStore {
 
   getSnapshot(): InventorySnapshot {
     return {
-      player: this.resolveEntries(this.playerItems),
+      player: this.resolveEntries(this.aggregateStacks(this.playerItems)),
       containers: Array.from(this.containerStates.values()).map((container) => ({
         id: container.id,
         title: container.title,
-        items: this.resolveEntries(container.items)
+        items: this.resolveEntries(this.aggregateStacks(container.items))
       }))
     };
   }
@@ -111,12 +112,41 @@ export class InventoryStore {
     this.emitChange();
   }
 
+  addManyToPlayer(items: InventoryStack[]): void {
+    items.forEach((item) => {
+      this.addToStacks(this.playerItems, item.itemId, item.quantity);
+    });
+    this.emitChange();
+  }
+
   removeFromPlayer(itemId: string, quantity: number): boolean {
     const removed = this.removeFromStacks(this.playerItems, itemId, quantity);
     if (removed) {
       this.emitChange();
     }
     return removed;
+  }
+
+  getPlayerQuantity(itemId: string): number {
+    return this.playerItems
+      .filter((stack) => stack.itemId === itemId)
+      .reduce((sum, stack) => sum + stack.quantity, 0);
+  }
+
+  hasPlayerItems(items: InventoryStack[]): boolean {
+    return items.every((item) => this.getPlayerQuantity(item.itemId) >= item.quantity);
+  }
+
+  consumePlayerItems(items: InventoryStack[]): boolean {
+    if (!this.hasPlayerItems(items)) {
+      return false;
+    }
+
+    items.forEach((item) => {
+      this.removeFromStacks(this.playerItems, item.itemId, item.quantity);
+    });
+    this.emitChange();
+    return true;
   }
 
   transferPlayerToContainer(containerId: string, itemId: string, quantity: number): boolean {
@@ -214,7 +244,9 @@ export class InventoryStore {
     return true;
   }
 
-  private resolveEntries(stacks: InventoryStack[]): InventoryEntryView[] {
+  private resolveEntries(
+    stacks: Array<InventoryStack & { stackQuantities?: number[] }>
+  ): InventoryEntryView[] {
     return stacks.map((stack) => {
       const definition = this.getItemDefinition(stack.itemId);
       return {
@@ -222,9 +254,34 @@ export class InventoryStore {
         quantity: stack.quantity,
         label: definition.label,
         description: definition.description,
-        maxStack: definition.maxStack
+        maxStack: definition.maxStack,
+        stackQuantities: stack.stackQuantities ?? [stack.quantity]
       };
     });
+  }
+
+  private aggregateStacks(stacks: InventoryStack[]): Array<InventoryStack & { stackQuantities: number[] }> {
+    const totals = new Map<string, { quantity: number; stackQuantities: number[] }>();
+    const order: string[] = [];
+
+    stacks.forEach((stack) => {
+      if (!totals.has(stack.itemId)) {
+        order.push(stack.itemId);
+        totals.set(stack.itemId, {
+          quantity: 0,
+          stackQuantities: []
+        });
+      }
+      const entry = totals.get(stack.itemId)!;
+      entry.quantity += stack.quantity;
+      entry.stackQuantities.push(stack.quantity);
+    });
+
+    return order.map((itemId) => ({
+      itemId,
+      quantity: totals.get(itemId)!.quantity,
+      stackQuantities: totals.get(itemId)!.stackQuantities
+    }));
   }
 
   private normalizeStacks(stacks: InventoryStack[]): InventoryStack[] {
