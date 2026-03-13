@@ -28,6 +28,14 @@ export interface InventorySnapshot {
   containers: InventoryContainerView[];
 }
 
+export interface InventorySaveState {
+  player: InventoryStack[];
+  containers: Array<{
+    id: string;
+    items: InventoryStack[];
+  }>;
+}
+
 type InventoryListener = () => void;
 
 export class InventoryStore {
@@ -71,6 +79,31 @@ export class InventoryStore {
 
   getContainer(containerId: string): ContainerState | null {
     return this.containerStates.get(containerId) ?? null;
+  }
+
+  getSaveState(): InventorySaveState {
+    return {
+      player: this.cloneStacks(this.playerItems),
+      containers: Array.from(this.containerStates.values()).map((container) => ({
+        id: container.id,
+        items: this.cloneStacks(container.items)
+      }))
+    };
+  }
+
+  restore(saveState: InventorySaveState): void {
+    this.playerItems.splice(0, this.playerItems.length, ...this.normalizeStacks(saveState.player ?? []));
+
+    saveState.containers.forEach((containerState) => {
+      const container = this.containerStates.get(containerState.id);
+      if (!container) {
+        return;
+      }
+
+      container.items = this.normalizeStacks(containerState.items ?? []);
+    });
+
+    this.emitChange();
   }
 
   addToPlayer(itemId: string, quantity: number): void {
@@ -200,6 +233,13 @@ export class InventoryStore {
       this.addToStacks(normalized, stack.itemId, stack.quantity);
     });
     return normalized;
+  }
+
+  private cloneStacks(stacks: InventoryStack[]): InventoryStack[] {
+    return stacks.map((stack) => ({
+      itemId: stack.itemId,
+      quantity: stack.quantity
+    }));
   }
 
   private emitChange(): void {

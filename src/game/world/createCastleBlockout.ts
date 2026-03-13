@@ -557,13 +557,13 @@ export function createCastleBlockout(
   });
   const cabinetDoorLeft = addStaticBox(scene, world, rapier, {
     color: 0x6e563d,
-    position: new THREE.Vector3(2.41, 1.3, 3.359),
+    position: new THREE.Vector3(2.41, 1.3, 2.441),
     scale: new THREE.Vector3(0.79, 2.288, 0.04),
     collider: false
   });
   const cabinetDoorRight = addStaticBox(scene, world, rapier, {
     color: 0x6e563d,
-    position: new THREE.Vector3(2.99, 1.3, 3.359),
+    position: new THREE.Vector3(2.99, 1.3, 2.441),
     scale: new THREE.Vector3(0.79, 2.288, 0.04),
     collider: false
   });

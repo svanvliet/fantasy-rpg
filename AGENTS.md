@@ -2,6 +2,7 @@
 
 ## Project Workflow Rules
 - Keep [docs/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/implementation-plan.md) as the master phased roadmap for the project.
+- Keep [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) as the succinct architectural memory for the project.
 - Do not replace the master plan with a short execution checklist. Short checklists are allowed only as subordinate notes inside the master plan or in phase-specific progress sections.
 - Update the master plan as work progresses. Record status changes, completed work, validation results, issues found, fixes applied, and any plan changes caused by implementation findings.
 - Track phase state explicitly using distinct statuses:
@@ -20,6 +21,20 @@
   - the implementation change that followed from that decision
   - whether the feedback item is resolved, still being tuned, or deferred
 - When merging detailed execution history into the master plan, preserve the detail. Do not collapse completed phase history into a vague summary if step-by-step tracking, validation results, or findings would be lost.
+- Record material technical and architectural decisions in [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) as we go.
+- Use the technical decision log for stable reasoning and constraints, not for task progress.
+- Each technical decision entry should stay concise and include:
+  - decision id
+  - status
+  - phase
+  - date
+  - decision
+  - why
+  - consequences
+- Update an existing decision entry when the decision evolves; add a new entry only when there is a genuinely new architectural or technical choice to preserve.
+- When a phase introduces or revises important system design, update both:
+  - [docs/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/implementation-plan.md) for phase history
+  - [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) for enduring architecture context
 
 ## Phase Commit Protocol
 - At the end of each phase, create a git commit so the project history reflects phase boundaries.

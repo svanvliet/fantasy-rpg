@@ -14,8 +14,8 @@
 | 2 | accepted | Replace the debug room with the 3-room castle blockout and establish atmosphere |
 | 3 | accepted | Add interaction targeting, prompts, pickup/drop behavior, and physical object handling |
 | 4 | accepted | Add inventory, containers, transfer rules, and prototype item content |
-| 5 | planned | Add persistence for player, item, and container world state |
-| 6 | planned | Tune feel, readability, and prototype polish |
+| 5 | accepted | Add persistence for player, item, and container world state |
+| 6 | in_progress | Tune feel, readability, and prototype polish |
 | 7 | planned | Produce an evaluation build and revise the roadmap from actual findings |
 
 ## Core Implementation Decisions
@@ -192,11 +192,16 @@ Acceptance criteria:
 - restored state matches the prior session closely enough for prototype evaluation
 
 Validation checklist:
-- [ ] verify collected items remain collected after reload
-- [ ] verify player inventory restores correctly after reload
-- [ ] verify each container restores its own contents correctly after reload
-- [ ] verify dropped or moved objects restore closely enough to their saved state
-- [ ] verify no unrelated world state resets unexpectedly
+- [x] verify collected items remain collected after reload
+- [x] verify player inventory restores correctly after reload
+- [x] verify each container restores its own contents correctly after reload
+- [x] verify dropped or moved objects restore closely enough to their saved state
+- [x] verify no unrelated world state resets unexpectedly
+
+Current implementation status:
+- `implemented`
+- `internally_validated`
+- `accepted`
 
 ### Phase 6: Feel and Prototype Polish
 Objective:
@@ -217,6 +222,10 @@ Validation checklist:
 - [ ] verify lighting and material adjustments improve mood without harming readability
 - [ ] verify placeholder replacements improve comprehension or atmosphere
 - [ ] verify polish changes do not introduce regressions in traversal or interaction
+
+Current implementation status:
+- `in_progress`
+- initial focus on lighting readability, presentation polish, and low-friction usability improvements
 
 ### Phase 7: Evaluation Build and Rebaseline
 Objective:
@@ -257,6 +266,72 @@ Completed work:
 - added package scripts for `dev`, `build`, `preview`, and `test`
 - added the boot entrypoint, styles, and core loop utilities
 - created the GDD and the master planning structure
+
+### Phase 5 Update
+Status:
+- implemented
+- internally_validated
+- accepted after user reload/playtest
+
+Implemented work:
+- added a versioned local save model in [src/game/persistence/SaveManager.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/persistence/SaveManager.ts)
+- added inventory serialization and restore hooks in [src/game/inventory/InventoryStore.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/inventory/InventoryStore.ts)
+- added player persistence hooks in [src/game/player/PlayerController.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/player/PlayerController.ts)
+- added interaction/world persistence hooks for collected pickups and loose dropped items in [src/game/interactions/InteractionSystem.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/interactions/InteractionSystem.ts)
+- wired debounced autosave and restore into [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts)
+
+Validation results:
+- [x] `npm run build` passes after the Phase 5 persistence implementation
+- [x] `npm run test` passes after the Phase 5 persistence implementation
+- [x] save-manager round-trip coverage exists
+- [x] inventory restore coverage exists
+
+Technical findings:
+- local browser storage is sufficient for the prototype persistence goal in this phase
+- the current architecture can restore seeded pickups by removing original interactables and replaying loose dropped-item state, without a content-pipeline rewrite
+- inventory and interaction persistence are loosely coupled enough to serialize independently and rehydrate in a defined order
+
+Phase 5 user validation checklist:
+- [x] Collect one or more loose alchemy items, reload the page, and verify they remain collected
+- [x] Move items between player inventory and at least two different containers, reload the page, and verify all inventories restore correctly
+- [x] Drop at least one loose item into the world, reload the page, and verify it restores near the saved location with sensible orientation
+- [x] Move the player to a noticeably different location, reload the page, and verify spawn/restoration resumes from the saved position
+- [x] Verify no previously untouched room props or containers reset in a way that breaks persistence expectations
+
+Feedback / decisions:
+- The project now keeps enduring architectural choices in [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) so future phase work does not require re-deriving technical intent from code alone.
+- Phase progress, user validation, and feedback history remain in this implementation plan rather than moving into the technical decision log.
+- User playtest found a persistence duplication bug where collected or moved seeded alchemy pickups could reappear in their original position after reload while also existing in saved state.
+  Decision:
+  Treat only pickups that still have a live world parent as active world pickups for persistence bookkeeping.
+  Implementation change:
+  [src/game/interactions/InteractionSystem.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/interactions/InteractionSystem.ts) now excludes detached pickup interactables from the active-pickup set when computing collected world state.
+  Resolution:
+  fixed and verified in focused reload retest.
+- User feedback identified that the `Herb Cabinet` and `Supply Cabinet` were effectively facing the wall and awkward to interact with from the room side.
+  Decision:
+  Reorient the usable cabinet face toward the room center rather than leaving the storage interaction on the wall-facing side.
+  Implementation change:
+  [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) now places the cabinet doors on the room-facing side of the cabinet body.
+  Resolution:
+  fixed and accepted.
+
+Result:
+- accepted after user reload/playtest
+
+### Phase 6 Update
+Status:
+- in_progress
+
+Kickoff focus:
+- improve room readability and mood without losing the current traversal clarity
+- add presentation polish that makes the vertical slice feel more deliberate
+- keep all Phase 1-5 systems stable while tuning the slice
+
+Initial planned work:
+- tune interior lighting and ambient balance toward a stronger RPG-style room feel
+- improve visual hierarchy and material readability on key furniture and room landmarks
+- make small UX/presentation refinements only where they help comprehension
 
 Validation results:
 - `npm install` succeeded and created the lockfile

@@ -5,15 +5,18 @@ import { createFixedStepLoop } from "./core/loop";
 import { InventoryStore } from "./inventory/InventoryStore";
 import { CONTAINER_SEEDS, ITEM_DEFINITIONS } from "./inventory/prototypeContent";
 import { InteractionSystem } from "./interactions/InteractionSystem";
+import { SaveManager } from "./persistence/SaveManager";
 import { PlayerController } from "./player/PlayerController";
 import { createCastleBlockout } from "./world/createCastleBlockout";
 import { createDebugOverlay, type DebugOverlayController } from "../ui/debugOverlay";
 import { createInventoryPanel, type InventoryPanelController } from "../ui/inventoryPanel";
 
-const PHASE_LABEL = "Phase 4 - Inventory and Containers";
+const PHASE_LABEL = "Phase 5 - Persistence";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
+const PLAYER_AUTOSAVE_INTERVAL = 1.1;
+const DIRTY_SAVE_DELAY = 0.35;
 
 export class GameApp {
   private readonly mount: HTMLElement;
@@ -26,11 +29,15 @@ export class GameApp {
   private readonly inventoryStore: InventoryStore;
   private readonly player: PlayerController;
   private readonly interactionSystem: InteractionSystem;
+  private readonly saveManager: SaveManager;
   private readonly loop: ReturnType<typeof createFixedStepLoop>;
 
   private frameCount = 0;
   private fps = 0;
   private fpsAccumulator = 0;
+  private saveDirty = false;
+  private dirtySaveAccumulator = 0;
+  private autosaveAccumulator = 0;
 
   private constructor(
     mount: HTMLElement,
@@ -42,7 +49,8 @@ export class GameApp {
     inventoryPanel: InventoryPanelController,
     inventoryStore: InventoryStore,
     player: PlayerController,
-    interactionSystem: InteractionSystem
+    interactionSystem: InteractionSystem,
+    saveManager: SaveManager
   ) {
     this.mount = mount;
     this.renderer = renderer;
@@ -54,6 +62,7 @@ export class GameApp {
     this.inventoryStore = inventoryStore;
     this.player = player;
     this.interactionSystem = interactionSystem;
+    this.saveManager = saveManager;
 
     this.loop = createFixedStepLoop({
       fixedStep: FIXED_STEP,
@@ -65,9 +74,11 @@ export class GameApp {
 
     this.handleResize = this.handleResize.bind(this);
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+    this.handleBeforeUnload = this.handleBeforeUnload.bind(this);
 
     window.addEventListener("resize", this.handleResize);
     document.addEventListener("visibilitychange", this.handleVisibilityChange);
+    window.addEventListener("beforeunload", this.handleBeforeUnload);
 
     this.handleResize();
   }
@@ -98,6 +109,7 @@ export class GameApp {
 
     const overlay = createDebugOverlay(shell);
     const inventoryStore = new InventoryStore(ITEM_DEFINITIONS);
+    const saveManager = new SaveManager(window.localStorage);
     let inventoryPanel!: InventoryPanelController;
     let interactionSystem!: InteractionSystem;
     CONTAINER_SEEDS.forEach((container) => {
@@ -129,6 +141,7 @@ export class GameApp {
       rapier: RAPIER,
       spawnPosition: room.spawnPosition
     });
+    let app: GameApp | null = null;
     interactionSystem = new InteractionSystem({
       camera,
       domElement: renderer.domElement,
@@ -137,10 +150,24 @@ export class GameApp {
       rapier: RAPIER,
       interactables: room.interactables,
       inventoryStore,
-      inventoryPanel
+      inventoryPanel,
+      onStateDirty: () => {
+        app?.queueSave();
+      }
     });
+    const savedState = saveManager.load();
+    if (savedState?.inventory) {
+      inventoryStore.restore(savedState.inventory);
+    }
+    if (savedState?.interaction) {
+      interactionSystem.restorePersistenceState(savedState.interaction);
+    }
+    if (savedState?.player) {
+      player.restorePersistenceState(savedState.player);
+    }
     inventoryStore.subscribe(() => {
       inventoryPanel.sync(inventoryStore.getSnapshot());
+      app?.queueSave();
     });
     inventoryPanel.sync(inventoryStore.getSnapshot());
 
@@ -153,7 +180,7 @@ export class GameApp {
       target: "none"
     });
 
-    return new GameApp(
+    app = new GameApp(
       mount,
       renderer,
       scene,
@@ -163,8 +190,11 @@ export class GameApp {
       inventoryPanel,
       inventoryStore,
       player,
-      interactionSystem
+      interactionSystem,
+      saveManager
     );
+    app.queueSave();
+    return app;
   }
 
   start(): void {
@@ -203,9 +233,17 @@ export class GameApp {
       this.inventoryPanel.isOpen()
         ? "Inventory open. Move items with the panel, press I or Escape to close, and use Drop 1 to place items back into the world."
         : playerState.pointerLocked
-          ? interactionState.prompt || "Use E to interact, I to open inventory, and Q to drop a held prototype item."
+          ? interactionState.prompt || "Use E to interact, F to hold, I to open inventory, and Q to release a held item."
           : "Click the scene to capture the mouse. Use WASD to move, Space to jump, and I to open inventory."
     );
+
+    this.dirtySaveAccumulator += deltaSeconds;
+    this.autosaveAccumulator += deltaSeconds;
+    if (this.saveDirty && this.dirtySaveAccumulator >= DIRTY_SAVE_DELAY) {
+      this.persistState();
+    } else if (this.autosaveAccumulator >= PLAYER_AUTOSAVE_INTERVAL) {
+      this.persistState();
+    }
   }
 
   private render(): void {
@@ -226,6 +264,29 @@ export class GameApp {
   private handleVisibilityChange(): void {
     if (document.hidden) {
       this.player.clearTransientInput();
+      this.persistState();
     }
+  }
+
+  private handleBeforeUnload(): void {
+    this.persistState();
+  }
+
+  private queueSave(): void {
+    this.saveDirty = true;
+    this.dirtySaveAccumulator = 0;
+  }
+
+  private persistState(): void {
+    this.saveManager.save({
+      version: 1,
+      savedAt: new Date().toISOString(),
+      player: this.player.getPersistenceState(),
+      inventory: this.inventoryStore.getSaveState(),
+      interaction: this.interactionSystem.getPersistenceState()
+    });
+    this.saveDirty = false;
+    this.dirtySaveAccumulator = 0;
+    this.autosaveAccumulator = 0;
   }
 }

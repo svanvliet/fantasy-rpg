@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 
 import type { InventoryStore } from "../inventory/InventoryStore";
+import type { DroppedItemSaveState, InteractionSaveState } from "../persistence/SaveManager";
 import type {
   HeldItemState,
   InteractionContext,
@@ -40,6 +41,7 @@ export interface InteractionSystemOptions {
   interactables: Interactable[];
   inventoryStore: InventoryStore;
   inventoryPanel: InventoryPanelController;
+  onStateDirty?: () => void;
 }
 
 export interface InteractionDebugState {
@@ -66,6 +68,8 @@ export class InteractionSystem {
   private readonly heldTargetPosition = new THREE.Vector3();
   private readonly heldTargetQuaternion = new THREE.Quaternion();
   private readonly droppedItems: DroppedItem[] = [];
+  private readonly initialPickupIds: string[];
+  private readonly onStateDirty?: () => void;
 
   private currentTarget: TargetInfo | null = null;
   private activeContainerInteractable: Interactable | null = null;
@@ -83,6 +87,10 @@ export class InteractionSystem {
     this.interactables = options.interactables;
     this.inventoryStore = options.inventoryStore;
     this.inventoryPanel = options.inventoryPanel;
+    this.initialPickupIds = options.interactables
+      .filter((interactable) => interactable.kind === "pickup")
+      .map((interactable) => interactable.id);
+    this.onStateDirty = options.onStateDirty;
 
     window.addEventListener("keydown", (event) => {
       if (event.code === "KeyE") {
@@ -166,6 +174,83 @@ export class InteractionSystem {
       prompt: this.statusMessage,
       heldItemLabel
     };
+  }
+
+  getPersistenceState(): InteractionSaveState {
+    const activePickupIds = new Set(
+      this.interactables
+        .filter(
+          (interactable) => interactable.kind === "pickup" && interactable.object.parent !== null
+        )
+        .map((interactable) => interactable.id)
+    );
+
+    const collectedPickupIds = this.initialPickupIds.filter((pickupId) => !activePickupIds.has(pickupId));
+    const droppedItems = this.droppedItems.map((item) => this.serializeDroppedItem(item));
+
+    if (this.heldItem) {
+      droppedItems.push({
+        id: this.heldItem.persistenceId,
+        itemId: this.heldItem.definition.id,
+        position: this.vectorToSave(this.heldItem.mesh.position),
+        rotation: this.quaternionToSave(this.heldItem.mesh.quaternion),
+        linearVelocity: this.vectorToSave(this.heldItem.linearVelocity),
+        angularVelocity: this.vectorToSave(new THREE.Vector3()),
+        localAnchor: this.vectorToSave(this.heldItem.localAnchor)
+      });
+    }
+
+    return {
+      collectedPickupIds,
+      droppedItems
+    };
+  }
+
+  restorePersistenceState(saveState: InteractionSaveState): void {
+    const collectedIds = new Set(saveState.collectedPickupIds);
+
+    for (const pickupId of collectedIds) {
+      const interactable = this.interactables.find((candidate) => candidate.id === pickupId);
+      if (!interactable || interactable.kind !== "pickup") {
+        continue;
+      }
+
+      this.removePickupInteractable(interactable);
+    }
+
+    saveState.droppedItems.forEach((droppedItem) => {
+      const definition = this.inventoryStore.getItemDefinition(droppedItem.itemId);
+      const mesh = this.createItemMesh(definition);
+      mesh.position.set(droppedItem.position.x, droppedItem.position.y, droppedItem.position.z);
+      mesh.quaternion.set(
+        droppedItem.rotation.x,
+        droppedItem.rotation.y,
+        droppedItem.rotation.z,
+        droppedItem.rotation.w
+      );
+      this.scene.add(mesh);
+      this.registerDroppedMesh(
+        definition,
+        mesh,
+        new THREE.Vector3(
+          droppedItem.linearVelocity.x,
+          droppedItem.linearVelocity.y,
+          droppedItem.linearVelocity.z
+        ),
+        new THREE.Vector3(
+          droppedItem.localAnchor.x,
+          droppedItem.localAnchor.y,
+          droppedItem.localAnchor.z
+        ),
+        droppedItem.id,
+        new THREE.Vector3(
+          droppedItem.angularVelocity.x,
+          droppedItem.angularVelocity.y,
+          droppedItem.angularVelocity.z
+        ),
+        false
+      );
+    });
   }
 
   private updateTargeting(): void {
@@ -307,9 +392,11 @@ export class InteractionSystem {
           if (pickupMode === "hold") {
             this.beginHoldingItem(result.pickupItem, result);
             this.setStatusMessage(`Holding ${result.pickupItem.label}. Press Q to release it.`, 1.9);
+            this.markStateDirty();
           } else {
             this.inventoryStore.addToPlayer(result.pickupItem.id, 1);
             this.setStatusMessage(`Collected ${result.pickupItem.label}.`, 1.9);
+            this.markStateDirty();
           }
         }
         return;
@@ -357,10 +444,17 @@ export class InteractionSystem {
     const heldItem = this.heldItem;
     const mesh = heldItem.mesh;
     const releaseVelocity = heldItem.linearVelocity.clone().clampLength(0, MAX_RELEASE_SPEED);
-    this.registerDroppedMesh(heldItem.definition, mesh, releaseVelocity, heldItem.localAnchor.clone());
+    this.registerDroppedMesh(
+      heldItem.definition,
+      mesh,
+      releaseVelocity,
+      heldItem.localAnchor.clone(),
+      heldItem.persistenceId
+    );
 
     this.setStatusMessage(`Dropped ${heldItem.definition.label}.`, 1.7);
     this.heldItem = null;
+    this.markStateDirty();
   }
 
   private tryStowHeldItem(): void {
@@ -381,6 +475,7 @@ export class InteractionSystem {
     this.setHighlight(this.heldItem.mesh, false);
     this.setStatusMessage(`Stowed ${this.heldItem.definition.label}.`, 1.7);
     this.heldItem = null;
+    this.markStateDirty();
   }
 
   dropInventoryItem(itemId: string): boolean {
@@ -397,6 +492,7 @@ export class InteractionSystem {
     this.scene.add(mesh);
     this.registerDroppedMesh(definition, mesh, new THREE.Vector3(), new THREE.Vector3());
     this.setStatusMessage(`Dropped ${definition.label} from inventory.`, 1.7);
+    this.markStateDirty();
     return true;
   }
 
@@ -438,7 +534,8 @@ export class InteractionSystem {
         .clone()
         .invert()
         .multiply(mesh.quaternion.clone()),
-      anchorDistance: result.pickupDistance ?? HELD_ITEM_DISTANCE
+      anchorDistance: result.pickupDistance ?? HELD_ITEM_DISTANCE,
+      persistenceId: result.pickupPersistenceId ?? this.createDroppedItemId(definition.id)
     };
   }
 
@@ -518,6 +615,7 @@ export class InteractionSystem {
     );
     mesh.castShadow = true;
     mesh.receiveShadow = true;
+    mesh.userData.itemId = definition.id;
     return mesh;
   }
 
@@ -541,7 +639,10 @@ export class InteractionSystem {
     definition: PickupItemDefinition,
     mesh: THREE.Mesh,
     releaseVelocity: THREE.Vector3,
-    fallbackLocalAnchor: THREE.Vector3
+    fallbackLocalAnchor: THREE.Vector3,
+    persistenceId = this.createDroppedItemId(definition.id),
+    angularVelocity = new THREE.Vector3(),
+    notifyStateDirty = true
   ): void {
     const colliderDesc = this.createColliderDesc(definition);
     const body = this.world.createRigidBody(
@@ -563,6 +664,14 @@ export class InteractionSystem {
       },
       true
     );
+    body.setAngvel(
+      {
+        x: angularVelocity.x,
+        y: angularVelocity.y,
+        z: angularVelocity.z
+      },
+      true
+    );
     body.setRotation(
       {
         x: mesh.quaternion.x,
@@ -574,8 +683,9 @@ export class InteractionSystem {
     );
 
     const collider = this.world.createCollider(colliderDesc, body);
+    mesh.userData.localAnchor = fallbackLocalAnchor.clone();
     const interactable: Interactable = {
-      id: `dropped-${definition.id}-${Date.now()}`,
+      id: persistenceId,
       object: mesh,
       actionDistance: 2.15,
       kind: "pickup",
@@ -609,6 +719,7 @@ export class InteractionSystem {
         return {
           type: "pickup",
           pickupItem: definition,
+          pickupPersistenceId: persistenceId,
           pickupPosition: mesh.position.clone(),
           pickupQuaternion: mesh.quaternion.clone(),
           pickupLocalAnchor,
@@ -621,6 +732,9 @@ export class InteractionSystem {
 
     this.interactables.push(interactable);
     this.droppedItems.push({ body, collider, mesh, interactable });
+    if (notifyStateDirty) {
+      this.markStateDirty();
+    }
   }
 
   private setHighlight(object: THREE.Object3D, focused: boolean): void {
@@ -651,5 +765,91 @@ export class InteractionSystem {
   private setStatusMessage(message: string, ttl: number): void {
     this.statusMessage = message;
     this.statusMessageTtl = ttl;
+  }
+
+  private removePickupInteractable(interactable: Interactable): void {
+    const object = interactable.object;
+    const physicsCollider = object.userData.physicsCollider as RAPIER.Collider | undefined;
+    const physicsBody = object.userData.physicsBody as RAPIER.RigidBody | undefined;
+
+    if (physicsCollider) {
+      this.world.removeCollider(physicsCollider, true);
+      delete object.userData.physicsCollider;
+    }
+    if (physicsBody) {
+      this.world.removeRigidBody(physicsBody);
+      delete object.userData.physicsBody;
+    }
+
+    object.parent?.remove(object);
+    const interactableIndex = this.interactables.findIndex((candidate) => candidate.id === interactable.id);
+    if (interactableIndex >= 0) {
+      this.interactables.splice(interactableIndex, 1);
+    }
+
+    if (this.currentTarget?.interactable.id === interactable.id) {
+      this.currentTarget = null;
+    }
+  }
+
+  private serializeDroppedItem(item: DroppedItem): DroppedItemSaveState {
+    const translation = item.body.translation();
+    const rotation = item.body.rotation();
+    const linearVelocity = item.body.linvel();
+    const angularVelocity = item.body.angvel();
+    const localAnchor = item.mesh.userData.localAnchor as THREE.Vector3 | undefined;
+    const itemId = item.mesh.userData.itemId as string;
+
+    return {
+      id: item.interactable.id,
+      itemId,
+      position: {
+        x: translation.x,
+        y: translation.y,
+        z: translation.z
+      },
+      rotation: {
+        x: rotation.x,
+        y: rotation.y,
+        z: rotation.z,
+        w: rotation.w
+      },
+      linearVelocity: {
+        x: linearVelocity.x,
+        y: linearVelocity.y,
+        z: linearVelocity.z
+      },
+      angularVelocity: {
+        x: angularVelocity.x,
+        y: angularVelocity.y,
+        z: angularVelocity.z
+      },
+      localAnchor: this.vectorToSave(localAnchor ?? new THREE.Vector3())
+    };
+  }
+
+  private vectorToSave(vector: THREE.Vector3): { x: number; y: number; z: number } {
+    return {
+      x: vector.x,
+      y: vector.y,
+      z: vector.z
+    };
+  }
+
+  private quaternionToSave(quaternion: THREE.Quaternion): { x: number; y: number; z: number; w: number } {
+    return {
+      x: quaternion.x,
+      y: quaternion.y,
+      z: quaternion.z,
+      w: quaternion.w
+    };
+  }
+
+  private createDroppedItemId(itemId: string): string {
+    return `dropped-${itemId}-${Date.now()}-${Math.round(Math.random() * 100000)}`;
+  }
+
+  private markStateDirty(): void {
+    this.onStateDirty?.();
   }
 }

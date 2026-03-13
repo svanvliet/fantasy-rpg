@@ -50,6 +50,7 @@ export interface InteractionResult {
   type: "none" | "message" | "pickup" | "toggle" | "container";
   message?: string;
   pickupItem?: PickupItemDefinition;
+  pickupPersistenceId?: string;
   pickupPosition?: THREE.Vector3;
   pickupQuaternion?: THREE.Quaternion;
   pickupLocalAnchor?: THREE.Vector3;
@@ -65,6 +66,7 @@ export interface HeldItemState {
   localAnchor: THREE.Vector3;
   rotationOffset: THREE.Quaternion;
   anchorDistance: number;
+  persistenceId: string;
 }
 
 export interface TargetInfo {

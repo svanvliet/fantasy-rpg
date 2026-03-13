@@ -40,4 +40,23 @@ describe("InventoryStore", () => {
     expect(store.transferContainerToPlayer("foot-locker", "tallow-candle", 2)).toBe(false);
     expect(store.removeFromPlayer("tallow-candle", 1)).toBe(false);
   });
+
+  it("restores player and container state from a save payload", () => {
+    const store = new InventoryStore(ITEM_DEFINITIONS);
+    store.registerContainer("foot-locker", "Foot Locker", [{ itemId: "tallow-candle", quantity: 1 }]);
+    store.registerContainer("cabinet-left", "Herb Cabinet", [{ itemId: "bittermoss-extract", quantity: 2 }]);
+
+    store.restore({
+      player: [{ itemId: "moonwater-vial", quantity: 3 }],
+      containers: [
+        { id: "foot-locker", items: [{ itemId: "linen-wrap", quantity: 2 }] },
+        { id: "cabinet-left", items: [{ itemId: "emberflower-oil", quantity: 1 }] }
+      ]
+    });
+
+    const snapshot = store.getSnapshot();
+    expect(snapshot.player.find((entry) => entry.itemId === "moonwater-vial")?.quantity).toBe(3);
+    expect(snapshot.containers.find((container) => container.id === "foot-locker")?.items[0]?.itemId).toBe("linen-wrap");
+    expect(snapshot.containers.find((container) => container.id === "cabinet-left")?.items[0]?.itemId).toBe("emberflower-oil");
+  });
 });

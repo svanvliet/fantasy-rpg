@@ -7,6 +7,16 @@ export interface PlayerDebugState {
   position: THREE.Vector3;
 }
 
+export interface PlayerPersistenceState {
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  yaw: number;
+  pitch: number;
+}
+
 export interface PlayerControllerOptions {
   camera: THREE.PerspectiveCamera;
   domElement: HTMLElement;
@@ -160,6 +170,42 @@ export class PlayerController {
       pointerLocked: this.pointerLocked,
       position: this.debugPosition.clone()
     };
+  }
+
+  getPersistenceState(): PlayerPersistenceState {
+    return {
+      position: {
+        x: this.debugPosition.x,
+        y: this.debugPosition.y,
+        z: this.debugPosition.z
+      },
+      yaw: this.yaw,
+      pitch: this.pitch
+    };
+  }
+
+  restorePersistenceState(state: PlayerPersistenceState): void {
+    const nextPosition = new THREE.Vector3(state.position.x, state.position.y, state.position.z);
+
+    this.yaw = state.yaw;
+    this.pitch = THREE.MathUtils.clamp(state.pitch, -Math.PI / 2, Math.PI / 2);
+    this.verticalVelocity = 0;
+    this.horizontalVelocity.set(0, 0, 0);
+    this.desiredHorizontalVelocity.set(0, 0, 0);
+    this.jumpQueued = false;
+    this.jumpHeld = false;
+    this.jumpHoldTimer = 0;
+    this.landingBrakeTimer = 0;
+    this.grounded = false;
+    this.body.setTranslation(
+      new this.rapier.Vector3(nextPosition.x, nextPosition.y, nextPosition.z),
+      true
+    );
+    this.body.setNextKinematicTranslation(
+      new this.rapier.Vector3(nextPosition.x, nextPosition.y, nextPosition.z)
+    );
+    this.debugPosition.copy(nextPosition);
+    this.syncCameraFromPosition(nextPosition);
   }
 
   handlePointerLockChange(): void {
