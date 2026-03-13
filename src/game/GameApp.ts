@@ -2,11 +2,12 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
 
 import { createFixedStepLoop } from "./core/loop";
+import { InteractionSystem } from "./interactions/InteractionSystem";
 import { PlayerController } from "./player/PlayerController";
 import { createCastleBlockout } from "./world/createCastleBlockout";
 import { createDebugOverlay, type DebugOverlayController } from "../ui/debugOverlay";
 
-const PHASE_LABEL = "Phase 2 - Castle Blockout and Atmosphere";
+const PHASE_LABEL = "Phase 3 - Interaction Foundation";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
@@ -19,6 +20,7 @@ export class GameApp {
   private readonly world: RAPIER.World;
   private readonly overlay: DebugOverlayController;
   private readonly player: PlayerController;
+  private readonly interactionSystem: InteractionSystem;
   private readonly loop: ReturnType<typeof createFixedStepLoop>;
 
   private frameCount = 0;
@@ -32,7 +34,8 @@ export class GameApp {
     camera: THREE.PerspectiveCamera,
     world: RAPIER.World,
     overlay: DebugOverlayController,
-    player: PlayerController
+    player: PlayerController,
+    interactionSystem: InteractionSystem
   ) {
     this.mount = mount;
     this.renderer = renderer;
@@ -41,6 +44,7 @@ export class GameApp {
     this.world = world;
     this.overlay = overlay;
     this.player = player;
+    this.interactionSystem = interactionSystem;
 
     this.loop = createFixedStepLoop({
       fixedStep: FIXED_STEP,
@@ -96,6 +100,13 @@ export class GameApp {
       rapier: RAPIER,
       spawnPosition: room.spawnPosition
     });
+    const interactionSystem = new InteractionSystem({
+      camera,
+      scene,
+      world,
+      rapier: RAPIER,
+      interactables: room.interactables
+    });
 
     overlay.setMetrics({
       fps: 0,
@@ -106,7 +117,7 @@ export class GameApp {
       target: "none"
     });
 
-    return new GameApp(mount, renderer, scene, camera, world, overlay, player);
+    return new GameApp(mount, renderer, scene, camera, world, overlay, player, interactionSystem);
   }
 
   start(): void {
@@ -116,6 +127,7 @@ export class GameApp {
   private update(deltaSeconds: number): void {
     this.player.update(deltaSeconds);
     this.world.step();
+    this.interactionSystem.update(deltaSeconds);
 
     this.frameCount += 1;
     this.fpsAccumulator += deltaSeconds;
@@ -126,18 +138,19 @@ export class GameApp {
     }
 
     const playerState = this.player.getDebugState();
+    const interactionState = this.interactionSystem.getDebugState();
     this.overlay.setMetrics({
       fps: this.fps,
       phase: PHASE_LABEL,
       position: `${playerState.position.x.toFixed(2)}, ${playerState.position.y.toFixed(2)}, ${playerState.position.z.toFixed(2)}`,
       grounded: playerState.grounded ? "true" : "false",
       pointerLock: playerState.pointerLocked ? "locked" : "unlocked",
-      target: "none"
+      target: interactionState.targetLabel
     });
 
     this.overlay.setHint(
       playerState.pointerLocked
-        ? "Use WASD to move and Space to jump. Phase 2 is focused on traversing the castle slice and reading each room."
+        ? interactionState.prompt || "Use E to interact and Q to drop held items."
         : "Click the scene to capture the mouse. Use WASD to move and Space to jump."
     );
   }

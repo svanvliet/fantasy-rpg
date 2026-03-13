@@ -12,7 +12,7 @@
 | 0 | done | Bootstrap the project, docs, toolchain, and runnable app shell |
 | 1 | accepted | Deliver a playable first-person traversal foundation with a debug room |
 | 2 | accepted | Replace the debug room with the 3-room castle blockout and establish atmosphere |
-| 3 | planned | Add interaction targeting, prompts, pickup/drop behavior, and physical object handling |
+| 3 | accepted | Add interaction targeting, prompts, pickup/drop behavior, and physical object handling |
 | 4 | planned | Add inventory, containers, transfer rules, and prototype item content |
 | 5 | planned | Add persistence for player, item, and container world state |
 | 6 | planned | Tune feel, readability, and prototype polish |
@@ -134,11 +134,23 @@ Acceptance criteria:
 - dropped items settle predictably enough for prototype play
 
 Validation checklist:
-- [ ] verify interactable targets are easy to identify at normal play distance
-- [ ] verify prompts appear consistently and do not flicker excessively in cluttered scenes
-- [ ] verify inspect, pickup, open, and close actions trigger the intended behavior
-- [ ] verify blocked or out-of-range interactions provide clear feedback
-- [ ] verify dropped items settle in a predictable and readable way
+- [x] verify interactable targets are easy to identify at normal play distance
+- [x] verify prompts appear consistently and do not flicker excessively in cluttered scenes
+- [x] verify inspect, pickup, open, and close actions trigger the intended behavior
+- [x] verify blocked or out-of-range interactions provide clear feedback
+- [x] verify dropped items settle in a predictable and readable way
+- [x] verify inspect text appears immediately after pressing `E` without waiting for focus to break
+- [x] verify picked-up items remain visible in front of the player with soft-follow motion
+- [x] verify dropped items remain targetable and can be picked up again
+- [x] verify pickup motion travels from the world position into the carry pose instead of snapping through the camera origin
+- [x] verify dropping an item feels like releasing carried motion rather than throwing it forward
+- [x] verify the carried anchor stays under the reticle without unwanted left/right or up/down drift
+- [x] verify tabletop items sit on the alchemy table surface without clipping through it
+- [x] verify dropped bottles stop rolling in a reasonable time instead of skating until they hit a wall
+- [x] verify bottles resting on their side do not visibly sink into the table or floor
+
+Result:
+- accepted after user playtest
 
 ### Phase 4: Inventory and Containers
 Objective:
@@ -394,6 +406,101 @@ Feedback-driven changes:
 - Spread out the alchemy tabletop props and moved the focal arch so the composition no longer collides visually.
 - Reworked candle placement to use consistent surface-height anchors with a separate flame/light offset above the candle mesh.
 - Replaced the oversized generic ember markers on candles with smaller dedicated flame visuals anchored above each candle body.
+
+### Phase 3 Update
+Status:
+- accepted
+
+Step tracking:
+
+| Step | Status | Goal |
+| --- | --- | --- |
+| 1 | done | Add a reusable interaction data model and system |
+| 2 | done | Wire targeting, prompts, and action routing into the runtime loop |
+| 3 | done | Seed the castle slice with initial inspect, toggle, pickup, and drop interactions |
+| 4 | done | Validate build and test stability for the interaction foundation |
+
+Completed work:
+- added a dedicated interaction system for raycast targeting, hover state, action prompts, and result handling
+- wired interaction prompts into the existing overlay hint flow
+- added initial interactables for candles, the foot locker, cabinet doors, alchemy bottles, alchemy notes, and the ritual arch
+- added held-item dropping with simple Rapier dynamic-body physics
+
+Validation results:
+- `npm run build` passed after the Phase 3 interaction integration
+- `npm run test` passed after the Phase 3 interaction integration
+- user playtest accepted the Phase 3 interaction, carry, drop, and collision checklist items
+
+Learned / changed:
+- the existing overlay/hint UI can carry the first interaction pass without introducing separate HUD panels yet
+- using the castle world builder to return interactable seeds keeps the runtime clean and avoids hardcoding scene lookups inside `GameApp`
+- pickup/drop can be validated before inventory exists by using a simple held-item state and physics-based drop
+
+Feedback notes:
+- User feedback: moving the cursor onto some targets could freeze the experience and made pointer-lock behavior feel broken.
+- User feedback: inspect text did not appear until the player stopped targeting the inspected object.
+- User feedback: picked-up items disappeared from the world instead of remaining visible while held.
+- User feedback: dropped items were thrown away, became non-targetable, and could not be picked up again.
+- User feedback: held items should feel softly carried with the camera instead of being hard-locked to the reticle.
+- User feedback: after the first held-item pass, pickup motion still felt wrong because items appeared to move to the camera origin before easing into the carry pose.
+- User feedback: after the first held-item pass, dropping still felt like a throw instead of a release of the item’s current motion state.
+- User feedback: after the pickup/release pass, held objects still rotated into a fixed carry orientation instead of preserving their pickup orientation from the world.
+- User feedback: the reticle hit point should act as the carry anchor while the object is held.
+- User feedback: while facing the object, the carried anchor should only animate in depth along the reticle ray and should not drift left/right or up/down on screen.
+- User feedback: some alchemy items still appeared clipped into the table when resting on it, and dropped items could still sink slightly into the tabletop.
+- User feedback: dropped bottles tended to tip onto their side too easily, then roll for too long because friction and damping felt too weak.
+- User feedback: bottles resting on their side could still visibly clip into the table or floor until another collision disturbed them.
+- User feedback: the first anti-rolling pass made dropped bottles feel too sticky.
+- User feedback: bottles should also collide with other small world props like candles and with still-placed pickup bottles, not just large furniture.
+- User feedback: while actively carrying an item, the player could still target and pick up other objects, including effectively interacting through the carried state.
+
+Decisions from feedback:
+- Make the interaction highlight path robust for grouped or non-mesh child objects so hover state cannot throw and halt the frame loop.
+- Let short-lived action/status messages override the normal hover prompt so inspect feedback appears immediately.
+- Represent held items as visible scene objects that smoothly follow the camera from a carried offset instead of disappearing into abstract state.
+- Re-register dropped items as interactables so the pickup/drop loop stays testable before inventory exists.
+- Clean up dropped-item interaction registrations when items are re-picked so the interaction set does not accumulate stale entries.
+- Preserve an item's world pose at the moment of pickup so the carry transition starts from the actual in-world location.
+- Treat drop as a release from the held pose using the carried item's live motion instead of injecting a canned forward throw.
+- Preserve the picked object's orientation relative to the camera at the moment of pickup instead of forcing a canned carry rotation.
+- Use the ray hit point from pickup as the anchor point that is carried under the reticle while the held object soft-follows.
+- Model the carry anchor as a depth value on the active reticle ray so pickup transitions only change depth while the grabbed point stays screen-centered.
+- Correct item placement against the alchemy tabletop's actual top surface and give released objects a tiny clearance so tabletop collisions resolve from above instead of starting interpenetrating.
+- Increase dropped-item friction and damping so bottles settle in a more believable time and do not coast endlessly.
+- Give static surfaces and dropped-item colliders a small contact skin and tuned collider shape so resting contact looks cleaner on tables and floors.
+- Back off the anti-rolling tuning if it overcorrects into sticky motion.
+- Give solid small props and still-placed pickup items simple physics proxies so dropped objects collide with them too.
+- Lock world interaction while an item is actively carried so the player remains in a single clear interaction mode until release.
+
+Feedback-driven changes:
+- Hardened the highlight traversal so grouped interactables without mesh materials no longer throw when focused.
+- Changed interaction prompt resolution so inspect/pickup/toggle feedback shows immediately and does not wait for target loss.
+- Added visible held-item meshes with soft-follow position and rotation smoothing in front of the camera.
+- Reworked item dropping so the held mesh is released back into the world as a physical dropped object instead of vanishing and respawning invisibly.
+- Added interactable dropped items that can be targeted and picked up again after landing.
+- Removed dropped-item registrations cleanly when an item is picked back up.
+- Seeded pickup interactions with the source object's world position and rotation so held items animate from their real world location into the carry pose.
+- Changed drop physics to release the held object from its current carried position and carry over its live smoothed motion instead of applying a scripted toss.
+- Added pickup hit-point tracking and local anchor preservation so the exact grabbed point stays pinned to the carried reticle anchor.
+- Replaced the fixed held-item rotation offset with a pickup-relative rotation offset so held objects keep their world-picked orientation as they move with the camera.
+- Changed held-item anchoring from free world-position easing to reticle-ray depth easing so the grabbed point stays under the reticle while only moving inward by depth.
+- Corrected the alchemy bottle and board heights so they rest on the tabletop surface instead of intersecting it visually.
+- Added a small release clearance and CCD on dropped rigid bodies to reduce immediate tabletop interpenetration on release.
+- Tuned dropped rigid bodies with stronger linear and angular damping so bottles stop rolling more naturally.
+- Switched bottle drop colliders to cylinders and added friction/contact-skin tuning on both dropped items and static room surfaces to reduce visible sink on tables and floors.
+- Reduced dropped-item damping and friction from the first anti-rolling pass so release behavior stays believable instead of sticky.
+- Added fixed colliders for still-placed alchemy bottles and candle bodies, and remove those colliders when the corresponding pickup item is collected.
+- Disabled hover targeting and `E` interactions while a held item is active, and surface a clear status message directing the player to drop the carried item first.
+
+Feedback resolution state:
+- Hover/focus freeze: resolved and user-confirmed.
+- Delayed inspect messaging: resolved and user-confirmed.
+- Invisible held items: resolved and user-confirmed.
+- Dropped items losing targetability: resolved and user-confirmed.
+- Held-item carry feel: resolved for the current prototype scope and user-confirmed.
+- Dropped bottle settle behavior: resolved for the current prototype scope and user-confirmed.
+- Small-prop world collisions: resolved for currently seeded props and user-confirmed; broader decorative collision coverage can be revisited later if needed.
+- Carry-state interaction lock: resolved and user-confirmed.
 
 ## Current Risks and Watchpoints
 - Rapier character motion may need iteration to reduce jitter around walls, corners, and future denser furniture layouts.

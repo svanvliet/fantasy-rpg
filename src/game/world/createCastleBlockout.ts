@@ -1,8 +1,12 @@
 import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 
+import { createCastleInteractables } from "./castleInteractables";
+import type { Interactable } from "../interactions/types";
+
 export interface CastleBlockoutData {
   spawnPosition: THREE.Vector3;
+  interactables: Interactable[];
 }
 
 interface StaticBoxOptions {
@@ -27,6 +31,11 @@ interface LightOptions {
 }
 
 const TABLETOP_THICKNESS = 0.18;
+const STATIC_SURFACE_FRICTION = 1.0;
+const STATIC_CONTACT_SKIN = 0.006;
+const PICKUP_BOTTLE_FRICTION = 0.95;
+const PICKUP_BOTTLE_CONTACT_SKIN = 0.008;
+const CANDLE_BODY_FRICTION = 1.0;
 
 function addStaticBox(
   scene: THREE.Scene,
@@ -62,7 +71,10 @@ function addStaticBox(
       options.scale.x / 2,
       options.scale.y / 2,
       options.scale.z / 2
-    );
+    )
+      .setFriction(STATIC_SURFACE_FRICTION)
+      .setRestitution(0)
+      .setContactSkin(STATIC_CONTACT_SKIN);
     world.createCollider(collider, rigidBody);
   }
 
@@ -107,13 +119,19 @@ function addBounceLight(
 
 function addCandles(
   scene: THREE.Scene,
+  world: RAPIER.World,
+  rapier: typeof RAPIER,
   positions: THREE.Vector3[],
   lightIntensity: number,
   lightDistance: number
-): void {
-  positions.forEach((position, index) => {
+): THREE.Object3D[] {
+  return positions.map((position, index) => {
     const candleHeight = 0.24;
     const flameHeight = candleHeight + 0.06;
+    const anchor = new THREE.Group();
+    anchor.position.copy(position);
+    scene.add(anchor);
+
     const candleBody = new THREE.Mesh(
       new THREE.CylinderGeometry(0.045, 0.05, 0.24, 8),
       new THREE.MeshStandardMaterial({
@@ -122,10 +140,25 @@ function addCandles(
         metalness: 0.03
       })
     );
-    candleBody.position.set(position.x, position.y + candleHeight * 0.5, position.z);
+    candleBody.position.set(0, candleHeight * 0.5, 0);
     candleBody.castShadow = false;
     candleBody.receiveShadow = true;
-    scene.add(candleBody);
+    anchor.add(candleBody);
+
+    const candleRigidBody = world.createRigidBody(
+      rapier.RigidBodyDesc.fixed().setTranslation(
+        position.x,
+        position.y + candleHeight * 0.5,
+        position.z
+      )
+    );
+    world.createCollider(
+      rapier.ColliderDesc.cylinder(candleHeight * 0.5, 0.05)
+        .setFriction(CANDLE_BODY_FRICTION)
+        .setRestitution(0)
+        .setContactSkin(STATIC_CONTACT_SKIN),
+      candleRigidBody
+    );
 
     const wick = new THREE.Mesh(
       new THREE.CylinderGeometry(0.008, 0.008, 0.035, 6),
@@ -135,16 +168,16 @@ function addCandles(
         metalness: 0.02
       })
     );
-    wick.position.set(position.x, position.y + candleHeight + 0.012, position.z);
+    wick.position.set(0, candleHeight + 0.012, 0);
     wick.castShadow = false;
-    scene.add(wick);
+    anchor.add(wick);
 
     const flame = new THREE.Mesh(
       new THREE.SphereGeometry(0.032, 8, 8),
       new THREE.MeshBasicMaterial({ color: index % 2 === 0 ? 0xffefcb : 0xffdfaa })
     );
-    flame.position.set(position.x, position.y + flameHeight, position.z);
-    scene.add(flame);
+    flame.position.set(0, flameHeight, 0);
+    anchor.add(flame);
 
     addPointLight(scene, {
       color: index % 2 === 0 ? 0xffd29a : 0xffcc88,
@@ -154,7 +187,27 @@ function addCandles(
       castShadow: false,
       showEmber: false
     });
+    return anchor;
   });
+}
+
+function addPickupBottleCollider(
+  world: RAPIER.World,
+  rapier: typeof RAPIER,
+  mesh: THREE.Mesh
+): void {
+  const body = world.createRigidBody(
+    rapier.RigidBodyDesc.fixed().setTranslation(mesh.position.x, mesh.position.y, mesh.position.z)
+  );
+  const collider = world.createCollider(
+    rapier.ColliderDesc.cylinder(0.225, 0.1)
+      .setFriction(PICKUP_BOTTLE_FRICTION)
+      .setRestitution(0)
+      .setContactSkin(PICKUP_BOTTLE_CONTACT_SKIN),
+    body
+  );
+  mesh.userData.physicsBody = body;
+  mesh.userData.physicsCollider = collider;
 }
 
 function addTable(
@@ -471,7 +524,7 @@ export function createCastleBlockout(
   addRug(scene, new THREE.Vector3(10, -0.01, -0.1), new THREE.Vector3(3.6, 0.04, 4.2), 0x4d5d43);
 
   addBed(scene, world, rapier, new THREE.Vector3(-11, 0, -1.1));
-  addStaticBox(scene, world, rapier, {
+  const footLocker = addStaticBox(scene, world, rapier, {
     color: 0x5a412c,
     position: new THREE.Vector3(-11, 0.45, 1.6),
     scale: new THREE.Vector3(1.3, 0.9, 0.9)
@@ -482,8 +535,10 @@ export function createCastleBlockout(
     position: new THREE.Vector3(-7.8, 1.1, 2.7),
     scale: new THREE.Vector3(1.4, 2.2, 0.7)
   });
-  addCandles(
+  const bedsideCandles = addCandles(
     scene,
+    world,
+    rapier,
     [
       new THREE.Vector3(-7.95, 0.95, -2.75),
       new THREE.Vector3(-7.45, 0.95, -3.05),
@@ -495,7 +550,23 @@ export function createCastleBlockout(
 
   addShelf(scene, world, rapier, new THREE.Vector3(-0.8, 0, -3.8), new THREE.Vector3(1.5, 2.7, 0.7), 0x5f4731, 4);
   addShelf(scene, world, rapier, new THREE.Vector3(2.1, 0, -3.6), new THREE.Vector3(1.5, 2.5, 0.7), 0x5a4330, 3);
-  addCabinet(scene, world, rapier, new THREE.Vector3(2.7, 0, 2.9), new THREE.Vector3(1.8, 2.6, 0.9));
+  const cabinetBody = addStaticBox(scene, world, rapier, {
+    color: 0x5a4330,
+    position: new THREE.Vector3(2.7, 1.3, 2.9),
+    scale: new THREE.Vector3(1.8, 2.6, 0.9)
+  });
+  const cabinetDoorLeft = addStaticBox(scene, world, rapier, {
+    color: 0x6e563d,
+    position: new THREE.Vector3(2.41, 1.3, 3.359),
+    scale: new THREE.Vector3(0.79, 2.288, 0.04),
+    collider: false
+  });
+  const cabinetDoorRight = addStaticBox(scene, world, rapier, {
+    color: 0x6e563d,
+    position: new THREE.Vector3(2.99, 1.3, 3.359),
+    scale: new THREE.Vector3(0.79, 2.288, 0.04),
+    collider: false
+  });
   addStaticBox(scene, world, rapier, {
     color: 0x72543b,
     position: new THREE.Vector3(-2.5, 0.6, 2.7),
@@ -508,6 +579,8 @@ export function createCastleBlockout(
   });
   addCandles(
     scene,
+    world,
+    rapier,
     [
       new THREE.Vector3(-0.35, 2.7, -3.45),
       new THREE.Vector3(2.45, 2.5, -3.2),
@@ -517,7 +590,53 @@ export function createCastleBlockout(
     3.1
   );
 
-  addAlchemySet(scene, world, rapier, new THREE.Vector3(10.3, 0.95, -1.25));
+  const alchemyTablePosition = new THREE.Vector3(10.3, 0.95, -1.25);
+  const alchemyBottleHeight = 0.45;
+  const alchemyTableSurfaceY = alchemyTablePosition.y;
+  const alchemyBottleCenterY = alchemyTableSurfaceY + alchemyBottleHeight * 0.5;
+  addTable(scene, world, rapier, alchemyTablePosition, new THREE.Vector3(2.8, 0.95, 1.4), 0x6b5038);
+  const alchemyBottle1 = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.08, 0.12, 0.45, 10),
+    new THREE.MeshStandardMaterial({
+      color: 0x6e8c69,
+      roughness: 0.28,
+      metalness: 0.08,
+      transparent: true,
+      opacity: 0.95,
+      fog: false
+    })
+  );
+  alchemyBottle1.position.set(9.95, alchemyBottleCenterY, -1.13);
+  alchemyBottle1.castShadow = true;
+  alchemyBottle1.receiveShadow = true;
+  scene.add(alchemyBottle1);
+  const alchemyBottle2 = alchemyBottle1.clone();
+  (alchemyBottle2.material as THREE.MeshStandardMaterial) = (alchemyBottle2.material as THREE.MeshStandardMaterial).clone();
+  (alchemyBottle2.material as THREE.MeshStandardMaterial).color.setHex(0x8596b5);
+  alchemyBottle2.position.set(10.4, alchemyBottleCenterY, -1.23);
+  alchemyBottle2.receiveShadow = true;
+  scene.add(alchemyBottle2);
+  const alchemyBottle3 = alchemyBottle1.clone();
+  (alchemyBottle3.material as THREE.MeshStandardMaterial) = (alchemyBottle3.material as THREE.MeshStandardMaterial).clone();
+  (alchemyBottle3.material as THREE.MeshStandardMaterial).color.setHex(0xb07c62);
+  alchemyBottle3.position.set(10.9, alchemyBottleCenterY, -1.13);
+  alchemyBottle3.receiveShadow = true;
+  scene.add(alchemyBottle3);
+  const alchemyBottle4 = alchemyBottle1.clone();
+  (alchemyBottle4.material as THREE.MeshStandardMaterial) = (alchemyBottle4.material as THREE.MeshStandardMaterial).clone();
+  (alchemyBottle4.material as THREE.MeshStandardMaterial).color.setHex(0xd0ba74);
+  alchemyBottle4.position.set(11.38, alchemyBottleCenterY, -0.91);
+  scene.add(alchemyBottle4);
+  addPickupBottleCollider(world, rapier, alchemyBottle1);
+  addPickupBottleCollider(world, rapier, alchemyBottle2);
+  addPickupBottleCollider(world, rapier, alchemyBottle3);
+  addPickupBottleCollider(world, rapier, alchemyBottle4);
+  const alchemyBoard = addStaticBox(scene, world, rapier, {
+    color: 0x493325,
+    position: new THREE.Vector3(11.12, alchemyTableSurfaceY + 0.015, -0.73),
+    scale: new THREE.Vector3(0.9, 0.03, 0.26),
+    collider: false
+  });
   addShelf(scene, world, rapier, new THREE.Vector3(12.6, 0, 2.5), new THREE.Vector3(1.3, 2.5, 0.7), 0x5f4732, 4);
   addTable(scene, world, rapier, new THREE.Vector3(7.6, 0.85, 2.4), new THREE.Vector3(1.6, 0.7, 1), 0x684d34);
   addStaticBox(scene, world, rapier, {
@@ -527,6 +646,8 @@ export function createCastleBlockout(
   });
   addCandles(
     scene,
+    world,
+    rapier,
     [
       new THREE.Vector3(9.7, 0.95, -1.45),
       new THREE.Vector3(10.95, 0.95, -1.05),
@@ -592,7 +713,17 @@ export function createCastleBlockout(
   focalArch.castShadow = true;
   scene.add(focalArch);
 
+  const interactables = createCastleInteractables({
+    bedsideCandles,
+    footLocker,
+    cabinetDoors: [cabinetDoorLeft, cabinetDoorRight],
+    alchemyBottles: [alchemyBottle1, alchemyBottle2, alchemyBottle3, alchemyBottle4],
+    alchemyBoard,
+    arch: focalArch
+  });
+
   return {
-    spawnPosition: new THREE.Vector3(-12, 0.85, 1.8)
+    spawnPosition: new THREE.Vector3(-12, 0.85, 1.8),
+    interactables
   };
 }
