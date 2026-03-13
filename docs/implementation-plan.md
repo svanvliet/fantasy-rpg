@@ -368,6 +368,7 @@ Feedback notes:
 - User feedback: tabletop items in the alchemy room were still floating because their placement did not follow the corrected table geometry.
 - User feedback: visible candle meshes on tables were still floating above surfaces, and the alchemy tabletop composition had overlapping props.
 - User feedback: some candle meshes were still clipping into or floating above end tables because candle placement heights were inconsistent across furniture types.
+- User feedback: the visible candle representation still read incorrectly because the generic light marker spheres were too large and made some candles look like they were floating or clipping.
 - User feedback: all Phase 2 checklist items now look good and Phase 2 playtest is complete.
 
 Decisions from feedback:
@@ -379,6 +380,7 @@ Decisions from feedback:
 - Anchor tabletop props to the corrected table surface height instead of room-relative placeholder offsets.
 - Anchor decorative candle meshes to the corrected furniture surfaces and give the alchemy tabletop a cleaner prop layout.
 - Standardize candle placement so all candles are surface-anchored and their light sources are offset from a consistent candle body height.
+- Use a dedicated candle visual with a smaller flame marker instead of the oversized generic light marker for tabletop candles.
 - Accept the current lighting/readability level for Phase 2 and defer higher-fidelity Skyrim-like interior lighting to the planned later polish pass.
 
 Feedback-driven changes:
@@ -391,6 +393,7 @@ Feedback-driven changes:
 - Repositioned candle meshes to the corrected table and shelf heights.
 - Spread out the alchemy tabletop props and moved the focal arch so the composition no longer collides visually.
 - Reworked candle placement to use consistent surface-height anchors with a separate flame/light offset above the candle mesh.
+- Replaced the oversized generic ember markers on candles with smaller dedicated flame visuals anchored above each candle body.
 
 ## Current Risks and Watchpoints
 - Rapier character motion may need iteration to reduce jitter around walls, corners, and future denser furniture layouts.

@@ -22,6 +22,8 @@ interface LightOptions {
   position: THREE.Vector3;
   distance: number;
   castShadow?: boolean;
+  showEmber?: boolean;
+  emberRadius?: number;
 }
 
 const TABLETOP_THICKNESS = 0.18;
@@ -78,8 +80,12 @@ function addPointLight(scene: THREE.Scene, options: LightOptions): void {
   light.castShadow = options.castShadow ?? true;
   scene.add(light);
 
+  if (options.showEmber === false) {
+    return;
+  }
+
   const ember = new THREE.Mesh(
-    new THREE.SphereGeometry(0.08, 10, 10),
+    new THREE.SphereGeometry(options.emberRadius ?? 0.08, 10, 10),
     new THREE.MeshBasicMaterial({ color: options.color })
   );
   ember.position.copy(options.position);
@@ -107,7 +113,7 @@ function addCandles(
 ): void {
   positions.forEach((position, index) => {
     const candleHeight = 0.24;
-    const flameHeight = 0.28;
+    const flameHeight = candleHeight + 0.06;
     const candleBody = new THREE.Mesh(
       new THREE.CylinderGeometry(0.045, 0.05, 0.24, 8),
       new THREE.MeshStandardMaterial({
@@ -121,12 +127,32 @@ function addCandles(
     candleBody.receiveShadow = true;
     scene.add(candleBody);
 
+    const wick = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.008, 0.008, 0.035, 6),
+      new THREE.MeshStandardMaterial({
+        color: 0x1f1610,
+        roughness: 0.9,
+        metalness: 0.02
+      })
+    );
+    wick.position.set(position.x, position.y + candleHeight + 0.012, position.z);
+    wick.castShadow = false;
+    scene.add(wick);
+
+    const flame = new THREE.Mesh(
+      new THREE.SphereGeometry(0.032, 8, 8),
+      new THREE.MeshBasicMaterial({ color: index % 2 === 0 ? 0xffefcb : 0xffdfaa })
+    );
+    flame.position.set(position.x, position.y + flameHeight, position.z);
+    scene.add(flame);
+
     addPointLight(scene, {
       color: index % 2 === 0 ? 0xffd29a : 0xffcc88,
       intensity: lightIntensity,
       distance: lightDistance,
       position: new THREE.Vector3(position.x, position.y + flameHeight, position.z),
-      castShadow: false
+      castShadow: false,
+      showEmber: false
     });
   });
 }
