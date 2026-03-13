@@ -13,7 +13,7 @@
 | 1 | accepted | Deliver a playable first-person traversal foundation with a debug room |
 | 2 | accepted | Replace the debug room with the 3-room castle blockout and establish atmosphere |
 | 3 | accepted | Add interaction targeting, prompts, pickup/drop behavior, and physical object handling |
-| 4 | planned | Add inventory, containers, transfer rules, and prototype item content |
+| 4 | accepted | Add inventory, containers, transfer rules, and prototype item content |
 | 5 | planned | Add persistence for player, item, and container world state |
 | 6 | planned | Tune feel, readability, and prototype polish |
 | 7 | planned | Produce an evaluation build and revise the roadmap from actual findings |
@@ -167,11 +167,16 @@ Acceptance criteria:
 - no duplication, loss, or container cross-contamination occurs during normal use
 
 Validation checklist:
-- [ ] verify items can be looted from the world into player inventory
-- [ ] verify items can be transferred from inventory into containers and back out again
-- [ ] verify stackable items merge and split according to the prototype rules
-- [ ] verify container contents remain isolated per container
-- [ ] verify no duplication or item loss occurs during repeated transfers
+- [x] verify `I` opens and closes the player inventory panel cleanly
+- [x] verify `E` on the foot locker and cabinet doors opens the correct shared transfer panel
+- [x] verify items can be looted from the world into player inventory
+- [x] verify items can be transferred from inventory into containers and back out again
+- [x] verify stackable items merge and split according to the prototype rules
+- [x] verify container contents remain isolated per container
+- [x] verify no duplication or item loss occurs during repeated transfers
+
+Result:
+- accepted after user playtest
 
 ### Phase 5: Persistence
 Objective:
@@ -501,6 +506,66 @@ Feedback resolution state:
 - Dropped bottle settle behavior: resolved for the current prototype scope and user-confirmed.
 - Small-prop world collisions: resolved for currently seeded props and user-confirmed; broader decorative collision coverage can be revisited later if needed.
 - Carry-state interaction lock: resolved and user-confirmed.
+
+### Phase 4 Update
+Status:
+- accepted
+
+Step tracking:
+
+| Step | Status | Goal |
+| --- | --- | --- |
+| 1 | done | Add inventory and container state models with seeded prototype content |
+| 2 | done | Route pickups into inventory and open container storage UI from world interactions |
+| 3 | done | Build the Phase 4 inventory/container panel UI and wire transfer/drop actions |
+| 4 | done | Validate build and test stability for the inventory/container loop |
+
+Completed work:
+- added an inventory store with stack-aware item handling, seeded container contents, and transfer methods
+- added a shared prototype content catalog for loose loot and storage contents
+- changed loose item pickup to collect into player inventory
+- changed foot locker and cabinet interactions to open the inventory/container transfer panel
+- added a DOM inventory panel with player inventory view, container transfer view, split-by-one transfer controls, and inventory-to-world dropping
+- froze movement and world targeting while the inventory panel is open so inventory use remains a clean interaction mode
+
+Validation results:
+- `npm run build` passed after the Phase 4 inventory/container integration
+- `npm run test` passed after the Phase 4 inventory/container integration
+- added unit coverage for stack merging, partial transfers, and invalid-transfer rejection in `InventoryStore`
+- user playtest accepted the Phase 4 inventory, transfer, container-isolation, and hold/stow checklist items
+
+Learned / changed:
+- the existing DOM overlay approach is still sufficient for the first inventory/container pass and avoids introducing a framework prematurely
+- a simple `Move 1` / `Move All` pattern is enough to validate stack splitting and merging for the prototype
+- container interactions work better as a shared storage mode than as door open/close toggles once inventory transfer becomes the goal
+
+Feedback notes:
+- User feedback: opening the foot locker visually shifted it open, but closing the inventory did not return it to the closed position.
+- User feedback: after closing the foot locker panel, keyboard movement still worked but mouse-look was not recaptured until another click.
+- User feedback: Phase 4 lost the Phase 3 grab/hold interaction when `E` changed to loot into inventory, and the user wants a dedicated hold/grab input restored.
+- User feedback: dropped loose items should advertise the same hold action tooltip as any other holdable world item.
+- User feedback: pressing `E` while actively holding a stowable item should place it into inventory instead of blocking interaction.
+- User feedback: the prototype needs an explicit distinction between holdable movable items and items that are also stowable, because future props may be movable but not inventory-safe.
+
+Decisions from feedback:
+- Container props that visually open for storage access need a matching close path when the panel is dismissed.
+- Closing the inventory/container panel should restore prior pointer-lock state automatically when the panel was opened from active first-person play.
+- Keep `E` as the primary take/use key and restore a separate hold/grab action on `F`, which fits the current first-person interaction model better than overloading `E`.
+- Any loose item that supports physical holding should advertise both `E` take and `F` hold consistently, including items dropped from inventory.
+- Treat `stowable` as an explicit per-item property so held-item `E` behavior can deposit valid items into inventory now while leaving room for future non-stowable world props.
+
+Feedback-driven changes:
+- Added explicit close behavior for container interactables so the foot locker and cabinets return to their closed position when the panel closes.
+- Routed inventory-panel close through the interaction system so it can restore container state and recapture pointer lock automatically.
+- Restored a dedicated hold/grab action on `F` for loose pickup items while keeping `E` as the inventory loot action.
+- Updated pickup prompts to advertise the split actions: `E` to take and `F` to hold.
+- Updated dropped loose-item prompts to show `E` take and `F` hold consistently with seeded world pickups.
+- Added a `stowable` flag to item definitions and made `E` while holding stow the item when allowed.
+
+Feedback resolution state:
+- Container close and pointer-lock recapture: resolved and user-confirmed.
+- Dedicated hold/grab input alongside inventory looting: resolved and user-confirmed.
+- Holdable vs. stowable distinction: resolved for the current prototype scope and user-confirmed; future non-stowable content can build on this split.
 
 ## Current Risks and Watchpoints
 - Rapier character motion may need iteration to reduce jitter around walls, corners, and future denser furniture layouts.

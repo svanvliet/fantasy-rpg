@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 
 import type { Interactable, PickupItemDefinition } from "../interactions/types";
+import { getItemDefinition } from "../inventory/prototypeContent";
 
 function setHighlight(object: THREE.Object3D, focused: boolean): void {
   object.traverse((child) => {
@@ -42,7 +43,7 @@ function createPickupInteractable(
     kind: "pickup",
     getPrompt: () => ({
       title: definition.label,
-      actionLabel: "[E] Pick up",
+      actionLabel: "[E] Take / [F] Hold",
       description,
       blockedReason: `${definition.label} is too far away.`
     }),
@@ -105,34 +106,44 @@ function createInspectInteractable(
   };
 }
 
-function createToggleInteractable(
+function createContainerInteractable(
   id: string,
   object: THREE.Object3D,
   title: string,
-  openMessage: string,
-  closeMessage: string
+  containerId: string,
+  openOffsetX: number,
+  openMessage: string
 ): Interactable {
   let isOpen = false;
   const closedX = object.position.x;
-  const openX = closedX + 0.36;
+  const openX = closedX + openOffsetX;
 
   return {
     id,
     object,
     actionDistance: 2.4,
-    kind: "toggle",
+    kind: "container",
     getPrompt: () => ({
       title,
-      actionLabel: isOpen ? "[E] Close" : "[E] Open",
+      actionLabel: "[E] Search",
       blockedReason: `${title} is too far away.`
     }),
     onFocus: (focused) => setHighlight(object, focused),
+    close: () => {
+      isOpen = false;
+      object.position.x = closedX;
+    },
     interact: () => {
-      isOpen = !isOpen;
-      object.position.x = isOpen ? openX : closedX;
+      if (!isOpen) {
+        isOpen = true;
+        object.position.x = openX;
+      }
+
       return {
-        type: "toggle",
-        message: isOpen ? openMessage : closeMessage
+        type: "container",
+        containerId,
+        containerTitle: title,
+        message: openMessage
       };
     }
   };
@@ -163,57 +174,35 @@ export function createCastleInteractables(seeds: CastleInteractableSeeds): Inter
 
   if (seeds.footLocker) {
     interactables.push(
-      createToggleInteractable(
+      createContainerInteractable(
         "foot-locker",
         seeds.footLocker,
-        "Foot locker",
+        "Foot Locker",
+        "foot-locker",
+        0.36,
         "The foot locker creaks open. Inventory support will land in Phase 4.",
-        "The foot locker shuts with a heavy wooden thud."
       )
     );
   }
 
   seeds.cabinetDoors.forEach((door, index) => {
     interactables.push(
-      createToggleInteractable(
+      createContainerInteractable(
         `cabinet-door-${index}`,
         door,
-        "Cabinet",
+        index === 0 ? "Herb Cabinet" : "Supply Cabinet",
+        index === 0 ? "cabinet-left" : "cabinet-right",
+        0.26,
         "The cabinet opens. Container transfers will arrive in Phase 4.",
-        "The cabinet closes."
       )
     );
   });
 
   const bottleDefinitions: PickupItemDefinition[] = [
-    {
-      id: "bittermoss-extract",
-      label: "Bittermoss Extract",
-      color: 0x6e8c69,
-      shape: "bottle",
-      size: new THREE.Vector3(0.18, 0.45, 0.18)
-    },
-    {
-      id: "moonwater-vial",
-      label: "Moonwater Vial",
-      color: 0x8596b5,
-      shape: "bottle",
-      size: new THREE.Vector3(0.18, 0.45, 0.18)
-    },
-    {
-      id: "emberflower-oil",
-      label: "Emberflower Oil",
-      color: 0xb07c62,
-      shape: "bottle",
-      size: new THREE.Vector3(0.18, 0.45, 0.18)
-    },
-    {
-      id: "golden-resin-tonic",
-      label: "Golden Resin Tonic",
-      color: 0xd0ba74,
-      shape: "bottle",
-      size: new THREE.Vector3(0.18, 0.45, 0.18)
-    }
+    getItemDefinition("bittermoss-extract"),
+    getItemDefinition("moonwater-vial"),
+    getItemDefinition("emberflower-oil"),
+    getItemDefinition("golden-resin-tonic")
   ];
 
   seeds.alchemyBottles.forEach((bottle, index) => {
@@ -222,7 +211,7 @@ export function createCastleInteractables(seeds: CastleInteractableSeeds): Inter
         `alchemy-bottle-${index}`,
         bottle,
         bottleDefinitions[index],
-        "A collectable alchemy ingredient bottle."
+        bottleDefinitions[index].description ?? "A collectable alchemy ingredient bottle."
       )
     );
   });

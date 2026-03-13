@@ -2,12 +2,15 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
 
 import { createFixedStepLoop } from "./core/loop";
+import { InventoryStore } from "./inventory/InventoryStore";
+import { CONTAINER_SEEDS, ITEM_DEFINITIONS } from "./inventory/prototypeContent";
 import { InteractionSystem } from "./interactions/InteractionSystem";
 import { PlayerController } from "./player/PlayerController";
 import { createCastleBlockout } from "./world/createCastleBlockout";
 import { createDebugOverlay, type DebugOverlayController } from "../ui/debugOverlay";
+import { createInventoryPanel, type InventoryPanelController } from "../ui/inventoryPanel";
 
-const PHASE_LABEL = "Phase 3 - Interaction Foundation";
+const PHASE_LABEL = "Phase 4 - Inventory and Containers";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
@@ -19,6 +22,8 @@ export class GameApp {
   private readonly camera: THREE.PerspectiveCamera;
   private readonly world: RAPIER.World;
   private readonly overlay: DebugOverlayController;
+  private readonly inventoryPanel: InventoryPanelController;
+  private readonly inventoryStore: InventoryStore;
   private readonly player: PlayerController;
   private readonly interactionSystem: InteractionSystem;
   private readonly loop: ReturnType<typeof createFixedStepLoop>;
@@ -34,6 +39,8 @@ export class GameApp {
     camera: THREE.PerspectiveCamera,
     world: RAPIER.World,
     overlay: DebugOverlayController,
+    inventoryPanel: InventoryPanelController,
+    inventoryStore: InventoryStore,
     player: PlayerController,
     interactionSystem: InteractionSystem
   ) {
@@ -43,6 +50,8 @@ export class GameApp {
     this.camera = camera;
     this.world = world;
     this.overlay = overlay;
+    this.inventoryPanel = inventoryPanel;
+    this.inventoryStore = inventoryStore;
     this.player = player;
     this.interactionSystem = interactionSystem;
 
@@ -88,6 +97,26 @@ export class GameApp {
     mount.append(shell);
 
     const overlay = createDebugOverlay(shell);
+    const inventoryStore = new InventoryStore(ITEM_DEFINITIONS);
+    let inventoryPanel!: InventoryPanelController;
+    let interactionSystem!: InteractionSystem;
+    CONTAINER_SEEDS.forEach((container) => {
+      inventoryStore.registerContainer(container.id, container.title, container.items);
+    });
+    inventoryPanel = createInventoryPanel(shell, {
+      onClose: () => {
+        interactionSystem.closeInventoryPanel();
+      },
+      onDropPlayerItem: (itemId) => {
+        interactionSystem.dropInventoryItem(itemId);
+      },
+      onTransferPlayerToContainer: (containerId, itemId, quantity) => {
+        inventoryStore.transferPlayerToContainer(containerId, itemId, quantity);
+      },
+      onTransferContainerToPlayer: (containerId, itemId, quantity) => {
+        inventoryStore.transferContainerToPlayer(containerId, itemId, quantity);
+      }
+    });
 
     const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
     world.integrationParameters.dt = FIXED_STEP;
@@ -100,13 +129,20 @@ export class GameApp {
       rapier: RAPIER,
       spawnPosition: room.spawnPosition
     });
-    const interactionSystem = new InteractionSystem({
+    interactionSystem = new InteractionSystem({
       camera,
+      domElement: renderer.domElement,
       scene,
       world,
       rapier: RAPIER,
-      interactables: room.interactables
+      interactables: room.interactables,
+      inventoryStore,
+      inventoryPanel
     });
+    inventoryStore.subscribe(() => {
+      inventoryPanel.sync(inventoryStore.getSnapshot());
+    });
+    inventoryPanel.sync(inventoryStore.getSnapshot());
 
     overlay.setMetrics({
       fps: 0,
@@ -117,7 +153,18 @@ export class GameApp {
       target: "none"
     });
 
-    return new GameApp(mount, renderer, scene, camera, world, overlay, player, interactionSystem);
+    return new GameApp(
+      mount,
+      renderer,
+      scene,
+      camera,
+      world,
+      overlay,
+      inventoryPanel,
+      inventoryStore,
+      player,
+      interactionSystem
+    );
   }
 
   start(): void {
@@ -125,7 +172,11 @@ export class GameApp {
   }
 
   private update(deltaSeconds: number): void {
-    this.player.update(deltaSeconds);
+    if (this.inventoryPanel.isOpen()) {
+      this.player.clearTransientInput();
+    } else {
+      this.player.update(deltaSeconds);
+    }
     this.world.step();
     this.interactionSystem.update(deltaSeconds);
 
@@ -149,9 +200,11 @@ export class GameApp {
     });
 
     this.overlay.setHint(
-      playerState.pointerLocked
-        ? interactionState.prompt || "Use E to interact and Q to drop held items."
-        : "Click the scene to capture the mouse. Use WASD to move and Space to jump."
+      this.inventoryPanel.isOpen()
+        ? "Inventory open. Move items with the panel, press I or Escape to close, and use Drop 1 to place items back into the world."
+        : playerState.pointerLocked
+          ? interactionState.prompt || "Use E to interact, I to open inventory, and Q to drop a held prototype item."
+          : "Click the scene to capture the mouse. Use WASD to move, Space to jump, and I to open inventory."
     );
   }
 

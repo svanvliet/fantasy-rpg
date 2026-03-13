@@ -1,7 +1,7 @@
 import type * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 
-export type InteractionKind = "inspect" | "pickup" | "toggle" | "blocked";
+export type InteractionKind = "inspect" | "pickup" | "toggle" | "container" | "blocked";
 
 export interface InteractionPrompt {
   title: string;
@@ -17,9 +17,12 @@ export interface InspectPayload {
 export interface PickupItemDefinition {
   id: string;
   label: string;
+  description?: string;
   color: number;
   shape: "bottle" | "book" | "satchel" | "ingredient";
   size: THREE.Vector3;
+  maxStack: number;
+  stowable: boolean;
 }
 
 export interface InteractionContext {
@@ -39,17 +42,20 @@ export interface Interactable {
   kind: InteractionKind;
   getPrompt: () => InteractionPrompt;
   onFocus?: (focused: boolean) => void;
+  close?: () => void;
   interact: (context: InteractionContext) => InteractionResult;
 }
 
 export interface InteractionResult {
-  type: "none" | "message" | "pickup" | "toggle";
+  type: "none" | "message" | "pickup" | "toggle" | "container";
   message?: string;
   pickupItem?: PickupItemDefinition;
   pickupPosition?: THREE.Vector3;
   pickupQuaternion?: THREE.Quaternion;
   pickupLocalAnchor?: THREE.Vector3;
   pickupDistance?: number;
+  containerId?: string;
+  containerTitle?: string;
 }
 
 export interface HeldItemState {

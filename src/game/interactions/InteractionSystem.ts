@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 
+import type { InventoryStore } from "../inventory/InventoryStore";
 import type {
   HeldItemState,
   InteractionContext,
@@ -9,6 +10,7 @@ import type {
   PickupItemDefinition,
   TargetInfo
 } from "./types";
+import type { InventoryPanelController } from "../../ui/inventoryPanel";
 
 const INTERACTION_REACH = 2.35;
 const HOVER_REACH = 3.1;
@@ -31,10 +33,13 @@ interface DroppedItem {
 
 export interface InteractionSystemOptions {
   camera: THREE.PerspectiveCamera;
+  domElement: HTMLElement;
   scene: THREE.Scene;
   world: RAPIER.World;
   rapier: typeof RAPIER;
   interactables: Interactable[];
+  inventoryStore: InventoryStore;
+  inventoryPanel: InventoryPanelController;
 }
 
 export interface InteractionDebugState {
@@ -45,10 +50,13 @@ export interface InteractionDebugState {
 
 export class InteractionSystem {
   private readonly camera: THREE.PerspectiveCamera;
+  private readonly domElement: HTMLElement;
   private readonly scene: THREE.Scene;
   private readonly world: RAPIER.World;
   private readonly rapier: typeof RAPIER;
   private readonly interactables: Interactable[];
+  private readonly inventoryStore: InventoryStore;
+  private readonly inventoryPanel: InventoryPanelController;
   private readonly raycaster = new THREE.Raycaster();
   private readonly workingDirection = new THREE.Vector3();
   private readonly workingOrigin = new THREE.Vector3();
@@ -60,16 +68,21 @@ export class InteractionSystem {
   private readonly droppedItems: DroppedItem[] = [];
 
   private currentTarget: TargetInfo | null = null;
+  private activeContainerInteractable: Interactable | null = null;
   private heldItem: HeldItemState | null = null;
   private statusMessage = "Look at an object to interact.";
   private statusMessageTtl = 0;
+  private shouldRecapturePointerLock = false;
 
   constructor(options: InteractionSystemOptions) {
     this.camera = options.camera;
+    this.domElement = options.domElement;
     this.scene = options.scene;
     this.world = options.world;
     this.rapier = options.rapier;
     this.interactables = options.interactables;
+    this.inventoryStore = options.inventoryStore;
+    this.inventoryPanel = options.inventoryPanel;
 
     window.addEventListener("keydown", (event) => {
       if (event.code === "KeyE") {
@@ -78,6 +91,18 @@ export class InteractionSystem {
 
       if (event.code === "KeyQ") {
         this.tryDropHeldItem();
+      }
+
+      if (event.code === "KeyF") {
+        this.tryHoldCurrentTarget();
+      }
+
+      if (event.code === "KeyI") {
+        this.togglePlayerInventory();
+      }
+
+      if (event.code === "Escape" && this.inventoryPanel.isOpen()) {
+        this.closeInventoryPanel();
       }
     });
   }
@@ -98,11 +123,29 @@ export class InteractionSystem {
   }
 
   getDebugState(): InteractionDebugState {
+    const heldItemLabel = this.heldItem ? this.heldItem.definition.label : "none";
+
+    if (this.inventoryPanel.isOpen()) {
+      return {
+        targetLabel: "none",
+        prompt: "Inventory open. Transfer items with the panel or press Escape to close.",
+        heldItemLabel
+      };
+    }
+
+    if (this.heldItem) {
+      return {
+        targetLabel: "none",
+        prompt: `Holding ${this.heldItem.definition.label}. Press Q to release it.`,
+        heldItemLabel
+      };
+    }
+
     if (this.statusMessageTtl > 0) {
       return {
         targetLabel: this.currentTarget?.interactable.getPrompt().title ?? "none",
         prompt: this.statusMessage,
-        heldItemLabel: this.heldItem?.definition.label ?? "none"
+        heldItemLabel
       };
     }
 
@@ -114,19 +157,19 @@ export class InteractionSystem {
       return {
         targetLabel: prompt.title,
         prompt: actionText,
-        heldItemLabel: this.heldItem?.definition.label ?? "none"
+        heldItemLabel
       };
     }
 
     return {
       targetLabel: "none",
       prompt: this.statusMessage,
-      heldItemLabel: this.heldItem?.definition.label ?? "none"
+      heldItemLabel
     };
   }
 
   private updateTargeting(): void {
-    if (this.heldItem) {
+    if (this.heldItem || this.inventoryPanel.isOpen()) {
       if (this.currentTarget) {
         this.currentTarget.interactable.onFocus?.(false);
         this.currentTarget = null;
@@ -184,8 +227,13 @@ export class InteractionSystem {
   }
 
   private tryInteract(): void {
+    if (this.inventoryPanel.isOpen()) {
+      this.setStatusMessage("Close the inventory panel before interacting with the world.", 1.6);
+      return;
+    }
+
     if (this.heldItem) {
-      this.setStatusMessage(`Hands are full with ${this.heldItem.definition.label}. Press Q to drop it first.`, 1.8);
+      this.tryStowHeldItem();
       return;
     }
 
@@ -210,43 +258,71 @@ export class InteractionSystem {
     };
 
     const result = this.currentTarget.interactable.interact(context);
-    this.handleResult(result, prompt.title);
+    this.handleResult(result, prompt.title, "inventory");
   }
 
-  private handleResult(result: InteractionResult, fallbackTitle: string): void {
+  private tryHoldCurrentTarget(): void {
+    if (this.inventoryPanel.isOpen()) {
+      this.setStatusMessage("Close the inventory panel before grabbing an item.", 1.6);
+      return;
+    }
+
+    if (this.heldItem) {
+      this.setStatusMessage(`Already holding ${this.heldItem.definition.label}. Press Q to release it first.`, 1.8);
+      return;
+    }
+
+    if (!this.currentTarget || this.currentTarget.interactable.kind !== "pickup") {
+      this.setStatusMessage("Look at a loose item to hold it.", 1.5);
+      return;
+    }
+
+    const prompt = this.currentTarget.interactable.getPrompt();
+    if (this.currentTarget.blocked) {
+      this.setStatusMessage(prompt.blockedReason ?? `${prompt.title} is out of reach.`, 1.8);
+      return;
+    }
+
+    const context: InteractionContext = {
+      scene: this.scene,
+      world: this.world,
+      rapier: this.rapier,
+      playerPosition: this.workingPlayerPosition.clone(),
+      cameraDirection: this.workingDirection.clone(),
+      hitPointWorld: this.currentTarget.hitPointWorld.clone()
+    };
+
+    const result = this.currentTarget.interactable.interact(context);
+    this.handleResult(result, prompt.title, "hold");
+  }
+
+  private handleResult(
+    result: InteractionResult,
+    fallbackTitle: string,
+    pickupMode: "inventory" | "hold"
+  ): void {
     switch (result.type) {
       case "pickup":
         if (result.pickupItem) {
-          if (this.heldItem) {
-            this.tryDropHeldItem();
-          }
-
-          const mesh = this.createItemMesh(result.pickupItem);
-          if (result.pickupPosition) {
-            mesh.position.copy(result.pickupPosition);
+          if (pickupMode === "hold") {
+            this.beginHoldingItem(result.pickupItem, result);
+            this.setStatusMessage(`Holding ${result.pickupItem.label}. Press Q to release it.`, 1.9);
           } else {
-            mesh.position.copy(this.camera.position);
+            this.inventoryStore.addToPlayer(result.pickupItem.id, 1);
+            this.setStatusMessage(`Collected ${result.pickupItem.label}.`, 1.9);
           }
-
-          if (result.pickupQuaternion) {
-            mesh.quaternion.copy(result.pickupQuaternion);
-          } else {
-            mesh.quaternion.copy(this.camera.quaternion);
-          }
-
-          this.scene.add(mesh);
-          this.heldItem = {
-            definition: result.pickupItem,
-            mesh,
-            linearVelocity: new THREE.Vector3(),
-            localAnchor: result.pickupLocalAnchor?.clone() ?? new THREE.Vector3(),
-            rotationOffset: this.camera.quaternion
-              .clone()
-              .invert()
-              .multiply(mesh.quaternion.clone()),
-            anchorDistance: result.pickupDistance ?? HELD_ITEM_DISTANCE
-          };
-          this.setStatusMessage(`Picked up ${result.pickupItem.label}. Press Q to drop.`, 2.1);
+        }
+        return;
+      case "container":
+        if (result.containerId) {
+          this.shouldRecapturePointerLock = document.pointerLockElement === this.domElement;
+          document.exitPointerLock?.();
+          this.activeContainerInteractable = this.currentTarget?.interactable ?? null;
+          this.inventoryPanel.openContainer(result.containerId);
+          this.setStatusMessage(
+            result.message ?? `Opened ${result.containerTitle ?? fallbackTitle}.`,
+            1.8
+          );
         }
         return;
       case "message":
@@ -261,6 +337,17 @@ export class InteractionSystem {
     }
   }
 
+  closeInventoryPanel(): void {
+    this.inventoryPanel.close();
+    this.activeContainerInteractable?.close?.();
+    this.activeContainerInteractable = null;
+
+    if (this.shouldRecapturePointerLock) {
+      this.shouldRecapturePointerLock = false;
+      void this.domElement.requestPointerLock();
+    }
+  }
+
   private tryDropHeldItem(): void {
     if (!this.heldItem) {
       this.setStatusMessage("You are not holding anything.", 1.4);
@@ -269,89 +356,90 @@ export class InteractionSystem {
 
     const heldItem = this.heldItem;
     const mesh = heldItem.mesh;
-    const colliderDesc = this.createColliderDesc(heldItem.definition);
     const releaseVelocity = heldItem.linearVelocity.clone().clampLength(0, MAX_RELEASE_SPEED);
-
-    const body = this.world.createRigidBody(
-      this.rapier.RigidBodyDesc.dynamic()
-        .setTranslation(
-          mesh.position.x,
-          mesh.position.y + RELEASE_SURFACE_CLEARANCE,
-          mesh.position.z
-        )
-        .setCcdEnabled(true)
-        .setLinearDamping(DROPPED_LINEAR_DAMPING)
-        .setAngularDamping(DROPPED_ANGULAR_DAMPING)
-    );
-    body.setLinvel(
-      {
-        x: releaseVelocity.x,
-        y: releaseVelocity.y,
-        z: releaseVelocity.z
-      },
-      true
-    );
-    body.setRotation(
-      {
-        x: mesh.quaternion.x,
-        y: mesh.quaternion.y,
-        z: mesh.quaternion.z,
-        w: mesh.quaternion.w
-      },
-      true
-    );
-
-    const collider = this.world.createCollider(colliderDesc, body);
-    const interactable: Interactable = {
-      id: `dropped-${heldItem.definition.id}-${Date.now()}`,
-      object: mesh,
-      actionDistance: 2.15,
-      kind: "pickup",
-      getPrompt: () => ({
-        title: heldItem.definition.label,
-        actionLabel: "[E] Pick up",
-        blockedReason: `${heldItem.definition.label} is too far away.`
-      }),
-      onFocus: (focused) => this.setHighlight(mesh, focused),
-      interact: (context) => {
-        const pickupLocalAnchor = context.hitPointWorld
-          ? mesh.worldToLocal(context.hitPointWorld.clone())
-          : heldItem.localAnchor.clone();
-        this.scene.remove(mesh);
-        this.setHighlight(mesh, false);
-        this.world.removeCollider(collider, true);
-        this.world.removeRigidBody(body);
-        const droppedIndex = this.droppedItems.findIndex((item) => item.interactable.id === interactable.id);
-        if (droppedIndex >= 0) {
-          this.droppedItems.splice(droppedIndex, 1);
-        }
-        const interactableIndex = this.interactables.findIndex((item) => item.id === interactable.id);
-        if (interactableIndex >= 0) {
-          this.interactables.splice(interactableIndex, 1);
-        }
-
-        if (this.currentTarget?.interactable.id === interactable.id) {
-          this.currentTarget = null;
-        }
-
-        return {
-          type: "pickup",
-          pickupItem: heldItem.definition,
-          pickupPosition: mesh.position.clone(),
-          pickupQuaternion: mesh.quaternion.clone(),
-          pickupLocalAnchor,
-          pickupDistance: context.hitPointWorld
-            ? context.hitPointWorld.distanceTo(context.playerPosition)
-            : HELD_ITEM_DISTANCE
-        };
-      }
-    };
-
-    this.interactables.push(interactable);
-    this.droppedItems.push({ body, collider, mesh, interactable });
+    this.registerDroppedMesh(heldItem.definition, mesh, releaseVelocity, heldItem.localAnchor.clone());
 
     this.setStatusMessage(`Dropped ${heldItem.definition.label}.`, 1.7);
     this.heldItem = null;
+  }
+
+  private tryStowHeldItem(): void {
+    if (!this.heldItem) {
+      return;
+    }
+
+    if (!this.heldItem.definition.stowable) {
+      this.setStatusMessage(
+        `${this.heldItem.definition.label} can be moved but cannot be stowed.`,
+        1.8
+      );
+      return;
+    }
+
+    this.inventoryStore.addToPlayer(this.heldItem.definition.id, 1);
+    this.scene.remove(this.heldItem.mesh);
+    this.setHighlight(this.heldItem.mesh, false);
+    this.setStatusMessage(`Stowed ${this.heldItem.definition.label}.`, 1.7);
+    this.heldItem = null;
+  }
+
+  dropInventoryItem(itemId: string): boolean {
+    if (!this.inventoryStore.removeFromPlayer(itemId, 1)) {
+      return false;
+    }
+
+    const definition = this.inventoryStore.getItemDefinition(itemId);
+    const mesh = this.createItemMesh(definition);
+    this.camera.getWorldPosition(this.workingOrigin);
+    this.camera.getWorldDirection(this.workingDirection);
+    mesh.position.copy(this.workingOrigin).addScaledVector(this.workingDirection, 1.05);
+    mesh.quaternion.copy(this.camera.quaternion);
+    this.scene.add(mesh);
+    this.registerDroppedMesh(definition, mesh, new THREE.Vector3(), new THREE.Vector3());
+    this.setStatusMessage(`Dropped ${definition.label} from inventory.`, 1.7);
+    return true;
+  }
+
+  togglePlayerInventory(): void {
+    if (this.inventoryPanel.isOpen()) {
+      this.closeInventoryPanel();
+      return;
+    }
+
+    this.shouldRecapturePointerLock = document.pointerLockElement === this.domElement;
+    document.exitPointerLock?.();
+    this.inventoryPanel.openPlayerInventory();
+  }
+
+  private beginHoldingItem(
+    definition: PickupItemDefinition,
+    result: InteractionResult
+  ): void {
+    const mesh = this.createItemMesh(definition);
+    if (result.pickupPosition) {
+      mesh.position.copy(result.pickupPosition);
+    } else {
+      mesh.position.copy(this.camera.position);
+    }
+
+    if (result.pickupQuaternion) {
+      mesh.quaternion.copy(result.pickupQuaternion);
+    } else {
+      mesh.quaternion.copy(this.camera.quaternion);
+    }
+
+    this.scene.add(mesh);
+    this.heldItem = {
+      definition,
+      mesh,
+      linearVelocity: new THREE.Vector3(),
+      localAnchor: result.pickupLocalAnchor?.clone() ?? new THREE.Vector3(),
+      rotationOffset: this.camera.quaternion
+        .clone()
+        .invert()
+        .multiply(mesh.quaternion.clone()),
+      anchorDistance: result.pickupDistance ?? HELD_ITEM_DISTANCE
+    };
   }
 
   private syncDroppedItems(): void {
@@ -447,6 +535,92 @@ export class InteractionSystem {
           .setFriction(DROPPED_ITEM_FRICTION)
           .setRestitution(0)
           .setContactSkin(DROPPED_ITEM_CONTACT_SKIN);
+  }
+
+  private registerDroppedMesh(
+    definition: PickupItemDefinition,
+    mesh: THREE.Mesh,
+    releaseVelocity: THREE.Vector3,
+    fallbackLocalAnchor: THREE.Vector3
+  ): void {
+    const colliderDesc = this.createColliderDesc(definition);
+    const body = this.world.createRigidBody(
+      this.rapier.RigidBodyDesc.dynamic()
+        .setTranslation(
+          mesh.position.x,
+          mesh.position.y + RELEASE_SURFACE_CLEARANCE,
+          mesh.position.z
+        )
+        .setCcdEnabled(true)
+        .setLinearDamping(DROPPED_LINEAR_DAMPING)
+        .setAngularDamping(DROPPED_ANGULAR_DAMPING)
+    );
+    body.setLinvel(
+      {
+        x: releaseVelocity.x,
+        y: releaseVelocity.y,
+        z: releaseVelocity.z
+      },
+      true
+    );
+    body.setRotation(
+      {
+        x: mesh.quaternion.x,
+        y: mesh.quaternion.y,
+        z: mesh.quaternion.z,
+        w: mesh.quaternion.w
+      },
+      true
+    );
+
+    const collider = this.world.createCollider(colliderDesc, body);
+    const interactable: Interactable = {
+      id: `dropped-${definition.id}-${Date.now()}`,
+      object: mesh,
+      actionDistance: 2.15,
+      kind: "pickup",
+      getPrompt: () => ({
+        title: definition.label,
+        actionLabel: "[E] Take / [F] Hold",
+        blockedReason: `${definition.label} is too far away.`
+      }),
+      onFocus: (focused) => this.setHighlight(mesh, focused),
+      interact: (context) => {
+        const pickupLocalAnchor = context.hitPointWorld
+          ? mesh.worldToLocal(context.hitPointWorld.clone())
+          : fallbackLocalAnchor.clone();
+        this.scene.remove(mesh);
+        this.setHighlight(mesh, false);
+        this.world.removeCollider(collider, true);
+        this.world.removeRigidBody(body);
+        const droppedIndex = this.droppedItems.findIndex((item) => item.interactable.id === interactable.id);
+        if (droppedIndex >= 0) {
+          this.droppedItems.splice(droppedIndex, 1);
+        }
+        const interactableIndex = this.interactables.findIndex((item) => item.id === interactable.id);
+        if (interactableIndex >= 0) {
+          this.interactables.splice(interactableIndex, 1);
+        }
+
+        if (this.currentTarget?.interactable.id === interactable.id) {
+          this.currentTarget = null;
+        }
+
+        return {
+          type: "pickup",
+          pickupItem: definition,
+          pickupPosition: mesh.position.clone(),
+          pickupQuaternion: mesh.quaternion.clone(),
+          pickupLocalAnchor,
+          pickupDistance: context.hitPointWorld
+            ? context.hitPointWorld.distanceTo(context.playerPosition)
+            : HELD_ITEM_DISTANCE
+        };
+      }
+    };
+
+    this.interactables.push(interactable);
+    this.droppedItems.push({ body, collider, mesh, interactable });
   }
 
   private setHighlight(object: THREE.Object3D, focused: boolean): void {
