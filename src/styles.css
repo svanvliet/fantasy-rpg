@@ -1,0 +1,136 @@
+:root {
+  color-scheme: dark;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(108, 82, 39, 0.28), transparent 45%),
+    linear-gradient(180deg, #191410 0%, #0e0c0a 100%);
+  color: #f0e7da;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+}
+
+.game-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.debug-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  min-width: 18rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 235, 205, 0.18);
+  border-radius: 14px;
+  background: rgba(15, 12, 9, 0.74);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+
+.debug-overlay h1 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d7bf91;
+}
+
+.debug-overlay dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 0.8rem;
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.debug-overlay dt {
+  color: #aa9a7e;
+}
+
+.debug-overlay dd {
+  margin: 0;
+  color: #f8f1e7;
+}
+
+.reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.reticle::before,
+.reticle::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 244, 224, 0.85);
+  box-shadow: 0 0 10px rgba(255, 205, 118, 0.28);
+}
+
+.reticle::before {
+  top: 8px;
+  left: 0;
+  width: 18px;
+  height: 2px;
+}
+
+.reticle::after {
+  top: 0;
+  left: 8px;
+  width: 2px;
+  height: 18px;
+}
+
+.lock-hint {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 30rem;
+  padding: 0.8rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 235, 205, 0.12);
+  background: rgba(20, 15, 11, 0.8);
+  color: #f4e6d0;
+  font-size: 0.9rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.fatal-error {
+  display: grid;
+  place-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+  text-align: center;
+}
+
+.fatal-error h1 {
+  margin-bottom: 0.5rem;
+}
+
