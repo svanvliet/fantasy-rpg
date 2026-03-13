@@ -7,6 +7,7 @@ import { CONTAINER_SEEDS, ITEM_DEFINITIONS } from "./inventory/prototypeContent"
 import { InteractionSystem } from "./interactions/InteractionSystem";
 import { SaveManager } from "./persistence/SaveManager";
 import { PlayerController } from "./player/PlayerController";
+import { ViewModelController } from "./viewmodel/ViewModelController";
 import { createCastleBlockout } from "./world/createCastleBlockout";
 import {
   createDebugOverlay,
@@ -15,7 +16,7 @@ import {
 } from "../ui/debugOverlay";
 import { createInventoryPanel, type InventoryPanelController } from "../ui/inventoryPanel";
 
-const PHASE_LABEL = "Phase 6 - Feel and Prototype Polish";
+const PHASE_LABEL = "Phase 8 - First-Person Embodiment and Interaction Readability";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
@@ -54,6 +55,7 @@ export class GameApp {
   private readonly inventoryStore: InventoryStore;
   private readonly player: PlayerController;
   private readonly interactionSystem: InteractionSystem;
+  private readonly viewModelController: ViewModelController;
   private readonly saveManager: SaveManager;
   private readonly loop: ReturnType<typeof createFixedStepLoop>;
   private readonly sceneLights: Array<{ light: THREE.Light; baseIntensity: number }> = [];
@@ -78,6 +80,7 @@ export class GameApp {
     inventoryStore: InventoryStore,
     player: PlayerController,
     interactionSystem: InteractionSystem,
+    viewModelController: ViewModelController,
     saveManager: SaveManager
   ) {
     this.mount = mount;
@@ -90,6 +93,7 @@ export class GameApp {
     this.inventoryStore = inventoryStore;
     this.player = player;
     this.interactionSystem = interactionSystem;
+    this.viewModelController = viewModelController;
     this.saveManager = saveManager;
 
     this.loop = createFixedStepLoop({
@@ -123,6 +127,7 @@ export class GameApp {
     });
     renderer.shadowMap.enabled = false;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.autoClear = false;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.08;
@@ -178,10 +183,12 @@ export class GameApp {
     const player = new PlayerController({
       camera,
       domElement: renderer.domElement,
+      scene,
       world,
       rapier: RAPIER,
       spawnPosition: room.spawnPosition
     });
+    const viewModelController = new ViewModelController();
     interactionSystem = new InteractionSystem({
       camera,
       domElement: renderer.domElement,
@@ -212,6 +219,7 @@ export class GameApp {
     inventoryPanel.sync(inventoryStore.getSnapshot());
 
     overlay.setMetrics({
+      camera: "first_person",
       fps: 0,
       phase: PHASE_LABEL,
       position: "0.00, 0.00, 0.00",
@@ -231,6 +239,7 @@ export class GameApp {
       inventoryStore,
       player,
       interactionSystem,
+      viewModelController,
       saveManager
     );
     app.queueSave();
@@ -248,7 +257,12 @@ export class GameApp {
       this.player.update(deltaSeconds);
     }
     this.world.step();
-    this.interactionSystem.update(deltaSeconds);
+    const playerState = this.player.getDebugState();
+    this.interactionSystem.update(deltaSeconds, {
+      cameraMode: playerState.cameraMode,
+      playerPosition: playerState.position,
+      playerYaw: playerState.yaw
+    });
 
     this.frameCount += 1;
     this.fpsAccumulator += deltaSeconds;
@@ -258,9 +272,14 @@ export class GameApp {
       this.fpsAccumulator = 0;
     }
 
-    const playerState = this.player.getDebugState();
     const interactionState = this.interactionSystem.getDebugState();
+    this.viewModelController.update(deltaSeconds, this.camera, {
+      ...this.interactionSystem.getViewModelState(),
+      cameraMode: playerState.cameraMode,
+      pointerLocked: playerState.pointerLocked
+    });
     this.overlay.setMetrics({
+      camera: playerState.cameraMode === "firstPerson" ? "first_person" : "third_person",
       fps: this.fps,
       phase: PHASE_LABEL,
       position: `${playerState.position.x.toFixed(2)}, ${playerState.position.y.toFixed(2)}, ${playerState.position.z.toFixed(2)}`,
@@ -273,8 +292,8 @@ export class GameApp {
       this.inventoryPanel.isOpen()
         ? "Inventory open. Move items with the panel, press I or Escape to close, and use Drop 1 to place items back into the world."
         : playerState.pointerLocked
-          ? interactionState.prompt || "Use E to interact, F to hold, I to open inventory, and Q to release a held item."
-          : "Click the scene to capture the mouse. Use WASD to move, Space to jump, and I to open inventory."
+          ? interactionState.prompt || "Use E to interact, F to hold, I to open inventory, Q to release a held item, and V to toggle camera."
+          : "Click the scene to capture the mouse. Use WASD to move, Space to jump, I to open inventory, and V to toggle camera."
     );
 
     this.dirtySaveAccumulator += deltaSeconds;
@@ -287,7 +306,9 @@ export class GameApp {
   }
 
   private render(): void {
+    this.renderer.clear();
     this.renderer.render(this.scene, this.camera);
+    this.viewModelController.render(this.renderer);
   }
 
   private handleResize(): void {
@@ -297,6 +318,7 @@ export class GameApp {
 
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
+    this.viewModelController.handleResize(this.camera);
 
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, qualitySettings.pixelRatioCap));

@@ -16,7 +16,7 @@
 
 | Phase | Status | Goal |
 | --- | --- | --- |
-| 8 | planned | Add first-person hands/arms and improve embodiment without breaking carry/interaction feel |
+| 8 | accepted | Add first-person hands/arms and improve embodiment without breaking carry/interaction feel |
 | 9 | planned | Add alchemy recipes, item tags, and a station-gated crafting loop |
 | 10 | planned | Add lightweight objectives, dialogue, and one directed NPC/world-purpose flow |
 | 11 | planned | Improve asset reuse, GLB integration, and scalable performance instrumentation |
@@ -50,11 +50,42 @@ Acceptance criteria:
 - embodiment does not break reticle targeting, carry feel, or current interaction prompts
 - the added presentation pass does not materially break the balanced graphics baseline
 
+Current implementation status:
+- `implemented`
+- `internally_validated`
+- `accepted`
+
+Implemented work:
+- added a dedicated first-person viewmodel system in [src/game/viewmodel/ViewModelController.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/viewmodel/ViewModelController.ts)
+- added Phase 8 embodiment state in [src/game/viewmodel/types.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/viewmodel/types.ts)
+- extended [src/game/interactions/InteractionSystem.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/interactions/InteractionSystem.ts) to expose presentation-oriented interaction/hold state for the viewmodel pass
+- updated [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) to render the world first and then a secondary first-person viewmodel pass
+- added a debug third-person camera toggle and simple player proxy in [src/game/player/PlayerController.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/player/PlayerController.ts) to help troubleshoot embodiment alignment without changing the formal roadmap sequence
+
 Validation checklist:
-- [ ] verify carry, inspect, stow, and drop still work with visible hands/arms
-- [ ] verify the first-person embodiment pass does not break reticle targeting
-- [ ] verify held-item presentation still matches the validated carry model
-- [ ] verify balanced and quality presets still behave correctly with the added viewmodel pass
+- [x] verify carry, inspect, stow, and drop still work with visible hands/arms
+- [x] verify the first-person embodiment pass does not break reticle targeting
+- [x] verify held-item presentation still matches the validated carry model
+- [x] verify balanced and quality presets still behave correctly with the added viewmodel pass
+
+Current findings:
+- the embodiment pass is currently presentation-only and does not participate in world collision or interaction authority
+- the current implementation keeps held-item gameplay state in the existing interaction system and uses the viewmodel only to mirror pose/readability
+- the balanced preset remains the evaluation baseline for this phase
+- a temporary third-person debug view is acceptable in Phase 8 as a troubleshooting aid, but it does not count as formal third-person camera support
+- early playtest feedback showed the first viewmodel rig was oversized enough to block held-item readability, especially for larger items like the field journal
+- early playtest feedback also showed the first-person viewmodel was incorrectly remaining visible in the debug third-person camera, which undermined the troubleshooting value of that mode
+- in response, the embodiment pass was revised to hide completely outside first-person mode and the arm rig was reduced/repositioned to preserve more screen space while holding items
+- follow-up playtest feedback showed the slimmer rig was close but felt slightly too thin, so the arm scale was brought back up modestly for readability
+- follow-up playtest feedback also showed the carried item itself was still using a first-person camera-relative anchor in third-person mode, so the hold anchor was revised to use a player-relative third-person presentation offset instead
+- later playtest feedback highlighted that the bottle and journal already felt distinct in-hand, which confirmed the value of shape-specific embodiment cues
+- in response, the Phase 8 presentation pass was deepened so bottles, ingredients, and book-like items now use more explicitly distinct carry/support poses while still following the same gameplay-authoritative hold system
+- final playtest signoff confirmed that carry, inspect, stow, drop, targeting clarity, cross-shape held-item presentation, and balanced/quality preset behavior all felt good enough to accept the phase
+
+Acceptance summary:
+- Phase 8 successfully proved that a presentation-only first-person embodiment layer can sit on top of the validated carry/interaction model without undermining it
+- the debug third-person mode was useful for tuning and remains explicitly scoped as a troubleshooting aid rather than a roadmap expansion
+- the prototype now has a strong enough embodiment baseline to move on to alchemy-system depth in Phase 9
 
 ## Next Phase Preview
 

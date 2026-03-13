@@ -2,9 +2,11 @@ import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 
 export interface PlayerDebugState {
+  cameraMode: "firstPerson" | "thirdPerson";
   grounded: boolean;
   pointerLocked: boolean;
   position: THREE.Vector3;
+  yaw: number;
 }
 
 export interface PlayerPersistenceState {
@@ -20,6 +22,7 @@ export interface PlayerPersistenceState {
 export interface PlayerControllerOptions {
   camera: THREE.PerspectiveCamera;
   domElement: HTMLElement;
+  scene: THREE.Scene;
   world: RAPIER.World;
   rapier: typeof RAPIER;
   spawnPosition: THREE.Vector3;
@@ -65,12 +68,17 @@ const CAPSULE_RADIUS = 0.3;
 const CAMERA_HEIGHT_OFFSET = 0.55;
 const CEILING_NORMAL_THRESHOLD = -0.35;
 const GROUND_SNAP_DISTANCE = 0.18;
+const THIRD_PERSON_DISTANCE = 2.8;
+const THIRD_PERSON_SIDE_OFFSET = 0.36;
+const THIRD_PERSON_FOCUS_HEIGHT = 1.18;
+const THIRD_PERSON_HEIGHT = 1.15;
 
 const JUMP_PROFILE = createJumpProfile(JUMP_HEIGHT, TIME_TO_APEX, TIME_TO_DESCENT);
 
 export class PlayerController {
   private readonly camera: THREE.PerspectiveCamera;
   private readonly domElement: HTMLElement;
+  private readonly scene: THREE.Scene;
   private readonly world: RAPIER.World;
   private readonly rapier: typeof RAPIER;
   private readonly body: RAPIER.RigidBody;
@@ -81,6 +89,10 @@ export class PlayerController {
   private readonly desiredHorizontalVelocity = new THREE.Vector3();
   private readonly keyState = new Set<string>();
   private readonly debugPosition = new THREE.Vector3();
+  private readonly thirdPersonFocus = new THREE.Vector3();
+  private readonly thirdPersonOffset = new THREE.Vector3();
+  private readonly thirdPersonSide = new THREE.Vector3();
+  private readonly avatarRoot = new THREE.Group();
 
   private yaw = 0;
   private pitch = 0;
@@ -91,10 +103,12 @@ export class PlayerController {
   private landingBrakeTimer = 0;
   private grounded = false;
   private pointerLocked = false;
+  private cameraMode: "firstPerson" | "thirdPerson" = "firstPerson";
 
   constructor(options: PlayerControllerOptions) {
     this.camera = options.camera;
     this.domElement = options.domElement;
+    this.scene = options.scene;
     this.world = options.world;
     this.rapier = options.rapier;
 
@@ -113,6 +127,7 @@ export class PlayerController {
     this.characterController.enableSnapToGround(GROUND_SNAP_DISTANCE);
 
     this.camera.rotation.order = "YXZ";
+    this.createAvatarProxy();
     this.syncCameraFromBody();
     this.bindEvents();
   }
@@ -166,9 +181,11 @@ export class PlayerController {
 
   getDebugState(): PlayerDebugState {
     return {
+      cameraMode: this.cameraMode,
       grounded: this.grounded,
       pointerLocked: this.pointerLocked,
-      position: this.debugPosition.clone()
+      position: this.debugPosition.clone(),
+      yaw: this.yaw
     };
   }
 
@@ -220,6 +237,11 @@ export class PlayerController {
     this.landingBrakeTimer = 0;
   }
 
+  toggleCameraMode(): void {
+    this.cameraMode = this.cameraMode === "firstPerson" ? "thirdPerson" : "firstPerson";
+    this.syncCameraFromPosition(this.debugPosition);
+  }
+
   private bindEvents(): void {
     this.domElement.addEventListener("click", () => {
       if (!this.pointerLocked) {
@@ -249,6 +271,10 @@ export class PlayerController {
       if (event.code === "Space") {
         this.jumpQueued = true;
         this.jumpHeld = true;
+      }
+
+      if (event.code === "KeyV") {
+        this.toggleCameraMode();
       }
     });
 
@@ -402,8 +428,76 @@ export class PlayerController {
   }
 
   private syncCameraFromPosition(position: THREE.Vector3): void {
-    this.camera.position.set(position.x, position.y + CAMERA_HEIGHT_OFFSET, position.z);
-    this.camera.rotation.x = this.pitch;
-    this.camera.rotation.y = this.yaw;
+    this.syncAvatarProxy(position);
+
+    if (this.cameraMode === "firstPerson") {
+      this.camera.position.set(position.x, position.y + CAMERA_HEIGHT_OFFSET, position.z);
+      this.camera.rotation.x = this.pitch;
+      this.camera.rotation.y = this.yaw;
+      return;
+    }
+
+    this.thirdPersonFocus.set(position.x, position.y + THIRD_PERSON_FOCUS_HEIGHT, position.z);
+    this.thirdPersonOffset
+      .set(0, THIRD_PERSON_HEIGHT + this.pitch * -0.55, THIRD_PERSON_DISTANCE)
+      .applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.yaw);
+    this.thirdPersonSide
+      .set(THIRD_PERSON_SIDE_OFFSET, 0, 0)
+      .applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.yaw);
+
+    this.camera.position
+      .copy(this.thirdPersonFocus)
+      .add(this.thirdPersonOffset)
+      .add(this.thirdPersonSide);
+    this.camera.lookAt(this.thirdPersonFocus);
+  }
+
+  private createAvatarProxy(): void {
+    this.avatarRoot.visible = false;
+
+    const torso = new THREE.Mesh(
+      new THREE.BoxGeometry(0.42, 0.7, 0.22),
+      new THREE.MeshStandardMaterial({ color: 0x5b4737, roughness: 0.92, metalness: 0.02 })
+    );
+    torso.position.set(0, 1.05, 0);
+    this.avatarRoot.add(torso);
+
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.16, 10, 10),
+      new THREE.MeshStandardMaterial({ color: 0xd7b48b, roughness: 0.82, metalness: 0.02 })
+    );
+    head.position.set(0, 1.56, 0);
+    this.avatarRoot.add(head);
+
+    const rightArm = new THREE.Mesh(
+      new THREE.BoxGeometry(0.14, 0.58, 0.14),
+      new THREE.MeshStandardMaterial({ color: 0x654d3a, roughness: 0.94, metalness: 0.02 })
+    );
+    rightArm.position.set(0.32, 1.03, 0);
+    this.avatarRoot.add(rightArm);
+
+    const leftArm = rightArm.clone();
+    leftArm.position.x = -0.32;
+    this.avatarRoot.add(leftArm);
+
+    const hips = new THREE.Mesh(
+      new THREE.BoxGeometry(0.34, 0.2, 0.2),
+      new THREE.MeshStandardMaterial({ color: 0x443226, roughness: 0.94, metalness: 0.02 })
+    );
+    hips.position.set(0, 0.62, 0);
+    this.avatarRoot.add(hips);
+
+    [torso, head, rightArm, leftArm, hips].forEach((mesh) => {
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+    });
+
+    this.scene.add(this.avatarRoot);
+  }
+
+  private syncAvatarProxy(position: THREE.Vector3): void {
+    this.avatarRoot.visible = this.cameraMode === "thirdPerson";
+    this.avatarRoot.position.set(position.x, position.y, position.z);
+    this.avatarRoot.rotation.set(0, this.yaw, 0);
   }
 }

@@ -12,10 +12,13 @@ import type {
   TargetInfo
 } from "./types";
 import type { InventoryPanelController } from "../../ui/inventoryPanel";
+import type { HeldPresentationState } from "../viewmodel/types";
 
 const INTERACTION_REACH = 2.35;
 const HOVER_REACH = 3.1;
 const HELD_ITEM_DISTANCE = 0.9;
+const THIRD_PERSON_HELD_DISTANCE = 0.58;
+const THIRD_PERSON_HELD_HEIGHT = 0.98;
 const HELD_ITEM_DEPTH_LERP = 10;
 const HELD_ITEM_ROTATION_LERP = 10;
 const MAX_RELEASE_SPEED = 4.5;
@@ -50,6 +53,12 @@ export interface InteractionDebugState {
   heldItemLabel: string;
 }
 
+export interface InteractionPresentationState {
+  cameraMode: "firstPerson" | "thirdPerson";
+  playerPosition: THREE.Vector3;
+  playerYaw: number;
+}
+
 export class InteractionSystem {
   private readonly camera: THREE.PerspectiveCamera;
   private readonly domElement: HTMLElement;
@@ -65,6 +74,7 @@ export class InteractionSystem {
   private readonly workingPlayerPosition = new THREE.Vector3();
   private readonly workingAnchorOffset = new THREE.Vector3();
   private readonly workingAnchorWorld = new THREE.Vector3();
+  private readonly workingBaseOrientation = new THREE.Quaternion();
   private readonly heldTargetPosition = new THREE.Vector3();
   private readonly heldTargetQuaternion = new THREE.Quaternion();
   private readonly droppedItems: DroppedItem[] = [];
@@ -74,6 +84,8 @@ export class InteractionSystem {
   private currentTarget: TargetInfo | null = null;
   private activeContainerInteractable: Interactable | null = null;
   private heldItem: HeldItemState | null = null;
+  private cameraMode: "firstPerson" | "thirdPerson" = "firstPerson";
+  private playerYaw = 0;
   private statusMessage = "Look at an object to interact.";
   private statusMessageTtl = 0;
   private shouldRecapturePointerLock = false;
@@ -115,7 +127,10 @@ export class InteractionSystem {
     });
   }
 
-  update(deltaSeconds: number): void {
+  update(deltaSeconds: number, presentationState: InteractionPresentationState): void {
+    this.cameraMode = presentationState.cameraMode;
+    this.workingPlayerPosition.copy(presentationState.playerPosition);
+    this.playerYaw = presentationState.playerYaw;
     this.syncDroppedItems();
     this.updateHeldItem(deltaSeconds);
     this.updateTargeting();
@@ -173,6 +188,56 @@ export class InteractionSystem {
       targetLabel: "none",
       prompt: this.statusMessage,
       heldItemLabel
+    };
+  }
+
+  getViewModelState(): HeldPresentationState {
+    if (this.inventoryPanel.isOpen()) {
+      return {
+        visible: false,
+        pose: "idle",
+        heldLabel: null,
+        heldShape: null,
+        targetKind: "none",
+        targetDistance: null
+      };
+    }
+
+    if (this.heldItem) {
+      return {
+        visible: true,
+        pose: "carry",
+        heldLabel: this.heldItem.definition.label,
+        heldShape: this.heldItem.definition.shape,
+        targetKind: "none",
+        targetDistance: null
+      };
+    }
+
+    if (!this.currentTarget) {
+      return {
+        visible: true,
+        pose: "idle",
+        heldLabel: null,
+        heldShape: null,
+        targetKind: "none",
+        targetDistance: null
+      };
+    }
+
+    const targetKind = this.currentTarget.interactable.kind;
+    const pose =
+      targetKind === "inspect" || targetKind === "container" || targetKind === "toggle"
+        ? "inspect"
+        : "ready";
+
+    return {
+      visible: true,
+      pose,
+      heldLabel: null,
+      heldShape: null,
+      targetKind,
+      targetDistance: this.currentTarget.distance
     };
   }
 
@@ -525,12 +590,13 @@ export class InteractionSystem {
     }
 
     this.scene.add(mesh);
+    const baseOrientation = this.getHeldOrientationBase();
     this.heldItem = {
       definition,
       mesh,
       linearVelocity: new THREE.Vector3(),
       localAnchor: result.pickupLocalAnchor?.clone() ?? new THREE.Vector3(),
-      rotationOffset: this.camera.quaternion
+      rotationOffset: baseOrientation
         .clone()
         .invert()
         .multiply(mesh.quaternion.clone()),
@@ -553,20 +619,21 @@ export class InteractionSystem {
       return;
     }
 
-    this.camera.getWorldPosition(this.workingOrigin);
-    this.camera.getWorldDirection(this.workingDirection);
+    this.getHeldAnchorBasis(this.workingOrigin, this.workingDirection);
 
     const previousPosition = this.heldItem.mesh.position.clone();
     this.heldItem.anchorDistance = THREE.MathUtils.lerp(
       this.heldItem.anchorDistance,
-      HELD_ITEM_DISTANCE,
+      this.cameraMode === "firstPerson" ? HELD_ITEM_DISTANCE : THIRD_PERSON_HELD_DISTANCE,
       1 - Math.exp(-HELD_ITEM_DEPTH_LERP * deltaSeconds)
     );
     this.workingAnchorWorld
       .copy(this.workingOrigin)
       .addScaledVector(this.workingDirection, this.heldItem.anchorDistance);
 
-    this.heldTargetQuaternion.copy(this.camera.quaternion).multiply(this.heldItem.rotationOffset);
+    this.heldTargetQuaternion
+      .copy(this.getHeldOrientationBase())
+      .multiply(this.heldItem.rotationOffset);
     this.workingAnchorOffset
       .copy(this.heldItem.localAnchor)
       .applyQuaternion(this.heldTargetQuaternion);
@@ -584,6 +651,26 @@ export class InteractionSystem {
       .copy(this.heldItem.mesh.position)
       .sub(previousPosition)
       .divideScalar(safeDelta);
+  }
+
+  private getHeldAnchorBasis(origin: THREE.Vector3, direction: THREE.Vector3): void {
+    if (this.cameraMode === "firstPerson") {
+      this.camera.getWorldPosition(origin);
+      this.camera.getWorldDirection(direction);
+      return;
+    }
+
+    origin.copy(this.workingPlayerPosition);
+    origin.y += THIRD_PERSON_HELD_HEIGHT;
+    direction.set(0, 0, -1).applyAxisAngle(THREE.Object3D.DEFAULT_UP, this.playerYaw);
+  }
+
+  private getHeldOrientationBase(): THREE.Quaternion {
+    if (this.cameraMode === "firstPerson") {
+      return this.workingBaseOrientation.copy(this.camera.quaternion);
+    }
+
+    return this.workingBaseOrientation.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, this.playerYaw);
   }
 
   private createItemMesh(definition: PickupItemDefinition): THREE.Mesh {

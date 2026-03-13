@@ -132,3 +132,26 @@
   The engine direction is already validated; the largest remaining gaps are now gameplay depth and embodied interaction.
 - Consequences:
   Near-term phases should deepen the current loop rather than broadening feature scope prematurely.
+
+## TD-012: First-Person Embodiment Uses A Separate Viewmodel Render Pass
+
+- Status: `accepted`
+- Active since: `Phase 8`
+- Decision:
+  Render first-person arms/hands through a dedicated viewmodel system and secondary camera pass while keeping gameplay interaction authored by the existing world/carry systems.
+- Why:
+  This preserves the validated reticle-anchored carry model and avoids giving presentation meshes authority over collision, targeting, or held-item physics.
+- Consequences:
+  Future embodiment work should extend the current presentation bridge rather than moving carry gameplay into the viewmodel.
+  Viewmodel rendering should remain lightweight and non-shadow-casting so it does not materially undermine the balanced performance baseline.
+
+## TD-013: Any Early Third-Person View Must Remain Debug-Scoped
+
+- Status: `accepted`
+- Active since: `Phase 8`
+- Decision:
+  Allow a temporary third-person camera and player proxy only as a troubleshooting aid during embodiment work, not as a formal camera-mode expansion.
+- Why:
+  We need a practical way to inspect player-facing embodiment state without changing the roadmap priority that keeps full third-person support deferred.
+- Consequences:
+  Debug third-person support can exist as an inspection tool, but future roadmap decisions should not treat it as equivalent to a production third-person feature.

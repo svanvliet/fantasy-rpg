@@ -1,4 +1,5 @@
 export interface DebugOverlayMetrics {
+  camera: string;
   fps: number;
   phase: string;
   position: string;
@@ -33,6 +34,7 @@ export function createDebugOverlay(
     <h1>Prototype Status</h1>
     <dl>
       <dt>Phase</dt><dd data-key="phase"></dd>
+      <dt>Camera</dt><dd data-key="camera"></dd>
       <dt>FPS</dt><dd data-key="fps"></dd>
       <dt>Position</dt><dd data-key="position"></dd>
       <dt>Grounded</dt><dd data-key="grounded"></dd>
@@ -100,6 +102,7 @@ export function createDebugOverlay(
   return {
     setMetrics(metrics) {
       fields.get("phase")!.textContent = metrics.phase;
+      fields.get("camera")!.textContent = metrics.camera;
       fields.get("fps")!.textContent = metrics.fps.toFixed(1);
       fields.get("position")!.textContent = metrics.position;
       fields.get("grounded")!.textContent = metrics.grounded;
