@@ -1,6 +1,7 @@
 import RAPIER from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
 
+import { AssetCatalog } from "./assets/AssetCatalog";
 import { createFixedStepLoop } from "./core/loop";
 import { AlchemySystem } from "./alchemy/AlchemySystem";
 import { ALCHEMY_RECIPES, ALCHEMY_STATION_TITLE } from "./alchemy/prototypeRecipes";
@@ -23,7 +24,7 @@ import { createDialoguePanel, type DialoguePanelController } from "../ui/dialogu
 import { createInventoryPanel, type InventoryPanelController } from "../ui/inventoryPanel";
 import { createObjectiveTracker, type ObjectiveTrackerController } from "../ui/objectiveTracker";
 
-const PHASE_LABEL = "Phase 10 - Objectives, Dialogue, and Quest Tracking";
+const PHASE_LABEL = "Phase 11 - Asset Reuse, GLB Integration, and Performance Hardening";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
@@ -60,6 +61,7 @@ const GRAPHICS_QUALITY_SETTINGS: Record<
 export class GameApp {
   private readonly mount: HTMLElement;
   private readonly renderer: THREE.WebGLRenderer;
+  private readonly assetCatalog: AssetCatalog;
   private readonly scene: THREE.Scene;
   private readonly camera: THREE.PerspectiveCamera;
   private readonly world: RAPIER.World;
@@ -90,6 +92,7 @@ export class GameApp {
   private constructor(
     mount: HTMLElement,
     renderer: THREE.WebGLRenderer,
+    assetCatalog: AssetCatalog,
     scene: THREE.Scene,
     camera: THREE.PerspectiveCamera,
     world: RAPIER.World,
@@ -107,6 +110,7 @@ export class GameApp {
   ) {
     this.mount = mount;
     this.renderer = renderer;
+    this.assetCatalog = assetCatalog;
     this.scene = scene;
     this.camera = camera;
     this.world = world;
@@ -151,6 +155,7 @@ export class GameApp {
       antialias: true,
       powerPreference: "low-power"
     });
+    renderer.info.autoReset = false;
     renderer.shadowMap.enabled = false;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.autoClear = false;
@@ -298,6 +303,11 @@ export class GameApp {
     overlay.setMetrics({
       camera: "first_person",
       fps: 0,
+      renderScale: "1.00x",
+      drawCalls: "0",
+      triangles: "0",
+      geometries: "0",
+      textures: "0",
       phase: PHASE_LABEL,
       position: "0.00, 0.00, 0.00",
       grounded: "false",
@@ -308,6 +318,7 @@ export class GameApp {
     app = new GameApp(
       mount,
       renderer,
+      assetCatalog,
       scene,
       camera,
       world,
@@ -362,6 +373,11 @@ export class GameApp {
     this.overlay.setMetrics({
       camera: playerState.cameraMode === "firstPerson" ? "first_person" : "third_person",
       fps: this.fps,
+      renderScale: `${this.renderer.getPixelRatio().toFixed(2)}x`,
+      drawCalls: this.formatMetric(this.renderer.info.render.calls),
+      triangles: this.formatMetric(this.renderer.info.render.triangles),
+      geometries: this.formatMetric(this.renderer.info.memory.geometries),
+      textures: this.formatMetric(this.renderer.info.memory.textures),
       phase: PHASE_LABEL,
       position: `${playerState.position.x.toFixed(2)}, ${playerState.position.y.toFixed(2)}, ${playerState.position.z.toFixed(2)}`,
       grounded: playerState.grounded ? "true" : "false",
@@ -391,6 +407,7 @@ export class GameApp {
   }
 
   private render(): void {
+    this.renderer.info.reset();
     this.renderer.clear();
     this.renderer.render(this.scene, this.camera);
     this.viewModelController.render(this.renderer);
@@ -499,4 +516,12 @@ export class GameApp {
     }
     this.queueSave();
   }
+
+  private formatMetric(value: number): string {
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}k`;
+    }
+    return `${value}`;
+  }
 }
+    const assetCatalog = new AssetCatalog();

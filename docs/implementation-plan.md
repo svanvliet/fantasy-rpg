@@ -2,9 +2,9 @@
 
 ## Continuity Summary
 - Phases 1-7 established a browser-first first-person RPG prototype using Three.js, Rapier, TypeScript, and Vite.
-- The prototype now validates first-person traversal, physical item handling, inventory and container transfer, persistence, and room-level atmosphere in a 3-room castle slice.
-- The current baseline is intentionally gameplay-first: direct-light interior tuning, blockout-first art direction, and laptop-safe graphics defaults.
-- The biggest confirmed gaps are first-person embodiment, alchemy/item-system depth, and lightweight world-purpose scaffolding.
+- Phases 8-11 then validated first-person embodiment, station-gated alchemy, lightweight quest flow, and the first round of performance/asset-pipeline hardening.
+- The current baseline is intentionally gameplay-first: direct-light interior tuning, blockout-first art direction, laptop-safe graphics defaults, visible perf telemetry, and reusable blockout asset paths.
+- The biggest confirmed gaps are production-ready asset integration, deeper item usefulness/inventory pressure, broader quest/world reactivity, and a first combat graybox loop.
 - Third-person camera, combat, and heavier rendering ambition remain intentionally deferred.
 
 ## References
@@ -18,8 +18,12 @@
 | --- | --- | --- |
 | 8 | accepted | Add first-person hands/arms and improve embodiment without breaking carry/interaction feel |
 | 9 | accepted | Add alchemy recipes, item tags, and a station-gated crafting loop |
-| 10 | internally_validated | Add lightweight objectives, dialogue, quest tracking, and one directed NPC/world-purpose flow |
-| 11 | planned | Improve asset reuse, GLB integration, and scalable performance instrumentation |
+| 10 | accepted | Add lightweight objectives, dialogue, quest tracking, and one directed NPC/world-purpose flow |
+| 11 | accepted | Improve asset reuse, GLB integration groundwork, and scalable performance instrumentation |
+| 12 | planned | Introduce real imported assets, modeled hands, and the first art-forward asset swap pass |
+| 13 | planned | Add item use effects, inventory pressure, and stronger item-management choices |
+| 14 | planned | Expand quest/world reactivity with additional NPCs, rewards, and clearer multi-quest structure |
+| 15 | planned | Add a first combat graybox loop and validate encounter feel inside the castle slice |
 
 ## Current Known Issues And Constraints
 - The current slice is still blockout-heavy and does not yet prove a production-ready asset pipeline.
@@ -27,6 +31,7 @@
 - Graphics presets are now part of the baseline and should be preserved during future expansion.
 - Persistence is browser-local only and should remain simple unless a later phase explicitly changes that.
 - The first-person carry model and interaction key split are validated and should be treated as stable constraints.
+- There are no real `.glb` or equivalent production assets checked into the repo yet, so Phase 12 needs to begin with intentional asset sourcing/integration rather than assuming art is already available.
 
 ## Recent Phase History
 
@@ -159,37 +164,27 @@ Acceptance summary:
 - debug affordances for restocking and reset made iteration much faster during playtest and are acceptable prototype-only tools
 - the temporary third-person proxy still has minor polish room left, but because it remains a debug-only aid and not a Phase 9 success criterion, it is not blocking acceptance
 
-## Next Phase Preview
-
-### Phase 10: Lightweight Objectives And NPC Scaffolding
-- Add one scripted objective flow spanning ingredient gathering, brewing, and a return/deposit step.
-- Introduce a minimal dialogue panel and one world-purpose giver or proxy NPC.
-- Persist objective progression through the existing save path.
-
 ## Current Phase
 
-### Phase 10: Lightweight Objectives And NPC Scaffolding
+### Phase 11: Asset Reuse, GLB Integration, and Performance Hardening
 Objective:
-- Add minimal authored structure so the prototype proves directed RPG play rather than only freeform interaction.
+- Make the current slice more production-feasible by adding reusable asset/prefab groundwork and clearer performance instrumentation without destabilizing the accepted gameplay systems.
 
 Implementation approach:
-- Use a lightweight scripted objective state machine instead of a broader AI or behavior-tree system.
-- Add one dialogue-driven steward proxy who can assign and complete a small authored task list.
-- Build a lightweight quest tracker HUD so active work is visible outside the dialogue panel.
-- Validate one complete loop while also proving that multiple accepted tasks can coexist and one can be explicitly tracked.
+- Add lightweight runtime performance instrumentation directly to the overlay so render cost is visible during playtest.
+- Introduce reusable blockout asset/prefab caching so repeated geometry and materials stop being recreated unnecessarily.
+- Add a small cached GLB-loading catalog now so later asset swaps land on infrastructure instead of one-off loader code.
 
 Important interfaces:
-- `ObjectiveSystem`
-- `ObjectiveDefinition`
-- `ObjectiveSnapshot`
-- `DialogueSnapshot`
-- `ObjectiveTrackerSnapshot`
+- `BlockoutFactory`
+- `AssetCatalog`
+- renderer info / performance overlay metrics
 
 Acceptance criteria:
-- a player can accept steward tasks, brew the required mixtures, and complete at least one full turn-in loop
-- a player can have more than one active task and clearly see which one is being tracked
-- dialogue/objective state persists through reload
-- the new directed flow does not destabilize inventory, crafting, or persistence behavior
+- the overlay exposes useful live performance data for the slice
+- graphics presets and render scale are visible and easier to reason about during testing
+- the current castle blockout uses a reusable asset/prefab path for repeated primitive content
+- the added hardening work does not regress traversal, interaction, crafting, objectives, or persistence behavior
 
 Current implementation status:
 - `implemented`
@@ -197,39 +192,90 @@ Current implementation status:
 - `accepted`
 
 Implemented work:
-- added the scripted objective layer in [src/game/objectives/ObjectiveSystem.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/objectives/ObjectiveSystem.ts)
-- added the authored objective definition in [src/game/objectives/prototypeObjectives.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/objectives/prototypeObjectives.ts)
-- added objective and dialogue view types in [src/game/objectives/types.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/objectives/types.ts)
-- added an objective regression suite in [src/game/objectives/ObjectiveSystem.test.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/objectives/ObjectiveSystem.test.ts)
-- added a dialogue panel in [src/ui/dialoguePanel.ts](/Users/svanvliet/repos/fantasy-rpg/src/ui/dialoguePanel.ts)
-- added a HUD quest tracker in [src/ui/objectiveTracker.ts](/Users/svanvliet/repos/fantasy-rpg/src/ui/objectiveTracker.ts)
-- updated [src/game/interactions/InteractionSystem.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/interactions/InteractionSystem.ts) and [src/game/interactions/types.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/interactions/types.ts) to support dialogue interactions and panel gating
-- added a steward world proxy in [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) and [src/game/world/castleInteractables.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/castleInteractables.ts)
-- updated [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) and [src/game/persistence/SaveManager.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/persistence/SaveManager.ts) to wire dialogue/objective state into runtime flow and persistence
-- later extended the Phase 10 work so the steward can expose two authored quests and the player can choose which active task is tracked
+- added reusable primitive geometry/material caching in [src/game/assets/BlockoutFactory.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/assets/BlockoutFactory.ts)
+- added a cached GLB-loading catalog in [src/game/assets/AssetCatalog.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/assets/AssetCatalog.ts)
+- updated [src/game/world/createCastleBlockout.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/world/createCastleBlockout.ts) to use the shared blockout/prefab path for repeated primitive content
+- updated [src/game/GameApp.ts](/Users/svanvliet/repos/fantasy-rpg/src/game/GameApp.ts) and [src/ui/debugOverlay.ts](/Users/svanvliet/repos/fantasy-rpg/src/ui/debugOverlay.ts) to surface live render scale, draw calls, triangle counts, and memory-oriented renderer stats in the overlay
+- later refined the overlay with a collapsible debug shell so the new telemetry remains available without permanently occupying as much screen space during playtest
 
 Validation checklist:
-- [x] verify `E` on Steward Rowan opens the dialogue panel
-- [x] verify at least two steward quests can be browsed and accepted from the dialogue panel
-- [x] verify the tracker HUD shows the currently tracked active quest
-- [x] verify tracking can be switched when more than one active quest exists
-- [x] verify brewing a requested mixture updates the matching objective so it becomes ready to turn in when the item is in the player pack
-- [x] verify turning in a requested brew completes that objective and consumes the required item
-- [x] verify objective and tracked-quest progress restore correctly after reload, including mid-objective and ready-to-turn-in states
+- [x] verify the debug overlay now shows live render scale, draw calls, triangle counts, geometry count, and texture count
+- [x] verify switching graphics presets visibly changes the reported render scale and shadow/perf characteristics
+- [x] verify the debug overlay can be collapsed and expanded cleanly without losing telemetry or controls
+- [x] verify traversal, interaction, inventory, crafting, objectives, and persistence still work after the Phase 11 hardening changes
+- [x] verify the scene still looks materially the same while using the new shared blockout/prefab path
 
 Current findings:
-- the current prototype still does not need a generalized quest framework; a very small authored quest list is enough to validate world-purpose structure and HUD tracking
-- the existing inventory and alchemy systems were already strong enough to support a simple directed loop without introducing separate quest inventories or station-only state
-- a dialogue panel fits the current DOM/CSS UI approach well and gives us a reusable shell for later NPC/world-purpose interactions
-- the debug third-person camera remains strictly a troubleshooting aid and is not being expanded as part of Phase 10
-- playtest feedback on the first steward task showed the core objective loop worked, but also highlighted that the prototype lacked a visible quest tracker, which made the system harder to evaluate moment-to-moment than it should be
-- in response, Phase 10 was extended to support multiple authored steward quests, explicit tracked-quest selection, and a lightweight HUD tracker that stays visible during play
-- final playtest signoff confirmed that accepting, tracking, persisting, and turning in multiple steward quests all work as expected, including mid-quest reload behavior
+- the prototype now benefits more from performance visibility and reuse groundwork than from deeper new systems, because the gameplay loop baseline is already proving out well
+- renderer stats are especially important now because the slice includes multiple passes, dynamic lights, and graphics presets, which are otherwise hard to reason about from FPS alone
+- a cached GLB catalog is worth adding before real assets arrive so later swaps land on a stable loading path instead of scene-specific one-offs
+- shared blockout geometry/material caching is an appropriate first hardening step because it improves memory/runtime discipline without changing the user-facing shape of the slice
+- playtest feedback on the first telemetry pass showed the overlay had become too visually large, so the Phase 11 debug shell now supports collapse/expand behavior to keep perf instrumentation usable without dominating the viewport
+- later feedback on the collapsed overlay showed the summary text rhythm was drifting; the overlay summary/header were refactored into fixed row blocks with shared styles in both states, and collapse now only hides the body while keeping the summary structure consistent
+- final playtest signoff confirmed that perf telemetry is useful, graphics presets remain understandable, the scene still behaves as before, and the overlay collapse affordance is now visually clean enough to keep as part of the prototype baseline
 
 Acceptance summary:
-- Phase 10 successfully proved that the prototype can support directed RPG play with authored quest structure rather than only freeform systems
-- the steward dialogue, multi-quest objective state, tracked quest HUD, brewing progress, and turn-in flow now form a coherent lightweight quest baseline
-- this gives Phase 11 a cleaner foundation for asset/pipeline hardening without needing to revisit core quest readability first
+- Phase 11 successfully made the slice easier to reason about technically without destabilizing any of the accepted gameplay systems.
+- Performance cost is now visible in the HUD, graphics presets are easier to evaluate, and repeated blockout content is no longer built entirely through ad hoc geometry/material allocation.
+- Because no real production assets are in the repo yet, the GLB work in this phase intentionally stops at loader/cache infrastructure and hands off real asset integration to the next milestone.
+
+## Next Phase Preview
+
+### Phase 12: Imported Assets and First Art-Swap Pass
+Objective:
+- Use the new asset-loading groundwork to introduce the first real imported props and a modeled first-person hand/arm asset without breaking the gameplay baseline.
+
+Planned scope:
+- replace a small set of high-visibility blockout props with imported GLB assets
+- swap the current primitive first-person rig for a real modeled hand/arm asset if we have a suitable source asset
+- keep balanced graphics as the default validation preset while measuring any perf cost of the imported content
+
+Success criteria:
+- imported assets load through the shared catalog path instead of scene-specific loader code
+- the castle slice remains functionally unchanged while gaining a clearer visual identity
+- the embodiment pass supports a real modeled hand/arm asset without regressing carry readability or interaction feel
+
+### Phase 13: Item Use Effects and Inventory Pressure
+Objective:
+- Make crafted items and inventory choices matter more moment to moment by introducing actual item use effects and lightweight inventory pressure.
+
+Planned scope:
+- add use/consume behavior for crafted restoratives and related inventory items
+- introduce an explicit inventory-pressure mechanism such as slot count, carry weight, or another constrained-capacity rule
+- preserve current item-level stack rules and build the pressure system on top of them
+
+Success criteria:
+- crafted mixtures are useful beyond quest turn-in
+- players can feel and understand an inventory tradeoff rather than carrying everything indefinitely
+- new item-use rules persist cleanly and do not destabilize containers, crafting, or drop/pickup flow
+
+### Phase 14: Quest Breadth and World Reactivity
+Objective:
+- Expand the prototype from one directed quest giver into a more convincing small RPG space with additional NPC/world responses and clearer multi-quest structure.
+
+Planned scope:
+- add at least one more quest giver or reactive world role
+- add quest rewards and clearer active/completed quest state presentation
+- expand persistence coverage for a richer multi-quest state
+
+Success criteria:
+- multiple quest lines can coexist and remain understandable in the UI
+- quest rewards and state changes make the world feel more directed and reactive
+- reload mid-quest still restores state cleanly
+
+### Phase 15: Combat Graybox and Encounter Loop
+Objective:
+- Validate whether the castle slice can support a basic hostile encounter loop without undermining the systems we have already proven.
+
+Planned scope:
+- add one simple player combat interaction model
+- add one hostile target or encounter space
+- validate combat readability, movement feel under pressure, and save/load behavior around encounters
+
+Success criteria:
+- one graybox encounter can be entered, resolved, and persisted safely
+- combat feels compatible with the current first-person embodiment and interaction baseline
+- the project has enough evidence to decide whether combat should become a major next-cycle pillar
 
 ## Deferred Backlog
 - third-person camera

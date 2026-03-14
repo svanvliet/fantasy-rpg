@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type RAPIER from "@dimforge/rapier3d-compat";
 
 import { createCastleInteractables } from "./castleInteractables";
+import { blockoutFactory } from "../assets/BlockoutFactory";
 import type { Interactable } from "../interactions/types";
 
 export interface CastleBlockoutData {
@@ -101,15 +102,13 @@ function addStaticBox(
   rapier: typeof RAPIER,
   options: StaticBoxOptions
 ): THREE.Mesh {
-  const geometry = new THREE.BoxGeometry(options.scale.x, options.scale.y, options.scale.z);
-  const material = new THREE.MeshStandardMaterial({
+  const mesh = blockoutFactory.createBoxMesh(options.scale, {
     color: options.color,
     roughness: options.roughness ?? 0.88,
     metalness: options.metalness ?? 0.06,
-    fog: options.fog ?? false
+    fog: options.fog ?? false,
+    envMapIntensity: options.envMapIntensity ?? 0.4
   });
-  material.envMapIntensity = options.envMapIntensity ?? 0.4;
-  const mesh = new THREE.Mesh(geometry, material);
   mesh.position.copy(options.position);
   mesh.castShadow = options.castShadow ?? true;
   mesh.receiveShadow = true;
@@ -156,8 +155,8 @@ function addPointLight(scene: THREE.Scene, options: LightOptions): void {
   }
 
   const ember = new THREE.Mesh(
-    new THREE.SphereGeometry(options.emberRadius ?? 0.08, 10, 10),
-    new THREE.MeshBasicMaterial({ color: options.color })
+    blockoutFactory.createSphereMesh(options.emberRadius ?? 0.08, 10, 10, options.color).geometry,
+    blockoutFactory.createSphereMesh(options.emberRadius ?? 0.08, 10, 10, options.color).material
   );
   ember.position.copy(options.position);
   scene.add(ember);
@@ -335,14 +334,19 @@ function addCandles(
     scene.add(anchor);
 
     const candleBody = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.045, 0.05, 0.24, 8),
-      new THREE.MeshStandardMaterial({
+      blockoutFactory.createCylinderMesh(0.045, 0.05, 0.24, 8, {
         color: 0xe7dcc8,
         roughness: 0.88,
-        metalness: 0.03
-      })
+        metalness: 0.03,
+        envMapIntensity: 0.28
+      }).geometry,
+      blockoutFactory.createCylinderMesh(0.045, 0.05, 0.24, 8, {
+        color: 0xe7dcc8,
+        roughness: 0.88,
+        metalness: 0.03,
+        envMapIntensity: 0.28
+      }).material
     );
-    (candleBody.material as THREE.MeshStandardMaterial).envMapIntensity = 0.28;
     candleBody.position.set(0, candleHeight * 0.5, 0);
     candleBody.castShadow = false;
     candleBody.receiveShadow = true;
@@ -364,21 +368,26 @@ function addCandles(
     );
 
     const wick = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.008, 0.008, 0.035, 6),
-      new THREE.MeshStandardMaterial({
+      blockoutFactory.createCylinderMesh(0.008, 0.008, 0.035, 6, {
         color: 0x1f1610,
         roughness: 0.9,
-        metalness: 0.02
-      })
+        metalness: 0.02,
+        envMapIntensity: 0.15
+      }).geometry,
+      blockoutFactory.createCylinderMesh(0.008, 0.008, 0.035, 6, {
+        color: 0x1f1610,
+        roughness: 0.9,
+        metalness: 0.02,
+        envMapIntensity: 0.15
+      }).material
     );
-    (wick.material as THREE.MeshStandardMaterial).envMapIntensity = 0.15;
     wick.position.set(0, candleHeight + 0.012, 0);
     wick.castShadow = false;
     anchor.add(wick);
 
     const flame = new THREE.Mesh(
-      new THREE.SphereGeometry(0.032, 8, 8),
-      new THREE.MeshBasicMaterial({ color: index % 2 === 0 ? 0xffefcb : 0xffdfaa })
+      blockoutFactory.createSphereMesh(0.032, 8, 8, index % 2 === 0 ? 0xffefcb : 0xffdfaa).geometry,
+      blockoutFactory.createSphereMesh(0.032, 8, 8, index % 2 === 0 ? 0xffefcb : 0xffdfaa).material
     );
     flame.position.set(0, flameHeight, 0);
     anchor.add(flame);

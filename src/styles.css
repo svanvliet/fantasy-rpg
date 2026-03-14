@@ -34,6 +34,8 @@ canvas {
 }
 
 .debug-overlay {
+  --debug-summary-line-height: 1.35;
+  --debug-summary-row-height: 1.7rem;
   position: absolute;
   top: 1rem;
   left: 1rem;
@@ -49,12 +51,68 @@ canvas {
   pointer-events: auto;
 }
 
+.debug-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
 .debug-overlay h1 {
-  margin: 0 0 0.75rem;
+  margin: 0;
   font-size: 0.9rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #dfc18e;
+}
+
+.debug-collapse {
+  min-width: 6rem;
+  min-height: 2.35rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid rgba(255, 220, 170, 0.14);
+  border-radius: 999px;
+  background: rgba(36, 26, 18, 0.92);
+  color: #f4e8d6;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.debug-summary {
+  display: grid;
+  gap: 0.3rem;
+  margin-bottom: 0.65rem;
+  font-size: 0.8rem;
+  line-height: var(--debug-summary-line-height);
+  color: #e7d8c0;
+}
+
+.debug-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.7rem;
+  align-items: center;
+  min-height: var(--debug-summary-row-height);
+  line-height: inherit;
+}
+
+.debug-summary span {
+  white-space: nowrap;
+}
+
+.debug-summary-row--phase span {
+  white-space: normal;
+}
+
+.debug-body {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.debug-body[hidden] {
+  display: none !important;
 }
 
 .debug-overlay dl {
@@ -122,6 +180,11 @@ canvas {
 .debug-overlay dd {
   margin: 0;
   color: #f8f1e7;
+}
+
+.debug-overlay.is-collapsed {
+  min-width: 0;
+  width: auto;
 }
 
 .reticle {

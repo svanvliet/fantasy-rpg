@@ -23,6 +23,7 @@ The playable slice currently includes:
 - a station-gated alchemy loop with authored recipes and crafted outputs
 - steward dialogue, two authored quests, and a lightweight quest tracker HUD
 - a live lighting slider in the prototype overlay for Phase 6 room-light tuning
+- live performance telemetry in the prototype overlay, plus a collapsible debug shell for playtest-friendly monitoring
 
 ## Tech Stack
 
@@ -80,6 +81,7 @@ npm run test
 - `Graphics` control in the overlay switches between performance, balanced, and quality rendering presets
 - `Add Reagents` in the overlay restocks alchemy inputs for testing
 - `Reset Progress` in the overlay clears local prototype progress and reloads the seeded slice
+- `Collapse` in the overlay hides the full debug body while keeping a compact summary visible
 
 ## Project Structure
 
@@ -101,6 +103,10 @@ This repo follows a phased implementation model:
 - Phase 5: persistence
 - Phase 6: feel and polish
 - Phase 7: evaluation build and roadmap rebaseline
+- Phase 8: first-person embodiment
+- Phase 9: alchemy loop and item-system depth
+- Phase 10: objectives, dialogue, and quest tracking
+- Phase 11: asset reuse and performance hardening
 
 We record implementation progress, feedback, design decisions, validation checklists, and acceptance status in the implementation plan instead of keeping that process separate from the code.
 Older planning history is archived once a phase cycle closes so the active docs stay compact.
@@ -118,12 +124,14 @@ Accepted phases:
 - Phase 8: first-person embodiment and interaction readability
 - Phase 9: alchemy loop and item-system depth
 - Phase 10: lightweight objectives, dialogue, and quest tracking
+- Phase 11: asset reuse, GLB integration groundwork, and performance hardening
 
 Current active milestone:
-- Phase 11: asset reuse, GLB integration, and performance hardening
+- Phase 12: imported assets and first art-swap pass
 
 ## Notes
 
 - The project is currently optimized for modern desktop browsers on Mac and PC.
 - The prototype is intentionally using stylized blockout content and simple UI so system validation can happen before asset-heavy production work.
 - Bundle size is still large for an early prototype and will be revisited in later optimization/polish passes.
+- Real imported art assets are not yet checked into the repo; the current asset work established the loading/caching path so the next cycle can swap them in intentionally.

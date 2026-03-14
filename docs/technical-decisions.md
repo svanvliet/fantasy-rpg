@@ -197,3 +197,18 @@
   Phase 10 can use a small authored objective list, explicit dialogue states, and one tracked-quest HUD summary.
   Objective progress should persist in the same explicit save model as player, inventory, and interaction state.
   Broader quest tooling, open-ended concurrent quest management, and richer NPC systems remain future work until this smaller directed loop is validated.
+
+## TD-017: Phase 11 Hardens The Slice With Reuse And Visible Perf Telemetry First
+
+- Status: `accepted`
+- Active since: `Phase 11`
+- Date: `2026-03-13`
+- Decision:
+  Start Phase 11 with shared primitive/prefab caching, cached GLB-loading infrastructure, and live renderer telemetry in the overlay before attempting broad visual asset swaps.
+- Why:
+  The prototype already proves core gameplay well enough that the next leverage comes from making performance legible and future asset integration less ad hoc, without creating a large dependency on external art right away.
+- Consequences:
+  Repeated blockout content should move through shared geometry/material paths where practical.
+  The overlay should expose render scale and renderer-info metrics so preset tuning can be validated during playtest.
+  Local GLB import should have a reusable cache path before we begin dropping real assets into individual scenes.
+  Because there are no production-ready model assets in the repo yet, broad GLB asset swaps should remain a follow-on milestone rather than being forced into the hardening pass.
