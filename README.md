@@ -1,12 +1,15 @@
 # Fantasy RPG Prototype
 
-Browser-first fantasy RPG prototype built with `Three.js`, `Rapier`, `TypeScript`, and `Vite`.
+Browser-based first-person fantasy RPG prototype built with `Three.js`, `Rapier`, `TypeScript`, and `Vite`.
 
-The current vertical slice is a first-person castle interior focused on validating the core RPG interaction loop:
-- first-person traversal and collision
-- physical item handling
-- inventory and container transfer flow
-- mood lighting and room readability
+The current vertical slice is a first-person castle interior with a full RPG interaction loop:
+- first-person traversal with collision and jumping
+- physical item handling, inspect, hold, and release
+- inventory, container storage, and item transfer flow
+- station-gated alchemy crafting with authored recipes
+- NPC dialogue, two authored quests, and a quest tracker HUD
+- save-state persistence for player, inventory, containers, and quest progress
+- mood lighting, graphics quality presets, and live performance telemetry
 
 This project is intentionally being built in phases and tracked as a living prototype rather than a throwaway spike.
 
@@ -85,14 +88,14 @@ npm run test
 
 ## Project Structure
 
-- [src/game](/Users/svanvliet/repos/fantasy-rpg/src/game) runtime systems
-- [src/ui](/Users/svanvliet/repos/fantasy-rpg/src/ui) overlays and UI panels
-- [docs/gdd.md](/Users/svanvliet/repos/fantasy-rpg/docs/gdd.md) high-level game design document
-- [docs/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/implementation-plan.md) active roadmap for the current phase cycle
-- [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) active technical constraints for the current phase cycle
-- [docs/evaluation-report.md](/Users/svanvliet/repos/fantasy-rpg/docs/evaluation-report.md) current vertical-slice evaluation and roadmap rebaseline
-- [docs/archive/2026-03-13-phase-0-7](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-13-phase-0-7) archived Phase 0-7 planning history and technical decisions
-- [docs/archive/2026-03-14-phase-8-11](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-14-phase-8-11) archived Phase 8-11 planning history and technical decisions
+- [src/game](src/game) runtime systems
+- [src/ui](src/ui) overlays and UI panels
+- [docs/gdd.md](docs/gdd.md) high-level game design document
+- [docs/implementation-plan.md](docs/implementation-plan.md) active roadmap for the current phase cycle
+- [docs/technical-decisions.md](docs/technical-decisions.md) active technical constraints for the current phase cycle
+- [docs/evaluation-report.md](docs/evaluation-report.md) current vertical-slice evaluation and roadmap rebaseline
+- [docs/archive/2026-03-13-phase-0-7](docs/archive/2026-03-13-phase-0-7) archived Phase 0-7 planning history and technical decisions
+- [docs/archive/2026-03-14-phase-8-11](docs/archive/2026-03-14-phase-8-11) archived Phase 8-11 planning history and technical decisions
 
 ## Development Approach
 
@@ -108,6 +111,7 @@ This repo follows a phased implementation model:
 - Phase 9: alchemy loop and item-system depth
 - Phase 10: objectives, dialogue, and quest tracking
 - Phase 11: asset reuse and performance hardening
+- Phase 12: imported assets and first art-swap pass
 
 We record implementation progress, feedback, design decisions, validation checklists, and acceptance status in the implementation plan instead of keeping that process separate from the code.
 Older planning history is archived once a phase cycle closes so the active docs stay compact.
