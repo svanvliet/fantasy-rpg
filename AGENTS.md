@@ -36,6 +36,21 @@
   - [docs/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/implementation-plan.md) for phase history
   - [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) for enduring architecture context
 
+## Documentation Archival Strategy
+- When a phase cycle is fully closed out and the active planning docs become history-heavy, archive the current working copies instead of letting them grow indefinitely.
+- Archive the full detailed versions of:
+  - [docs/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/implementation-plan.md)
+  - [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md)
+- Store archived cycle docs under [docs/archive](/Users/svanvliet/repos/fantasy-rpg/docs/archive) in a dated folder named like:
+  - `YYYY-MM-DD-phase-X-Y`
+- After archiving, create new compact working copies in `docs/` that:
+  - summarize what the archived phase cycle proved
+  - link to the archived implementation plan and technical decisions
+  - carry forward only the still-active roadmap and still-relevant technical constraints
+- Keep the active docs intentionally short so they remain useful as a working set during implementation.
+- Update [README.md](/Users/svanvliet/repos/fantasy-rpg/README.md) when a new archive folder is created so the current docs and archived history are both discoverable.
+- Treat this archive-and-reset step as a routine closeout action at the end of a completed phase cycle, not as an exceptional cleanup.
+
 ## Phase Commit Protocol
 - At the end of each phase, create a git commit so the project history reflects phase boundaries.
 - Use detailed commit messages that clearly describe:
