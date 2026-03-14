@@ -1,214 +1,170 @@
 # Active Technical Decisions
 
 ## Continuity Summary
-- This is the compact working decision log for the next phase cycle.
-- It carries forward only the active technical constraints that still shape implementation after Phases 1-7.
-- Historical detail, superseded reasoning, and phase-by-phase evolution live in the archive.
-- The evaluation report is the bridge between the archived prototype cycle and the next roadmap.
-- Update this file only when a decision changes how future work must be implemented.
+- This is the compact decision log for the current post-Phase-11 cycle.
+- It carries forward only the technical constraints that still shape implementation in Phases 12-15.
+- Historical detail and superseded reasoning live in the archive.
+- Use this file for stable constraints and architecture memory, not phase progress.
 
 ## References
-- Archived technical decisions: [docs/archive/2026-03-13-phase-0-7/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-13-phase-0-7/technical-decisions.md)
-- Archived implementation history: [docs/archive/2026-03-13-phase-0-7/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-13-phase-0-7/implementation-plan.md)
 - Current evaluation summary: [docs/evaluation-report.md](/Users/svanvliet/repos/fantasy-rpg/docs/evaluation-report.md)
+- Archived Phase 0-7 technical decisions: [docs/archive/2026-03-13-phase-0-7/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-13-phase-0-7/technical-decisions.md)
+- Archived Phase 8-11 technical decisions: [docs/archive/2026-03-14-phase-8-11/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-14-phase-8-11/technical-decisions.md)
+- Archived Phase 8-11 implementation history: [docs/archive/2026-03-14-phase-8-11/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-14-phase-8-11/implementation-plan.md)
 
 ## TD-001: Browser-First Runtime Stack
 
 - Status: `accepted`
-- Active since: `Phase 0`
+- Phase: `0+`
+- Date: `2026-03-14`
 - Decision:
   Keep the prototype browser-first using `Vite`, `Three.js`, and `@dimforge/rapier3d-compat`.
 - Why:
-  The current vertical slice has already validated the browser-first delivery path as the fastest way to iterate and share.
+  The browser slice is already validated as the fastest path for iteration and sharing.
 - Consequences:
-  New features should preserve desktop-browser operability as the primary validation target.
+  New systems should preserve modern desktop-browser operability as the primary target.
 
 ## TD-002: UI Uses Plain DOM/CSS
 
 - Status: `accepted`
-- Active since: `Phase 0`
+- Phase: `0+`
+- Date: `2026-03-14`
 - Decision:
-  Keep HUD, inventory, dialogue, and other prototype UI in plain DOM/CSS rather than introducing a frontend framework.
+  Keep HUD, debug, inventory, dialogue, quest, and station UI in plain DOM/CSS.
 - Why:
-  The project is still optimizing for rapid systems iteration over UI-framework complexity.
+  The project still benefits more from low-friction systems iteration than from adding a frontend framework.
 - Consequences:
-  New interface work should fit the current lightweight UI stack unless a later phase proves that constraint untenable.
+  New UI should fit the current lightweight stack unless a future phase proves that constraint too costly.
 
-## TD-003: `GameApp` Remains the Composition Root
+## TD-003: `GameApp` Remains The Composition Root
 
 - Status: `accepted`
-- Active since: `Phase 1`
+- Phase: `1+`
+- Date: `2026-03-14`
 - Decision:
-  Keep `GameApp` as the central boot and orchestration layer for renderer, scene, loop, player, interaction, inventory, and persistence systems.
+  Keep `GameApp` as the main boot and orchestration layer for renderer, scene, loop, player, interaction, inventory, objectives, and persistence systems.
 - Why:
-  The current system scale is still small enough that a single composition root is the clearest structure.
+  The current system scale still fits a single clear composition root.
 - Consequences:
-  New major systems should integrate through `GameApp` unless the next phase explicitly introduces a new orchestration boundary.
+  New major systems should integrate through `GameApp` unless a later phase intentionally introduces a new orchestration boundary.
 
-## TD-004: Fixed-Step Simulation Is the Baseline
+## TD-004: Fixed-Step Simulation Is Baseline
 
 - Status: `accepted`
-- Active since: `Phase 1`
+- Phase: `1+`
+- Date: `2026-03-14`
 - Decision:
   Continue using fixed-step updates for gameplay and physics with rendering kept separate.
 - Why:
-  Movement, carry behavior, and persistence-sensitive world interaction already rely on this stability.
+  Movement, carry behavior, and persistence-sensitive interactions already depend on this stability.
 - Consequences:
   New gameplay systems should be authored with fixed-step assumptions in mind.
 
 ## TD-005: First-Person Interaction Input Split Is Stable
 
 - Status: `accepted`
-- Active since: `Phases 3-4`
+- Phase: `3+`
+- Date: `2026-03-14`
 - Decision:
-  Keep `E` for interact/take/stow, `F` for hold/carry, `Q` for release/drop, and `I` for inventory.
+  Keep `E` for interact/take/stow, `F` for hold/carry, `Q` for release/drop, `I` for inventory, and `V` as a debug-only third-person toggle.
 - Why:
-  This input model has already been validated through playtest and supports a clear distinction between inventory actions and physical manipulation.
+  This mapping is already validated and keeps physical manipulation distinct from inventory actions.
 - Consequences:
-  New embodiment, crafting, and dialogue features should respect this mapping unless a future phase explicitly redesigns input.
+  New systems should respect this split unless a future phase deliberately redesigns input.
 
-## TD-006: Holdable And Stowable Are Separate Capabilities
+## TD-006: Holdable And Stowable Stay Separate
 
 - Status: `accepted`
-- Active since: `Phase 4`
+- Phase: `4+`
+- Date: `2026-03-14`
 - Decision:
   Continue treating holdability and stowability as separate item capabilities.
 - Why:
-  The next phases will likely add props and station interactions that can be manipulated physically without belonging in inventory.
+  The prototype already contains and will likely gain more props that can be moved physically without belonging in inventory.
 - Consequences:
-  New items and props should not assume that all interactable things are inventory items.
+  New items and props should not assume all interactables are inventory items.
 
-## TD-007: Physical Carry Uses A Reticle-Anchored Model
+## TD-007: Persistence Stays Local And Explicit
 
 - Status: `accepted`
-- Active since: `Phase 3`
+- Phase: `5+`
+- Date: `2026-03-14`
 - Decision:
-  Preserve the reticle-anchored soft-follow carry model and pickup orientation behavior as the gameplay authority for held objects.
+  Keep persistence in browser local storage with explicit save structure for player, inventory, containers, objectives, collected pickups, and loose world items.
 - Why:
-  This is one of the strongest validated parts of the current prototype feel.
+  This is sufficient for the prototype goals and is already validated.
 - Consequences:
-  First-person hands/arms in Phase 8 must present this behavior, not replace it.
+  New systems should extend the same explicit save model instead of introducing parallel persistence paths.
 
-## TD-008: Persistence Stays Local And Explicit
+## TD-008: Balanced Graphics Preset Is The Evaluation Baseline
 
 - Status: `accepted`
-- Active since: `Phase 5`
+- Phase: `6+`
+- Date: `2026-03-14`
 - Decision:
-  Keep persistence in browser local storage with explicit save structure for player, inventory, containers, collected pickups, and loose world items.
+  Treat the `balanced` graphics preset as the default playtest and evaluation mode.
 - Why:
-  This is sufficient for the prototype goals and already validated.
+  It gives a practical laptop-safe baseline without collapsing the visual slice too far.
 - Consequences:
-  New systems such as crafting outcomes, dialogue/objective state, and NPC/world scripts should integrate into the same explicit save model.
+  New rendering, asset, and embodiment work should be judged against `balanced` first, not `quality`.
 
-## TD-009: Direct-Light Hierarchy Is The Active Interior-Lighting Baseline
+## TD-009: Embodiment Uses A Separate Viewmodel Pass
 
 - Status: `accepted`
-- Active since: `Phase 6`
+- Phase: `8+`
+- Date: `2026-03-14`
 - Decision:
-  Keep direct-light tuning, room composition, and practical lighting as the active interior baseline rather than reintroducing the reverted IBL approach.
+  Keep first-person hands/arms in a dedicated presentation-only viewmodel render pass while leaving gameplay authority in the world interaction/carry systems.
 - Why:
-  The reverted environment-lighting pass washed out the mood and did not hold up in playtest.
+  This preserves the validated carry model and avoids giving presentation meshes authority over collision or targeting.
 - Consequences:
-  Future lighting work should treat heavier interior-lighting solutions as a deliberate new phase, not an implicit default.
+  Future modeled hands/arms should be integrated through the existing viewmodel path rather than replacing the underlying carry logic.
 
-## TD-010: Balanced Graphics Preset Is The Evaluation Baseline
+## TD-010: Crafting Stays Station-Gated And Role-Driven
 
 - Status: `accepted`
-- Active since: `Phase 6`
+- Phase: `9+`
+- Date: `2026-03-14`
 - Decision:
-  Treat the `balanced` graphics preset as the default evaluation mode for future playtests.
+  Keep alchemy authored, station-gated, and driven by explicit item roles/tags instead of freeform combinations.
 - Why:
-  It provides laptop-safe rendering behavior without collapsing the visual baseline.
+  This is the clearest validated crafting loop in the current prototype.
 - Consequences:
-  New rendering or embodiment work should be judged first against the balanced preset, not the quality preset.
+  Future crafting work should build on explicit item metadata and station UX rather than ad hoc inventory heuristics.
 
-## TD-011: Post-Prototype Priorities Favor First-Person Depth Before Scope Expansion
+## TD-011: Stack Rules Stay Item-Scoped Before Inventory Pressure
 
 - Status: `accepted`
-- Active since: `Phase 7`
+- Phase: `9+`
+- Date: `2026-03-14`
 - Decision:
-  Prioritize first-person embodiment, alchemy/item-system depth, and lightweight world-purpose systems before third-person support or heavier rendering expansion.
+  Keep per-item `maxStack` rules active now, but defer broader inventory-pressure systems such as slots, encumbrance, or forced pack-tradeoff mechanics to a later dedicated phase.
 - Why:
-  The engine direction is already validated; the largest remaining gaps are now gameplay depth and embodied interaction.
+  Stack metadata is already useful, but full inventory pressure should be introduced deliberately.
 - Consequences:
-  Near-term phases should deepen the current loop rather than broadening feature scope prematurely.
+  Phase 13 should build on the current stack model instead of inventing inventory limits from scratch.
 
-## TD-012: First-Person Embodiment Uses A Separate Viewmodel Render Pass
+## TD-012: Objectives Stay Lightweight And Scripted Until Proven Broader
 
 - Status: `accepted`
-- Active since: `Phase 8`
+- Phase: `10+`
+- Date: `2026-03-14`
 - Decision:
-  Render first-person arms/hands through a dedicated viewmodel system and secondary camera pass while keeping gameplay interaction authored by the existing world/carry systems.
+  Keep quests/objectives as a small authored state-machine flow with simple tracking and persistence before introducing broader quest frameworks or heavier AI systems.
 - Why:
-  This preserves the validated reticle-anchored carry model and avoids giving presentation meshes authority over collision, targeting, or held-item physics.
+  The current prototype needs readable directed play more than generalized quest tooling.
 - Consequences:
-  Future embodiment work should extend the current presentation bridge rather than moving carry gameplay into the viewmodel.
-  Viewmodel rendering should remain lightweight and non-shadow-casting so it does not materially undermine the balanced performance baseline.
+  Phase 14 should expand quest breadth carefully without prematurely introducing heavyweight quest architecture.
 
-## TD-013: Any Early Third-Person View Must Remain Debug-Scoped
+## TD-013: Phase 11 Established Hardening Before Broad Asset Swaps
 
 - Status: `accepted`
-- Active since: `Phase 8`
+- Phase: `11`
+- Date: `2026-03-14`
 - Decision:
-  Allow a temporary third-person camera and player proxy only as a troubleshooting aid during embodiment work, not as a formal camera-mode expansion.
+  Start asset/pipeline work with shared primitive reuse, cached GLB-loading infrastructure, and visible perf telemetry before broad real-asset swaps.
 - Why:
-  We need a practical way to inspect player-facing embodiment state without changing the roadmap priority that keeps full third-person support deferred.
+  The prototype needed performance visibility and a reusable import path before art integration would be meaningful.
 - Consequences:
-  Debug third-person support can exist as an inspection tool, but future roadmap decisions should not treat it as equivalent to a production third-person feature.
-
-## TD-014: Phase 9 Alchemy Uses Authored Recipes At A Station
-
-- Status: `accepted`
-- Active since: `Phase 9`
-- Decision:
-  Implement alchemy as a station-gated authored recipe system driven by player inventory ingredients, rather than a freeform combination system.
-- Why:
-  The prototype needs a readable and testable gameplay loop quickly, and authored recipes are enough to validate station flow, item taxonomy, and persistence.
-- Consequences:
-  Phase 9 crafting should stay constrained to the alchemy table and a small recipe list.
-  Inventory remains the source of truth for ingredients and crafted outputs, which keeps persistence simple and explicit.
-  Item definitions should carry explicit crafting-oriented metadata so station UIs can distinguish reagents from general inventory items without inventing per-panel heuristics.
-
-## TD-015: Stack Rules Stay Item-Scoped Before Inventory Pressure Systems
-
-- Status: `accepted`
-- Active since: `Phase 9`
-- Date: `2026-03-13`
-- Decision:
-  Keep per-item `maxStack` rules active now, but defer broader inventory-pressure systems such as slot caps, encumbrance, or forced pack-tradeoff mechanics to a later dedicated inventory-depth pass.
-- Why:
-  Stack metadata is already useful for crafting outputs and item taxonomy, but full inventory pressure would change player decision-making enough that it should be introduced deliberately rather than incidentally during alchemy work.
-- Consequences:
-  Ingredients, solvents, crafted mixtures, and utility items can continue to define their own stack limits now.
-  Inventory-facing UI may surface stack-cap context and stack breakdowns so we can validate stack behavior now, while station UIs can continue to show gross totals when stacks are not the relevant player concern.
-  UI stack context should not yet be treated as a full “inventory management game” mechanic.
-  A future inventory-depth phase can build on the current item-level stack metadata instead of inventing stack semantics later from scratch.
-
-## TD-016: Phase 10 Uses A Scripted Objective State Machine Before Broader Quest Systems
-
-- Status: `accepted`
-- Active since: `Phase 10`
-- Date: `2026-03-13`
-- Decision:
-  Implement early world-purpose as a very small authored objective list with explicit tracked-quest selection and a lightweight HUD tracker, rather than introducing a generalized quest framework or AI-driven behavior system.
-- Why:
-  The prototype needs to prove that directed RPG structure is both functional and readable in moment-to-moment play, without dragging in unnecessary quest-system abstraction before we know the loop is worth deepening.
-- Consequences:
-  Phase 10 can use a small authored objective list, explicit dialogue states, and one tracked-quest HUD summary.
-  Objective progress should persist in the same explicit save model as player, inventory, and interaction state.
-  Broader quest tooling, open-ended concurrent quest management, and richer NPC systems remain future work until this smaller directed loop is validated.
-
-## TD-017: Phase 11 Hardens The Slice With Reuse And Visible Perf Telemetry First
-
-- Status: `accepted`
-- Active since: `Phase 11`
-- Date: `2026-03-13`
-- Decision:
-  Start Phase 11 with shared primitive/prefab caching, cached GLB-loading infrastructure, and live renderer telemetry in the overlay before attempting broad visual asset swaps.
-- Why:
-  The prototype already proves core gameplay well enough that the next leverage comes from making performance legible and future asset integration less ad hoc, without creating a large dependency on external art right away.
-- Consequences:
-  Repeated blockout content should move through shared geometry/material paths where practical.
-  The overlay should expose render scale and renderer-info metrics so preset tuning can be validated during playtest.
-  Local GLB import should have a reusable cache path before we begin dropping real assets into individual scenes.
-  Because there are no production-ready model assets in the repo yet, broad GLB asset swaps should remain a follow-on milestone rather than being forced into the hardening pass.
+  Phase 12 should use the existing asset catalog path for its first real imports.
+  Because no production-ready model assets are currently checked into the repo, real asset integration must begin intentionally rather than assuming the assets already exist.

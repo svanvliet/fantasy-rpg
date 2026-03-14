@@ -92,6 +92,7 @@ npm run test
 - [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) active technical constraints for the current phase cycle
 - [docs/evaluation-report.md](/Users/svanvliet/repos/fantasy-rpg/docs/evaluation-report.md) current vertical-slice evaluation and roadmap rebaseline
 - [docs/archive/2026-03-13-phase-0-7](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-13-phase-0-7) archived Phase 0-7 planning history and technical decisions
+- [docs/archive/2026-03-14-phase-8-11](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-14-phase-8-11) archived Phase 8-11 planning history and technical decisions
 
 ## Development Approach
 
