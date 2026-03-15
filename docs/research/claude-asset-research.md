@@ -328,7 +328,7 @@ Available hardware:
 - **Hunyuan3D** is the best fit — its standard pipeline needs ~12GB VRAM (3080 Ti), and it runs well on 16GB (5070 Ti). The mini variant would also work on all three machines.
 - **TRELLIS 2** at full resolution (1536³) prefers 24GB, but lower resolutions (512³) should work on the 5070 Ti's 16GB. Worth testing.
 - **Stable Fast 3D** runs comfortably on all three machines (needs only 7GB).
-- **M3 Max path**: Both TRELLIS and Hunyuan3D have experimental MPS (Metal) support. The 64GB unified memory is more than enough, but Metal inference is slower than CUDA. Worth testing as a secondary option — especially for overnight batch generation where speed matters less.
+- **M3 Max path**: Stable Fast 3D has explicit MPS (Metal) support and works on Apple Silicon. Hunyuan3D has a macOS fork for shape-only generation. TRELLIS does *not* work on Mac. See the detailed Mac compatibility section below for specifics.
 - **No cloud GPU needed** — all three machines can run the open-source models locally.
 
 ### 2. Pipeline Orchestration — Answered ✅
@@ -401,12 +401,40 @@ Use Tripo when:
 - A specific asset works better with Tripo's model than the open-source alternatives
 - Free tier gives 10–24 models/month; Pro at ~$0.21/model if needed
 
-### Experimental: M3 Max via MPS/Metal
+### MacBook Pro M3 Max Compatibility (Detailed)
 
-Worth testing as a secondary path:
-- 64GB unified memory means no VRAM bottleneck
-- Metal inference is slower than CUDA but may be acceptable for batch/overnight jobs
-- If it works, the MacBook becomes the "generate while traveling" option
+Your M3 Max with 64GB unified memory is a viable local generation machine for two of the three recommended models:
+
+**Hunyuan3D — ✅ Shape generation works, ⚠️ texturing is limited**
+- A dedicated macOS fork exists: [Hunyuan3D-2.1-mac](https://github.com/Brainkeys/Hunyuan3D-2.1-mac)
+- There's also a Blender-integrated Mac setup: [Hunyuan3D_Blender](https://github.com/alawrenceld/Hunyuan3D_Blender)
+- Shape/mesh generation runs well on MPS (Metal Performance Shaders) via PyTorch
+- Your 64GB unified memory is far above the recommended 12GB — no memory bottleneck
+- **Limitation**: Texture synthesis (Hunyuan3D-Paint stage) currently depends on `nvdiffrast`, a CUDA-only rasterizer. On Mac, you get untextured meshes that you'd then texture in Blender manually or via a separate tool
+- **Practical workflow**: Generate the mesh shape on Mac → transfer to a Windows PC for the texture pass, or texture manually in Blender
+- Speed is ~5–10x slower than CUDA but acceptable for individual prop generation (minutes, not hours)
+
+**Stable Fast 3D — ✅ Fully works (experimental)**
+- Official repo has explicit MPS/Metal support with custom Metal kernels for texture baking
+- Tested on M1 Max 64GB; your M3 Max should perform better
+- Requires: PyTorch 2.4+, OpenMP runtime, `PYTORCH_ENABLE_MPS_FALLBACK=1` env var
+- 32GB+ unified memory recommended — you have 64GB, so no issue
+- Auto-detects hardware: CUDA → MPS → CPU fallback
+- **This is the best Mac option** — generates UV-unwrapped, textured GLB in seconds
+- Install: `pip install -r requirements.txt` then `python run.py input.png --output-dir output/`
+- GitHub: https://github.com/Stability-AI/stable-fast-3d
+
+**TRELLIS 2 — ❌ Not supported on Mac**
+- Requires CUDA for core 3D computation modules (marching cubes, custom kernels)
+- A community fork exists ([TRELLIS-for-mac](https://github.com/joelkarn/TRELLIS-for-mac)) but is not production-ready
+- No official timeline for MPS/Metal support from Microsoft
+- Use this only on your Windows PCs
+
+**Summary: Mac workflow recommendation**
+- Use **Stable Fast 3D** on the MacBook for quick previews and rapid iteration (fully functional)
+- Use **Hunyuan3D Mac fork** for shape generation when you want higher mesh quality (texture separately)
+- Reserve **TRELLIS** and full **Hunyuan3D with textures** for your Windows PCs
+- The MacBook becomes your "generate and preview anywhere" machine; the PCs are your "full pipeline" machines
 
 ### Recommended Setup Steps
 
