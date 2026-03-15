@@ -1,0 +1,12 @@
+{
+  "revisionId": "revision-03",
+  "sourceConcept": "concept-02",
+  "sourceImage": "asset-workbench/2026-03-15-potion-bottle-draught/outputs/concepts/pass-01/concept-02.png",
+  "name": "Refinement 3",
+  "prompt": "Revise the approved Potion Bottle Draught concept while preserving its overall identity. Apply these revision notes: preserve the same bottle form and proportions; reduce dramatic specular reflections on the glass; use softer controlled studio reflections; keep glass edges clear for 3D extraction; preserve amber liquid and metal/cork details; keep plain background. Keep the object isolated on a plain background, centered in frame, and readable for a first-person fantasy RPG. Produce a clean three-quarter view with stronger material separation and a clearer gameplay silhouette.",
+  "responseId": "resp_0e656363eb83e6800069b6fa0baac481968df212836ee0c10d",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium"
+}

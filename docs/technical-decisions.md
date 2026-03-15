@@ -197,6 +197,9 @@
   The workflow should be callable through a checked-in repo-local command path rather than living only as a prose process.
   Routine concept and revision runs should prefer a lower-cost orchestration model while keeping the image model strong.
   Concept and revision outputs should be preserved as explicit passes so design review history remains auditable across iterations.
+  When a refinement image becomes the best asset source, the 3D handoff should point at that selected revision rather than implicitly falling back to the original concept.
+  Provider-backed 3D submissions and downloaded outputs should also preserve pass history instead of overwriting the latest generated model state.
+  Sessions should explicitly track asset `scope` and `intent` so the workflow can distinguish broad exploration from production-ready asset work.
 
 ## TD-016: Asset Workflow Uses Style Anchors And Reusable Item Families
 
@@ -211,3 +214,8 @@
   The prop-asset workflow should capture style anchors and family definitions in docs, not only in one-off session notes.
   Potion and reagent items should increasingly differentiate through tint, labels, contents, and metadata before demanding unique mesh shapes.
   Shared family components such as bottle label bands and neck metal rings should be standardized intentionally when the family is meant to support many variants.
+  Family concept sessions should normally validate one extracted family member in 3D before multiplying into many child assets.
+  Meshy-based 3D passes should preserve not only the primary `.glb`, but also the pre-remeshed source and texture maps when they are available so downstream cleanup stays flexible.
+  Family and set sheets should not move directly into 3D by default; they should branch into `single + production` child sessions first.
+  When a child asset is derived from an approved family or set sheet, the workflow should preserve the approved sheet as a reference image and use OpenAI image editing/generation with that input for isolated child-asset extraction instead of reimagining the child from scratch.
+  Blender cleanup should be treated as a first-class workflow stage that saves cleaned exports as separate cleanup passes instead of overwriting raw provider outputs.

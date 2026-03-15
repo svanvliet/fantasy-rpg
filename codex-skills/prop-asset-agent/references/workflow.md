@@ -5,17 +5,30 @@ Create visually strong fantasy RPG prop assets that can be reviewed quickly and 
 
 ## Repo-Local Command Path
 - Start a session with:
-  - `npm run asset-agent -- init --slug <slug> --room <room> --category <category> [--swap-id <id>] [--use "..."]`
+  - `npm run asset-agent -- init --slug <slug> --room <room> --category <category> [--scope <single|family|set>] [--intent <production|exploration>] [--swap-id <id>] [--use "..."]`
+- For family/set sessions, branch a production child asset with:
+  - `npm run asset-agent -- spawn-child --session asset-workbench/<session-id> --slug <slug> --category <category> [--child-role <role>] [--swap-id <id>] [--use "..."]`
 - Refresh generated markdown and provider jobs after editing `session.json`:
   - `npm run asset-agent -- refresh --session asset-workbench/<session-id>`
 - Record the approved concept and revision notes:
   - `npm run asset-agent -- select --session asset-workbench/<session-id> --concept concept-02 --notes "reduce ornament|clearer silhouette"`
+- Record the approved refinement image that should drive 3D:
+  - `npm run asset-agent -- select-revision --session asset-workbench/<session-id> --pass pass-01 --revision revision-03`
 - Generate concept images:
   - `npm run asset-agent -- generate-concepts --session asset-workbench/<session-id>`
+- For child extraction sessions, `generate-concepts` uses the approved parent sheet as an input image and produces isolated single-asset concepts.
 - Generate refinement images from the approved concept:
   - `npm run asset-agent -- generate-revisions --session asset-workbench/<session-id> --count 3`
 - Generate another refinement pass from a specific prior revision when one image is closest:
   - `npm run asset-agent -- generate-revisions --session asset-workbench/<session-id> --source-image asset-workbench/<session-id>/outputs/revisions/revision-02.png --count 3`
+- Materialize the current 3D handoff:
+  - `npm run asset-agent -- prepare-3d --session asset-workbench/<session-id>`
+- Submit the prepared handoff to Meshy:
+  - `npm run asset-agent -- submit-meshy --session asset-workbench/<session-id>`
+- Refresh Meshy task state and optionally download outputs:
+  - `npm run asset-agent -- check-meshy --session asset-workbench/<session-id> --download`
+- Run Blender cleanup on the generated model:
+  - `npm run asset-agent -- cleanup-blender --session asset-workbench/<session-id> --blender /Applications/Blender.app/Contents/MacOS/Blender --target-height <meters>`
 - See [docs/prop-asset-agent-usage.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-agent-usage.md) for concrete examples.
 
 ## Design Constraints
@@ -25,6 +38,20 @@ Create visually strong fantasy RPG prop assets that can be reviewed quickly and 
   - readable shapes from first-person distance
 - Avoid over-detailing the asset beyond the visual fidelity of the slice unless the user explicitly wants a hero prop.
 - Reuse the shared visual language in [docs/prop-asset-style-guide.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-style-guide.md) whenever possible.
+- Do not send broad exploratory sheets or family sheets directly to 3D unless we explicitly want a fused decorative set.
+
+## Scope Rules
+- `single`
+  - one asset
+  - may go direct to 3D if intent is `production`
+- `family`
+  - shared visual system for sibling assets
+  - should branch into child single-asset sessions before 3D
+- `set`
+  - broad thematic exploration
+  - should branch into single assets or families before 3D
+- `exploration` intent means the session is not yet allowed to move into 3D.
+- `production` intent means the session is eligible for 3D once it is also `single`.
 
 ## Asset Brief Template
 - Asset name:
@@ -60,6 +87,11 @@ Create visually strong fantasy RPG prop assets that can be reviewed quickly and 
 - Use image-to-3D when the concept image is good.
 - Use multi-image-to-3D if we have multiple approved views.
 - Keep topology and target-polycount appropriate for a game prop, not a cinematic sculpt.
+- Use the selected revision image when downstream extraction or component reuse matters more than the first approved concept.
+- Preserve provider submissions and downloads as pass history in `outputs/models/pass-XX/` instead of treating them as disposable exports.
+- Retain the main `.glb`, `pre_remeshed_glb`, preview, and texture maps when Meshy provides them so cleanup has the right source materials.
+- For prop families, prefer using the family concept session to define reusable forms and components, then validate one extracted family member in 3D before spinning out every variant.
+- When a family or set concept is approved, preserve the selected concept/revision image as the source of truth, then branch child sessions that use the approved sheet as an input image for isolated child-asset generation.
 
 ### Tripo comparison path
 - Use when we want to compare a second provider against the same concept image.
@@ -71,6 +103,7 @@ Create visually strong fantasy RPG prop assets that can be reviewed quickly and 
 - asset stands or rests on the ground plane correctly
 - materials are usable
 - export as `.glb`
+- preserve the raw provider outputs and write the cleaned export into a separate cleanup pass
 
 ## Runtime Integration
 - Export the final prop to `public/assets/models`

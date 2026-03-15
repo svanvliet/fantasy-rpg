@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-02",
+  "name": "Cleaner Production Candidate",
+  "prompt": "Using the provided approved parent concept as reference, generate a cleaner production-ready isolated concept of a potion bottle draught. Preserve the approved art direction and reusable components, but simplify clutter, remove overlap, and make the asset stand on its own on a plain background. Keep the materials glass, cork, iron, worn labels, the mood grounded, warm, alchemical, practical, and the silhouette game-readable for first-person distance.",
+  "responseId": "resp_0aaca3d5ba4c8f230069b6f8286b88819e85e551c4b7030c4d",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": "asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/pass-01/revision-03.png"
+}

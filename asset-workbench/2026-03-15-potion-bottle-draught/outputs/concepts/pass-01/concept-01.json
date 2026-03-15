@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-01",
+  "name": "Faithful Isolated Extraction",
+  "prompt": "Using the provided approved parent concept as the visual source of truth, create a single isolated fantasy RPG prop concept for a potion bottle draught. Preserve the approved style, materials, and silhouette language from the source image while extracting only this one asset onto a plain background. This child asset represents the draught member of the parent concept. Keep the object centered, non-overlapping, and fully readable for downstream 3D generation. Materials should read as glass, cork, iron, worn labels. Style constraints: readable silhouette, family resemblance, game-friendly detail, reusable variants. Intended use: Reusable draught bottle for crafted potions and alchemy loot.",
+  "responseId": "resp_0be51fa50eaeb95d0069b6f7fd49a48197838c84496500105a",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": "asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/pass-01/revision-03.png"
+}

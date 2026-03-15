@@ -67,6 +67,16 @@ Implemented work:
 - extended the asset-agent workflow so an approved concept can now drive a dedicated refinement pass instead of forcing concept work to restart from scratch
 - switched the asset-agent workflow to a lower-cost orchestration default while keeping image generation on `gpt-image-1.5`, and added support for refining from a specific prior revision image
 - changed the asset-agent workflow to preserve both concept and revision batches as pass history instead of overwriting the latest outputs
+- added explicit revision selection and 3D handoff preparation commands so the workflow can promote an approved refinement image into the modeled-asset stage instead of relying on manual session edits
+- added Meshy submission and task-refresh commands that preserve provider runs as `outputs/models/pass-XX` history, including task metadata and downloaded outputs when available
+- generated the first provider-backed bottle-family model from the approved `revision-03` source image and stored the resulting `.glb` and preview under [asset-workbench/2026-03-15-potion-bottle-family/outputs/models/pass-01](/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-15-potion-bottle-family/outputs/models/pass-01)
+- extended the Meshy download stage so successful 3D passes now retain the remeshed `.glb`, `pre_remeshed_glb`, preview, and texture maps instead of only the main `.glb` and preview
+- extended the asset-agent session model with explicit `scope` (`single`, `family`, `set`) and `intent` (`production`, `exploration`) so broad ideation sessions stop being treated like direct production assets
+- added child-session branching so family/set sessions can spawn a `single + production` child asset session that inherits style constraints and uses the approved parent image as a reference source
+- changed child-asset concept generation to use OpenAI image editing/generation with the approved parent concept or revision as an input image, so isolated production candidates preserve the approved family/set language instead of reimagining it from scratch
+- gated 3D preparation and provider submission so only `single + production` sessions move directly into the modeled-asset step by default
+- added a Blender-backed cleanup command to the asset agent so generated models can be grounded, centered, scaled for gameplay validation, and exported as separate cleaned `.glb` passes without overwriting raw provider artifacts
+- ran the first cleanup pass on the isolated draught bottle and saved the cleaned export, preview, and report under [asset-workbench/2026-03-15-potion-bottle-draught/outputs/cleanup/pass-01](/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-15-potion-bottle-draught/outputs/cleanup/pass-01)
 
 Current findings:
 - the first meaningful Phase 12 step was pipeline-facing rather than visual because no real model assets are checked into the repo yet
@@ -78,6 +88,14 @@ Current findings:
 - the bottle-family workflow now explicitly treats shared label bands and shared neck metal rings as reusable family components so future variants stay consistent by default
 - revision passes should isolate multi-prop families cleanly when downstream extraction or individual modeling is expected; overlap is now treated as a workflow issue, not just an art note
 - concept exploration now defaults to three images instead of four so the workflow stays cheaper and tighter without losing useful variation
+- the 3D stage now has a real CLI path, but actually generating provider-backed models still depends on a separate `MESHY_API_KEY`; OpenAI-only credentials are not sufficient for the modeled-asset step
+- the workflow has now proven a real provider-backed round trip: approved revision image -> Meshy submission -> downloaded `.glb` and preview artifacts, which materially reduces Phase 12 pipeline risk even before the asset is imported into the live slice
+- family-style concept sessions should not automatically imply that every member becomes a single generated 3D model immediately; for fast iteration, the better default is to lock the family language first and validate one extracted family member in-engine before branching into multiple child assets
+- the first Meshy bottle-family textures confirm that grouped family sheets are being interpreted as one fused textured asset, which is acceptable for decorative sets but the wrong default for reusable sibling game props
+- the workflow therefore needs to distinguish between concept-family approval and production-model generation: family and set sessions are useful for art direction, but production-ready 3D should branch into single-child sessions before model generation
+- when a family or set sheet already isolates its items cleanly, preserving that approved source image and using it as a reference input for child extraction is less lossy than asking for a wholly new image generation pass with no input
+- the first isolated draught child concept is close to usable, but we learned that stronger glass reflections can still make image-to-3D handoff riskier; for glossy transparent props, the safer default is one cleanup refinement pass that softens reflections before 3D submission
+- Blender cleanup is now a real executable workflow step instead of just a checklist item, and it should preserve raw provider outputs while creating separate cleaned exports for in-engine validation
 
 Validation checklist:
 - [ ] verify at least one imported prop is visible in the castle slice and loaded through the shared asset path

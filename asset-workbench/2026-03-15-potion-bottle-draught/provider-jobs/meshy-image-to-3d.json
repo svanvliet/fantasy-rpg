@@ -1,16 +1,16 @@
 {
   "workflow": "meshy-image-to-3d",
-  "sessionId": "2026-03-15-potion-bottle-family",
-  "asset": "potion-bottle-family",
+  "sessionId": "2026-03-15-potion-bottle-draught",
+  "asset": "potion-bottle-draught",
   "preferredInput": "approved-revision-image",
-  "sourceImage": "asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/pass-01/revision-03.png",
+  "sourceImage": "asset-workbench/2026-03-15-potion-bottle-draught/outputs/revisions/pass-01/revision-01.png",
   "approvedConcept": {
     "passId": "pass-01",
-    "id": "concept-01"
+    "id": "concept-02"
   },
   "approvedRevision": {
     "passId": "pass-01",
-    "id": "revision-03"
+    "id": "revision-01"
   },
   "meshSettings": {
     "model_type": "standard",
@@ -27,11 +27,12 @@
   },
   "recommendedOutputFormat": "glb",
   "extractionNotes": [
-    "make the center label band consistent across all three bottles",
-    "make the neck metal ring consistent across all three bottles",
-    "componentize closure and label elements for maximum reuse",
-    "keep the three bottles clearly isolated with no overlap",
-    "space them cleanly so each can be extracted as an individual prop asset"
+    "preserve the same bottle form and proportions",
+    "reduce dramatic specular reflections on the glass",
+    "use softer controlled studio reflections",
+    "keep glass edges clear for 3D extraction",
+    "preserve amber liquid and metal/cork details",
+    "keep plain background"
   ],
   "notes": [
     "Use the approved concept image or revised concept set as the 3D source.",

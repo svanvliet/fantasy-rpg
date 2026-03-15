@@ -1,0 +1,20 @@
+{
+  "input": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-15-potion-bottle-draught/outputs/models/pass-01/model.glb",
+  "output": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-15-potion-bottle-draught/outputs/cleanup/pass-01/cleaned-model.glb",
+  "preview": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-15-potion-bottle-draught/outputs/cleanup/pass-01/preview.png",
+  "targetHeight": 0.22,
+  "initialDimensions": {
+    "x": 1.1927379965782166,
+    "y": 1.192457139492035,
+    "z": 1.912240207195282
+  },
+  "finalDimensions": {
+    "x": 0.13722248375415802,
+    "y": 0.13719017803668976,
+    "z": 0.2199999988079071
+  },
+  "materialCount": 1,
+  "materials": [
+    "Material_0"
+  ]
+}

@@ -79,7 +79,23 @@
   - preserved concept passes
   - preserved revision passes
   - provider handoff manifests
+- Treat each asset session as having both:
+  - a `scope`: `single`, `family`, or `set`
+  - an `intent`: `production` or `exploration`
+- Only `single` sessions with `production` intent should move directly into 3D generation by default.
+- Use `family` sessions to lock a reusable sibling asset language, not to imply that the whole sheet should become one fused production mesh.
+- Use `set` sessions for broad exploration and branching, not for direct 3D generation unless we explicitly want one fused decorative set.
+- When a `family` or `set` session produces an approved concept or revision, branch a `single + production` child session for the first real production candidate before moving into 3D.
+- For child extraction work, preserve the approved parent concept or revision image as the source of truth and use it as an input image for OpenAI image editing/generation so the isolated child asset keeps the approved visual language.
+- Prefer generating 3D assets only for props we actually expect to use in the game slice. Broad exploration sheets should stay at the concept stage until we intentionally promote a specific child asset into production.
 - Preserve pass history for both concept and revision batches. Do not overwrite prior image outputs when generating a new batch.
+- Preserve provider-backed model history too. Do not overwrite prior Meshy or other provider outputs when generating a new 3D pass.
 - Treat approved concepts as style anchors when appropriate, and record reusable-family rules in [docs/prop-asset-style-guide.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-style-guide.md) so future assets stay visually coherent.
 - Prefer lower-cost orchestration for routine asset runs while keeping the image model strong; the current default should favor `gpt-5-mini` orchestration with `gpt-image-1.5` image generation unless a stronger reasoning model is genuinely needed.
+- When using Meshy, preserve the useful output set when available:
+  - remeshed `.glb`
+  - `pre_remeshed_glb`
+  - preview image
+  - texture maps
+- When running Blender cleanup on generated assets, preserve the raw provider outputs and save the cleaned result as a separate cleanup pass rather than overwriting the generated model.
 - Keep gameplay authority separate from imported art unless we explicitly decide otherwise; initial asset work should continue to attach through the existing Phase 12 presentation-swap path.

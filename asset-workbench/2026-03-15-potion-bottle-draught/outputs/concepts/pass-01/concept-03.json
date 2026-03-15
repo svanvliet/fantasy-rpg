@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-03",
+  "name": "Extraction With Strong Material Separation",
+  "prompt": "Create an isolated extraction of a potion bottle draught from the approved family or set concept reference. Preserve family resemblance but ensure this specific prop reads cleanly as its own asset. Use a plain background, no environment, no extra props, and no overlap. Push clear material separation using glass, cork, iron, worn labels and keep the form usable for future .glb generation and cleanup.",
+  "responseId": "resp_012c6807356245470069b6f84a53c88194b19d3c2493f62458",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": "asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/pass-01/revision-03.png"
+}

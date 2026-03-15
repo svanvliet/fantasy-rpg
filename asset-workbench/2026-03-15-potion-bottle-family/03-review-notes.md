@@ -16,6 +16,6 @@
 - space them cleanly so each can be extracted as an individual prop asset
 
 ## Next Deliverable
-- Concept refinement images
-- or first-pass image-to-3D model if the concept is approved
+- Family refinement images
+- then branch a single production child asset before 3D generation
 

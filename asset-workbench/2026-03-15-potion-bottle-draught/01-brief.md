@@ -1,12 +1,12 @@
-# Potion Bottle Family Asset Brief
+# Potion Bottle Draught Asset Brief
 
-- Session id: `2026-03-15-potion-bottle-family`
-- Scope: `family`
-- Intent: `exploration`
+- Session id: `2026-03-15-potion-bottle-draught`
+- Scope: `single`
+- Intent: `production`
 - Room: `alchemy`
-- Category: `prop-family`
+- Category: `prop`
 - Swap id: `none yet`
-- Intended use: Reusable tincture, draught, and elixir bottle family for alchemy ingredients, crafted potions, and loot variants
+- Intended use: Reusable draught bottle for crafted potions and alchemy loot
 - Approximate size: Three related bottle scales: small tincture, medium draught, taller elixir
 
 ## Visual Goals
@@ -20,6 +20,12 @@
 - Preserve the current swap path expectations documented in `public/assets/models/README.md`.
 
 ## Current Workflow State
-- Stage: `model_review`
-- Selected concept: `concept-01`
+- Stage: `cleanup_review`
+- Selected concept: `concept-02`
+
+## Lineage
+- Parent session: `2026-03-15-potion-bottle-family`
+- Parent scope: `family`
+- Child role: `draught`
+- Source image: `asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/pass-01/revision-03.png`
 
