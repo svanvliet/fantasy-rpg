@@ -1,0 +1,13 @@
+{
+  "workflow": "meshy-image-to-3d",
+  "sessionId": "2026-03-15-potion-bottle-family",
+  "asset": "potion-bottle-family",
+  "preferredInput": "approved-concept-image",
+  "recommendedOutputFormat": "glb",
+  "notes": [
+    "Use the approved concept image or revised concept set as the 3D source.",
+    "Keep the polycount and topology appropriate for a game prop, not a cinematic sculpt.",
+    "Clean up the result in Blender before moving it into public/assets/models."
+  ],
+  "expectedRuntimeSwapId": null
+}

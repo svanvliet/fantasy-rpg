@@ -1,0 +1,10 @@
+{
+  "promptId": "concept-03",
+  "name": "Readable Gameplay Silhouette",
+  "prompt": "Generate a prop concept sheet image showing one clean three-quarter angle of a potion bottle family. Prioritize bold silhouette, readable proportions, and game-friendly simplicity for a first-person fantasy RPG. The piece belongs in the alchemy room and should feel grounded, warm, alchemical, practical. Materials should be glass, cork, iron, worn labels. Background should be simple and uncluttered. Avoid over-detailing and avoid decorative noise that would hurt gameplay readability.",
+  "responseId": "resp_089936d980bc5bd90069b6ca54839081a29f6e1c4654860682",
+  "model": "gpt-5.4",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium"
+}

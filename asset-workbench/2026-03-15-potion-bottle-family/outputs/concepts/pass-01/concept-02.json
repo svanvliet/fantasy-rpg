@@ -1,0 +1,10 @@
+{
+  "promptId": "concept-02",
+  "name": "Craft Detail With Clear Materials",
+  "prompt": "Design a visually rich but game-readable potion bottle family prop for a candle-lit medieval fantasy interior. Isolate the object against a plain background. Emphasize practical construction, believable joinery, and clear material breakup using glass, cork, iron, worn labels. Mood should feel grounded, warm, alchemical, practical. Keep the object centered, with no environment and no additional props. Style constraints: readable silhouette, family resemblance, game-friendly detail, reusable variants. Intended use: Reusable tincture, draught, and elixir bottle family for alchemy ingredients, crafted potions, and loot variants.",
+  "responseId": "resp_0e1ca46a1ca12c9a0069b6ca3d97b481a396d9a376a6763247",
+  "model": "gpt-5.4",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium"
+}

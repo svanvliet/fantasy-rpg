@@ -1,0 +1,10 @@
+{
+  "promptId": "concept-04",
+  "name": "Castle Utility Variant",
+  "prompt": "Create a grounded castle-utility variant of a potion bottle family for a warm interior fantasy RPG slice. Show the prop alone, centered, with a clean background and coherent lighting. Focus on the practical version of the object rather than an ornate hero prop. Style constraints: readable silhouette, family resemblance, game-friendly detail, reusable variants. Materials: glass, cork, iron, worn labels. Mood: grounded, warm, alchemical, practical. Intended use: Reusable tincture, draught, and elixir bottle family for alchemy ingredients, crafted potions, and loot variants.",
+  "responseId": "resp_00fa3fbb467996fc0069b6ca6a64ac8192801456e2aafae25c",
+  "model": "gpt-5.4",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium"
+}

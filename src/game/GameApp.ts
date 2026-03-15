@@ -2,6 +2,10 @@ import RAPIER from "@dimforge/rapier3d-compat";
 import * as THREE from "three";
 
 import { AssetCatalog } from "./assets/AssetCatalog";
+import {
+  PROTOTYPE_ASSET_SWAPS,
+  type PrototypeAssetSwapSpec
+} from "./assets/prototypeAssetSwaps";
 import { createFixedStepLoop } from "./core/loop";
 import { AlchemySystem } from "./alchemy/AlchemySystem";
 import { ALCHEMY_RECIPES, ALCHEMY_STATION_TITLE } from "./alchemy/prototypeRecipes";
@@ -13,7 +17,10 @@ import { STEWARD_OBJECTIVES } from "./objectives/prototypeObjectives";
 import { SaveManager } from "./persistence/SaveManager";
 import { PlayerController } from "./player/PlayerController";
 import { ViewModelController } from "./viewmodel/ViewModelController";
-import { createCastleBlockout } from "./world/createCastleBlockout";
+import {
+  createCastleBlockout,
+  type AssetSwapAnchor
+} from "./world/createCastleBlockout";
 import {
   createDebugOverlay,
   type DebugOverlayController,
@@ -24,7 +31,7 @@ import { createDialoguePanel, type DialoguePanelController } from "../ui/dialogu
 import { createInventoryPanel, type InventoryPanelController } from "../ui/inventoryPanel";
 import { createObjectiveTracker, type ObjectiveTrackerController } from "../ui/objectiveTracker";
 
-const PHASE_LABEL = "Phase 11 - Asset Reuse, GLB Integration, and Performance Hardening";
+const PHASE_LABEL = "Phase 12 - Imported Assets and First Art-Swap Pass";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
@@ -334,6 +341,7 @@ export class GameApp {
       viewModelController,
       saveManager
     );
+    await app.applyOptionalAssetSwaps(room.assetSwapAnchors);
     app.queueSave();
     return app;
   }
@@ -522,6 +530,52 @@ export class GameApp {
       return `${(value / 1000).toFixed(1)}k`;
     }
     return `${value}`;
+  }
+
+  private async applyOptionalAssetSwaps(anchors: AssetSwapAnchor[]): Promise<void> {
+    const specsById = new Map<string, PrototypeAssetSwapSpec>(
+      Object.values(PROTOTYPE_ASSET_SWAPS).map((spec) => [spec.id, spec])
+    );
+
+    await Promise.all(
+      anchors.map(async (anchor) => {
+        const spec = specsById.get(anchor.id);
+        if (!spec) {
+          return;
+        }
+
+        const model = await this.assetCatalog.loadOptionalScene(spec.path);
+        if (!model) {
+          return;
+        }
+
+        model.traverse((child) => {
+          const mesh = child as THREE.Mesh;
+          if (!mesh.isMesh) {
+            return;
+          }
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+        });
+
+        if (spec.uniformScale !== undefined) {
+          model.scale.setScalar(spec.uniformScale);
+        }
+
+        if (spec.positionOffset) {
+          model.position.set(...spec.positionOffset);
+        }
+
+        if (spec.rotationYDegrees) {
+          model.rotation.y = THREE.MathUtils.degToRad(spec.rotationYDegrees);
+        }
+
+        anchor.mount.add(model);
+        anchor.fallbackObjects.forEach((object) => {
+          object.visible = false;
+        });
+      })
+    );
   }
 }
     const assetCatalog = new AssetCatalog();

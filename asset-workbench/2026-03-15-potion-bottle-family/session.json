@@ -1,0 +1,67 @@
+{
+  "id": "2026-03-15-potion-bottle-family",
+  "slug": "potion-bottle-family",
+  "room": "alchemy",
+  "category": "prop-family",
+  "swapId": null,
+  "intendedUse": "Reusable tincture, draught, and elixir bottle family for alchemy ingredients, crafted potions, and loot variants",
+  "approximateSize": "Three related bottle scales: small tincture, medium draught, taller elixir",
+  "moodWords": [
+    "grounded",
+    "warm",
+    "alchemical",
+    "practical"
+  ],
+  "materialGoals": [
+    "glass",
+    "cork",
+    "iron",
+    "worn labels"
+  ],
+  "styleConstraints": [
+    "readable silhouette",
+    "family resemblance",
+    "game-friendly detail",
+    "reusable variants"
+  ],
+  "selectedConcept": {
+    "id": "concept-01",
+    "revisionNotes": [
+      "make the center label band consistent across all three bottles",
+      "make the neck metal ring consistent across all three bottles",
+      "componentize closure and label elements for maximum reuse",
+      "keep the three bottles clearly isolated with no overlap",
+      "space them cleanly so each can be extracted as an individual prop asset"
+    ],
+    "passId": "pass-01"
+  },
+  "selectedRevision": {
+    "passId": "pass-01",
+    "revisionId": "revision-03"
+  },
+  "revisionPasses": [
+    {
+      "passId": "pass-01",
+      "sourceImage": "legacy-pass-overwrite-derived-from-revision-02",
+      "generatedAt": "2026-03-15T09:00:00.000Z",
+      "items": [
+        "revision-01",
+        "revision-02",
+        "revision-03"
+      ]
+    }
+  ],
+  "stage": "revision_review",
+  "conceptPasses": [
+    {
+      "passId": "pass-01",
+      "generatedAt": "2026-03-15T16:25:36.615Z",
+      "items": [
+        "concept-01",
+        "concept-02",
+        "concept-03",
+        "concept-04"
+      ]
+    }
+  ]
+}

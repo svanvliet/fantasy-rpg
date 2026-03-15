@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "asset-agent": "node scripts/asset-agent.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "latest",

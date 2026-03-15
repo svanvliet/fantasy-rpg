@@ -18,7 +18,7 @@
 
 | Phase | Status | Goal |
 | --- | --- | --- |
-| 12 | planned | Introduce real imported assets, modeled hands, and the first art-forward asset swap pass |
+| 12 | implemented | Introduce real imported assets, modeled hands, and the first art-forward asset swap pass |
 | 13 | planned | Add item use effects, inventory pressure, and stronger item-management choices |
 | 14 | planned | Expand quest breadth and world reactivity with additional NPCs, rewards, and clearer multi-quest structure |
 | 15 | planned | Add a first combat graybox loop and validate encounter feel inside the castle slice |
@@ -26,6 +26,7 @@
 ## Current Known Issues And Constraints
 - The slice is still visually blockout-heavy and does not yet prove a production-ready art pipeline.
 - There are no real `.glb` or equivalent production assets checked into the repo yet.
+- The Phase 12 runtime swap path is now in place, but visible world art replacement still depends on dropping actual model files into `public/assets/models`.
 - Balanced graphics remains the default evaluation preset.
 - Persistence is intentionally browser-local and explicit.
 - The first-person carry model, interaction key split, and station-gated crafting flow are now stable constraints.
@@ -53,7 +54,30 @@ Acceptance criteria:
 - balanced graphics remains practical after the first imported assets are added
 
 Current implementation status:
-- `planned`
+- `implemented`
+
+Implemented work:
+- added presentation-only asset swap anchors for the bed, alchemy table, and steward proxy while preserving current gameplay, collision, and interaction authority
+- wired optional GLB loading through `AssetCatalog` in `GameApp` so matching files are loaded automatically when present and blockout fallbacks are hidden only on successful load
+- documented the expected drop folder and filenames in [public/assets/models/README.md](/Users/svanvliet/repos/fantasy-rpg/public/assets/models/README.md)
+- added a repo-local asset-agent command workflow in [scripts/asset-agent.mjs](/Users/svanvliet/repos/fantasy-rpg/scripts/asset-agent.mjs) with session folders, prompt manifests, and revision tracking for concept-to-3D prop work
+- documented workflow usage in [docs/prop-asset-agent-usage.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-agent-usage.md) and updated the repo-local skill scaffold to point at the real command path
+- created the first working asset session at [asset-workbench/2026-03-14-alchemy-table](/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-14-alchemy-table) as the initial concept-generation target for the castle slice
+- added a shared style guide at [docs/prop-asset-style-guide.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-style-guide.md) so style anchors and reusable families become part of the workflow, not just ad hoc feedback
+- extended the asset-agent workflow so an approved concept can now drive a dedicated refinement pass instead of forcing concept work to restart from scratch
+- switched the asset-agent workflow to a lower-cost orchestration default while keeping image generation on `gpt-image-1.5`, and added support for refining from a specific prior revision image
+- changed the asset-agent workflow to preserve both concept and revision batches as pass history instead of overwriting the latest outputs
+
+Current findings:
+- the first meaningful Phase 12 step was pipeline-facing rather than visual because no real model assets are checked into the repo yet
+- modeled hands are still planned for this phase cycle, but they remain gated on acquiring a suitable rigged hand/arm asset
+- the current implementation keeps imported props presentation-only until we intentionally choose to move collision or interaction authority to real assets
+- we now have a dedicated prop-asset agent plan, repo-local skill scaffold, and actual command-line session workflow so concept-to-3D asset generation can become part of the project workflow without coupling it directly to game runtime code
+- the first approved alchemy-table concept is useful not only as a single prop direction, but as a visual style anchor for future alchemy-adjacent assets
+- reusable item families, especially potion bottle families, should be treated as a workflow-level asset strategy now so later art passes stay coherent and cheaper to produce
+- the bottle-family workflow now explicitly treats shared label bands and shared neck metal rings as reusable family components so future variants stay consistent by default
+- revision passes should isolate multi-prop families cleanly when downstream extraction or individual modeling is expected; overlap is now treated as a workflow issue, not just an art note
+- concept exploration now defaults to three images instead of four so the workflow stays cheaper and tighter without losing useful variation
 
 Validation checklist:
 - [ ] verify at least one imported prop is visible in the castle slice and loaded through the shared asset path

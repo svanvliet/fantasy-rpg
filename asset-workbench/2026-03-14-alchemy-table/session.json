@@ -1,0 +1,47 @@
+{
+  "id": "2026-03-14-alchemy-table",
+  "slug": "alchemy-table",
+  "room": "alchemy",
+  "category": "furniture",
+  "swapId": "alchemy-table",
+  "intendedUse": "Primary alchemy crafting table for the castle slice",
+  "approximateSize": "Needs confirmation during concept review.",
+  "moodWords": [
+    "grounded",
+    "warm",
+    "alchemical",
+    "practical"
+  ],
+  "materialGoals": [
+    "wood",
+    "iron",
+    "worn finish"
+  ],
+  "styleConstraints": [
+    "readable silhouette",
+    "game-friendly detail",
+    "no ornate overload"
+  ],
+  "selectedConcept": {
+    "id": "concept-01",
+    "revisionNotes": [
+      "simplify tabletop clutter",
+      "preserve the painterly grounded style",
+      "use this concept as the alchemy prop style anchor"
+    ],
+    "passId": "pass-01"
+  },
+  "stage": "refinement",
+  "conceptPasses": [
+    {
+      "passId": "pass-01",
+      "generatedAt": "2026-03-15T16:25:36.615Z",
+      "items": [
+        "concept-01",
+        "concept-02",
+        "concept-03",
+        "concept-04"
+      ]
+    }
+  ]
+}

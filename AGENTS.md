@@ -63,3 +63,23 @@
 - Future work on this repo should follow the master plan first, then update that plan as implementation reveals new information.
 - Preserve a clear audit trail across docs and git so design intent, implementation progress, and acceptance status stay aligned.
 - Treat playtest feedback as a formal input to planning, not an informal side note.
+
+## Asset Workflow Rules
+- Use the repo-local prop asset workflow for fantasy RPG prop concepting, revision, and first-pass 3D handoff work instead of inventing ad hoc asset-generation steps in-thread.
+- The primary entrypoints for this workflow are:
+  - [scripts/asset-agent.mjs](/Users/svanvliet/repos/fantasy-rpg/scripts/asset-agent.mjs)
+  - [codex-skills/prop-asset-agent/SKILL.md](/Users/svanvliet/repos/fantasy-rpg/codex-skills/prop-asset-agent/SKILL.md)
+  - [docs/prop-asset-agent-usage.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-agent-usage.md)
+  - [docs/prop-asset-style-guide.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-style-guide.md)
+- When the user asks for new prop assets, revisions, reusable prop families, or concept-to-3D asset work, route the work through the prop-asset-agent skill/workflow.
+- Prefer the asset-agent session structure under `asset-workbench/` so each asset request keeps:
+  - a brief
+  - prompts
+  - review notes
+  - preserved concept passes
+  - preserved revision passes
+  - provider handoff manifests
+- Preserve pass history for both concept and revision batches. Do not overwrite prior image outputs when generating a new batch.
+- Treat approved concepts as style anchors when appropriate, and record reusable-family rules in [docs/prop-asset-style-guide.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-style-guide.md) so future assets stay visually coherent.
+- Prefer lower-cost orchestration for routine asset runs while keeping the image model strong; the current default should favor `gpt-5-mini` orchestration with `gpt-image-1.5` image generation unless a stronger reasoning model is genuinely needed.
+- Keep gameplay authority separate from imported art unless we explicitly decide otherwise; initial asset work should continue to attach through the existing Phase 12 presentation-swap path.

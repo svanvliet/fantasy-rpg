@@ -1,0 +1,11 @@
+{
+  "revisionId": "revision-01",
+  "sourceConcept": "concept-01",
+  "sourceImage": "asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/revision-02.png",
+  "prompt": "Revise the approved Potion Bottle Family concept while preserving its overall identity. Apply these revision notes: make the center label band consistent across all three bottles; make the neck metal ring consistent across all three bottles; componentize closure and label elements for maximum reuse; keep the three bottles clearly isolated with no overlap; space them cleanly so each can be extracted as an individual prop asset. Keep the object isolated on a plain background, centered in frame, and readable for a first-person fantasy RPG. Produce a clean three-quarter view with stronger material separation and a clearer gameplay silhouette.",
+  "responseId": "resp_0ab47df2196e91870069b6d559b2948192a7f9cb062d5dbdf5",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium"
+}

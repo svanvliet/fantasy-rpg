@@ -1,0 +1,10 @@
+{
+  "promptId": "concept-02",
+  "name": "Craft Detail With Clear Materials",
+  "prompt": "Design a visually rich but game-readable alchemy table prop for a candle-lit medieval fantasy interior. Isolate the object against a plain background. Emphasize practical construction, believable joinery, and clear material breakup using wood, iron, worn finish. Mood should feel grounded, warm, alchemical, practical. Keep the object centered, with no environment and no additional props. Style constraints: readable silhouette, game-friendly detail, no ornate overload. Intended use: Primary alchemy crafting table for the castle slice.",
+  "responseId": "resp_06d1bdf1a769bf940069b5bbefba1881a09aa5eb3ef4e650ab",
+  "model": "gpt-5.4",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium"
+}

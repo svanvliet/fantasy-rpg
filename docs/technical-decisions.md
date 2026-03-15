@@ -168,3 +168,46 @@
 - Consequences:
   Phase 12 should use the existing asset catalog path for its first real imports.
   Because no production-ready model assets are currently checked into the repo, real asset integration must begin intentionally rather than assuming the assets already exist.
+
+## TD-014: Imported Props Attach As Presentation Swaps First
+
+- Status: `accepted`
+- Phase: `12`
+- Date: `2026-03-14`
+- Decision:
+  Introduce imported world props through presentation-only swap anchors first, while keeping existing blockout geometry as the current source of collision, interaction, and gameplay authority.
+- Why:
+  This lets us validate the asset-loading and caching path immediately without destabilizing traversal, quests, crafting, or persistence when the first real models arrive.
+- Consequences:
+  Phase 12 swaps should hide fallback blockout props only after an asset loads successfully.
+  Any later move of gameplay or collision authority onto imported assets should be an explicit follow-up decision, not an incidental side effect of art integration.
+
+## TD-015: Asset Generation Workflow Starts With A Repo-Local Prop Agent
+
+- Status: `accepted`
+- Phase: `12`
+- Date: `2026-03-14`
+- Decision:
+  Start asset-generation workflow as a repo-local prop-focused agent that uses concept images first, then optional 3D generation and cleanup, rather than trying to jump directly into fully automated hero-character or hand generation.
+- Why:
+  Props are the highest-value and lowest-risk asset category for the current slice, and a repo-local workflow keeps prompts, outputs, and decisions visible in project history.
+- Consequences:
+  The first asset-agent work should target environment props and furniture.
+  Humanoid hands remain deferred until we have a suitable rigged asset and a stable import/cleanup path.
+  The workflow should be callable through a checked-in repo-local command path rather than living only as a prose process.
+  Routine concept and revision runs should prefer a lower-cost orchestration model while keeping the image model strong.
+  Concept and revision outputs should be preserved as explicit passes so design review history remains auditable across iterations.
+
+## TD-016: Asset Workflow Uses Style Anchors And Reusable Item Families
+
+- Status: `accepted`
+- Phase: `12`
+- Date: `2026-03-14`
+- Decision:
+  Treat approved concepts as reusable style anchors when appropriate, and prefer shared prop families such as tincture / draught / elixir bottle sets over generating unique meshes for every related item.
+- Why:
+  This keeps the visual language coherent, reduces future asset churn, and aligns the asset workflow with the prototype’s likely production constraints.
+- Consequences:
+  The prop-asset workflow should capture style anchors and family definitions in docs, not only in one-off session notes.
+  Potion and reagent items should increasingly differentiate through tint, labels, contents, and metadata before demanding unique mesh shapes.
+  Shared family components such as bottle label bands and neck metal rings should be standardized intentionally when the family is meant to support many variants.

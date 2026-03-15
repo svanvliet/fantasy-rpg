@@ -91,6 +91,7 @@ npm run test
 - [docs/implementation-plan.md](/Users/svanvliet/repos/fantasy-rpg/docs/implementation-plan.md) active roadmap for the current phase cycle
 - [docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md) active technical constraints for the current phase cycle
 - [docs/evaluation-report.md](/Users/svanvliet/repos/fantasy-rpg/docs/evaluation-report.md) current vertical-slice evaluation and roadmap rebaseline
+- [docs/prop-asset-agent-usage.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-agent-usage.md) how to use the repo-local prop asset workflow
 - [docs/archive/2026-03-13-phase-0-7](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-13-phase-0-7) archived Phase 0-7 planning history and technical decisions
 - [docs/archive/2026-03-14-phase-8-11](/Users/svanvliet/repos/fantasy-rpg/docs/archive/2026-03-14-phase-8-11) archived Phase 8-11 planning history and technical decisions
 
@@ -136,3 +137,5 @@ Current active milestone:
 - The prototype is intentionally using stylized blockout content and simple UI so system validation can happen before asset-heavy production work.
 - Bundle size is still large for an early prototype and will be revisited in later optimization/polish passes.
 - Real imported art assets are not yet checked into the repo; the current asset work established the loading/caching path so the next cycle can swap them in intentionally.
+- Optional world-asset swap filenames and placement expectations are documented in [public/assets/models/README.md](/Users/svanvliet/repos/fantasy-rpg/public/assets/models/README.md).
+- The repo-local prop asset workflow is documented in [docs/prop-asset-agent-usage.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-agent-usage.md) and can be started with `npm run asset-agent -- init ...`.

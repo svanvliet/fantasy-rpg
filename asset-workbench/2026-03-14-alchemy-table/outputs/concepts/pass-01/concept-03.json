@@ -1,0 +1,10 @@
+{
+  "promptId": "concept-03",
+  "name": "Readable Gameplay Silhouette",
+  "prompt": "Generate a prop concept sheet image showing one clean three-quarter angle of an alchemy table. Prioritize bold silhouette, readable proportions, and game-friendly simplicity for a first-person fantasy RPG. The piece belongs in the alchemy room and should feel grounded, warm, alchemical, practical. Materials should be wood, iron, worn finish. Background should be simple and uncluttered. Avoid over-detailing and avoid decorative noise that would hurt gameplay readability.",
+  "responseId": "resp_06ac1a569605e15d0069b5bc09364c8192a32de6a3a2984465",
+  "model": "gpt-5.4",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium"
+}

@@ -1,0 +1,10 @@
+{
+  "promptId": "concept-01",
+  "name": "Grounded Hero Three-Quarter",
+  "prompt": "Create a single isolated fantasy RPG prop concept for a potion bottle family used in the alchemy room. Show a strong three-quarter view on a clean dark neutral background. The prop should feel grounded, warm, alchemical, practical. Materials should read as glass, cork, iron, worn labels. Keep the silhouette readable from first-person gameplay distance. Style constraints: readable silhouette, family resemblance, game-friendly detail, reusable variants. Approximate real-world size: Three related bottle scales: small tincture, medium draught, taller elixir. Intended use: Reusable tincture, draught, and elixir bottle family for alchemy ingredients, crafted potions, and loot variants. No extra scene clutter, no character, no text, no watermark.",
+  "responseId": "resp_078dca29dc9cf9480069b6ca28fca881a0a0d2f51eaada0cae",
+  "model": "gpt-5.4",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium"
+}

@@ -1,0 +1,14 @@
+{
+  "workflow": "openai-image-revisions",
+  "sessionId": "2026-03-14-alchemy-table",
+  "asset": "alchemy-table",
+  "recommendedOrchestratorModel": "gpt-5-mini",
+  "recommendedImageModel": "gpt-image-1.5",
+  "selectedConcept": "concept-01",
+  "outputDir": "asset-workbench/2026-03-14-alchemy-table/outputs/revisions",
+  "prompt": "Revise the approved Alchemy Table concept while preserving its overall identity. Apply these revision notes: simplify tabletop clutter; preserve the painterly grounded style; use this concept as the alchemy prop style anchor. Keep the object isolated on a plain background, centered in frame, and readable for a first-person fantasy RPG. Produce a clean three-quarter view with stronger material separation and a clearer gameplay silhouette.",
+  "notes": [
+    "Preserve the chosen concept identity.",
+    "Aim for a cleaner, centered, gameplay-readable three-quarter view."
+  ]
+}
