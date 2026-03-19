@@ -29,6 +29,10 @@ Create visually strong fantasy RPG prop assets that can be reviewed quickly and 
   - `npm run asset-agent -- check-meshy --session asset-workbench/<session-id> --download`
 - Run Blender cleanup on the generated model:
   - `npm run asset-agent -- cleanup-blender --session asset-workbench/<session-id> --blender /Applications/Blender.app/Contents/MacOS/Blender --target-height <meters>`
+- For tiny runtime props, prefer a triangle budget and write the result into a new cleanup pass instead of overwriting the higher-fidelity cleanup:
+  - `npm run asset-agent -- cleanup-blender --session asset-workbench/<session-id> --blender /Applications/Blender.app/Contents/MacOS/Blender --target-height <meters> --max-triangles <count>`
+- Run Blender cleanup on an external GLB source:
+  - `npm run asset-agent -- cleanup-blender --session asset-workbench/<session-id> --blender /Applications/Blender.app/Contents/MacOS/Blender --source-model <path-to-raw-glb> --target-height <meters>`
 - See [docs/prop-asset-agent-usage.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-agent-usage.md) for concrete examples.
 
 ## Design Constraints
@@ -104,6 +108,8 @@ Create visually strong fantasy RPG prop assets that can be reviewed quickly and 
 - materials are usable
 - export as `.glb`
 - preserve the raw provider outputs and write the cleaned export into a separate cleanup pass
+- preserve higher-fidelity cleanup passes too; runtime-oriented decimation should create another cleanup pass, not replace the earlier source-quality pass
+- for externally sourced GLBs, preserve the raw download inside the session first and then write the cleaned export into a separate cleanup pass
 
 ## Runtime Integration
 - Export the final prop to `public/assets/models`

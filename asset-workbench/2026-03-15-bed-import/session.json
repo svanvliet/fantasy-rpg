@@ -1,0 +1,53 @@
+{
+  "id": "2026-03-15-bed-import",
+  "slug": "bed-import",
+  "scope": "single",
+  "intent": "production",
+  "room": "bedchamber",
+  "category": "furniture",
+  "swapId": "bed",
+  "intendedUse": "Primary bedchamber bed imported prop for the castle slice",
+  "approximateSize": "Needs confirmation during concept review.",
+  "moodWords": [
+    "grounded",
+    "warm",
+    "practical",
+    "fantasy"
+  ],
+  "materialGoals": [
+    "wood",
+    "iron",
+    "worn finish"
+  ],
+  "styleConstraints": [
+    "readable silhouette",
+    "game-friendly detail",
+    "no ornate overload"
+  ],
+  "lineage": null,
+  "referenceImage": null,
+  "referenceMode": null,
+  "selectedConcept": null,
+  "conceptPasses": [],
+  "childAssets": [],
+  "selectedRevision": null,
+  "revisionPasses": [],
+  "modelPasses": [],
+  "stage": "cleanup_review",
+  "cleanupPasses": [
+    {
+      "passId": "pass-01",
+      "sourceModelPassId": null,
+      "sourceType": "external",
+      "sourceModel": "asset-workbench/2026-03-15-bed-import/source/bed-raw.glb",
+      "blenderBinary": "../../../../Applications/Blender.app/Contents/MacOS/Blender",
+      "targetHeight": 2,
+      "createdAt": "2026-03-15T20:29:47.040Z",
+      "outputs": {
+        "glb": "asset-workbench/2026-03-15-bed-import/outputs/cleanup/pass-01/cleaned-model.glb",
+        "report": "asset-workbench/2026-03-15-bed-import/outputs/cleanup/pass-01/cleanup-report.json",
+        "preview": "asset-workbench/2026-03-15-bed-import/outputs/cleanup/pass-01/preview.png"
+      }
+    }
+  ]
+}

@@ -18,15 +18,15 @@
 
 | Phase | Status | Goal |
 | --- | --- | --- |
-| 12 | implemented | Introduce real imported assets, modeled hands, and the first art-forward asset swap pass |
+| 12 | accepted | Introduce real imported assets, modeled hands, and the first art-forward asset swap pass |
 | 13 | planned | Add item use effects, inventory pressure, and stronger item-management choices |
 | 14 | planned | Expand quest breadth and world reactivity with additional NPCs, rewards, and clearer multi-quest structure |
 | 15 | planned | Add a first combat graybox loop and validate encounter feel inside the castle slice |
 
 ## Current Known Issues And Constraints
 - The slice is still visually blockout-heavy and does not yet prove a production-ready art pipeline.
-- There are no real `.glb` or equivalent production assets checked into the repo yet.
-- The Phase 12 runtime swap path is now in place, but visible world art replacement still depends on dropping actual model files into `public/assets/models`.
+- The first imported static prop path and the first imported pickup prop path are now validated, but the wider world is still mostly blockout geometry.
+- Imported pickup props should continue to preserve gameplay authority on the existing interactable mesh until we deliberately migrate that authority later.
 - Balanced graphics remains the default evaluation preset.
 - Persistence is intentionally browser-local and explicit.
 - The first-person carry model, interaction key split, and station-gated crafting flow are now stable constraints.
@@ -54,7 +54,7 @@ Acceptance criteria:
 - balanced graphics remains practical after the first imported assets are added
 
 Current implementation status:
-- `implemented`
+- `accepted`
 
 Implemented work:
 - added presentation-only asset swap anchors for the bed, alchemy table, and steward proxy while preserving current gameplay, collision, and interaction authority
@@ -77,6 +77,21 @@ Implemented work:
 - gated 3D preparation and provider submission so only `single + production` sessions move directly into the modeled-asset step by default
 - added a Blender-backed cleanup command to the asset agent so generated models can be grounded, centered, scaled for gameplay validation, and exported as separate cleaned `.glb` passes without overwriting raw provider artifacts
 - ran the first cleanup pass on the isolated draught bottle and saved the cleaned export, preview, and report under [asset-workbench/2026-03-15-potion-bottle-draught/outputs/cleanup/pass-01](/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-15-potion-bottle-draught/outputs/cleanup/pass-01)
+- created child production sessions for the `tincture` and `elixir` bottle variants, preserved user-supplied isolated images as approved revision sources, and submitted both through the same Meshy + Blender cleanup flow used for the draught bottle
+- copied the cleaned draught bottle into [public/assets/models/draught-bottle.glb](/Users/svanvliet/repos/fantasy-rpg/public/assets/models/draught-bottle.glb), first validated the imported pickup path against `golden-resin-tonic`, and then reassigned that imported presentation to the crafted `emberguard-draught` item once the runtime behavior proved out
+- copied the cleaned tincture and elixir bottles into [public/assets/models/tincture-bottle.glb](/Users/svanvliet/repos/fantasy-rpg/public/assets/models/tincture-bottle.glb) and [public/assets/models/elixir-bottle.glb](/Users/svanvliet/repos/fantasy-rpg/public/assets/models/elixir-bottle.glb), and wired them to the crafted `moonveil-tonic` and `verdant-restorative` items so the imported bottle family now covers multiple crafted outputs
+- added a runtime triangle-budget path to Blender cleanup, preserved the earlier higher-fidelity tincture/elixir cleanup passes, and replaced the runtime bottle GLBs with new `pass-03` cleanup exports capped at `15,000` triangles each after playtest showed the uncapped variants were too heavy for tiny pickup props
+- after playtest showed the `15,000` triangle cleanup passes tore holes in the generated bottle meshes, regenerated runtime cleanup passes at `50,000` triangles for the tincture and elixir and swapped the runtime GLBs to those `pass-04` exports while keeping both the original high-fidelity and failed ultra-low-poly passes in the workbench history
+- preserved a user-supplied simplified alchemy-table image as an approved revision source in the existing alchemy-table session and submitted the first provider-backed Meshy model pass from that exact image so the table can progress through the same asset workflow without swapping it into the game prematurely
+- downloaded the first provider-backed alchemy-table outputs, ran a Blender cleanup pass at gameplay scale, and copied the cleaned table into [public/assets/models/alchemy-table.glb](/Users/svanvliet/repos/fantasy-rpg/public/assets/models/alchemy-table.glb) so the existing furniture swap anchor can load it as the next visual validation target
+- changed imported pickup props to attach the GLB visual directly to the hidden gameplay proxy mesh, so the same imported presentation can follow seeded, held, dropped, and restored item states without moving interaction or collision authority onto the raw GLB
+- preserved static furniture-style swap anchors for bed, alchemy table, and steward props while separating imported pickup visuals into their own lifecycle-aware presentation path
+- preserved a second isolated draught source image as `revision pass-02`, submitted a fresh Meshy run from that newer source, and completed a separate Blender cleanup pass at [asset-workbench/2026-03-15-potion-bottle-draught/outputs/cleanup/pass-02](/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-15-potion-bottle-draught/outputs/cleanup/pass-02) so the current runtime draught can be compared against a more stylistically aligned replacement before any swap is made
+- after comparison confirmed the refreshed draught looked more in-family, promoted that `pass-02` cleaned GLB into [public/assets/models/draught-bottle.glb](/Users/svanvliet/repos/fantasy-rpg/public/assets/models/draught-bottle.glb) while preserving the earlier runtime-safe draught cleanup history in the workbench
+- split static asset-swap fallback handling into fully hidden visual remnants and ghosted interaction-authority remnants so the imported alchemy table can hide the old table/arch visuals while keeping an invisible station target alive behind the scenes
+- extended static asset-swap specs to support non-uniform scale so imported furniture can be matched to the actual footprint of the blockout prop it replaces instead of forcing every swap through a single uniform scalar
+- expanded the alchemy station interaction proxy from a tiny board hotspot to a broad tabletop-sized invisible target so the imported alchemy table behaves like the interactable object instead of requiring players to find a small hidden activation point
+- removed the runtime bed swap and deleted `public/assets/models/bed.glb` after playtest confirmed the found asset did not match the slice’s visual direction or the original bed footprint closely enough to keep in the accepted Phase 12 baseline
 
 Current findings:
 - the first meaningful Phase 12 step was pipeline-facing rather than visual because no real model assets are checked into the repo yet
@@ -94,14 +109,32 @@ Current findings:
 - the first Meshy bottle-family textures confirm that grouped family sheets are being interpreted as one fused textured asset, which is acceptable for decorative sets but the wrong default for reusable sibling game props
 - the workflow therefore needs to distinguish between concept-family approval and production-model generation: family and set sessions are useful for art direction, but production-ready 3D should branch into single-child sessions before model generation
 - when a family or set sheet already isolates its items cleanly, preserving that approved source image and using it as a reference input for child extraction is less lossy than asking for a wholly new image generation pass with no input
+- when the artist or user already has a clean isolated bottle-family member image, the workflow should accept it as a preserved child-session revision source instead of spending another generation pass just to recreate the same composition
+- the workflow now proves both child-session paths: generated isolated refinement images and user-supplied final isolated images can both move cleanly into provider-backed 3D and Blender cleanup without breaking session lineage
 - the first isolated draught child concept is close to usable, but we learned that stronger glass reflections can still make image-to-3D handoff riskier; for glossy transparent props, the safer default is one cleanup refinement pass that softens reflections before 3D submission
 - Blender cleanup is now a real executable workflow step instead of just a checklist item, and it should preserve raw provider outputs while creating separate cleaned exports for in-engine validation
+- imported pickup props need a different pattern from static furniture swaps: a hidden authority proxy with an attached imported visual is more robust than a detached presentation mount for anything that can be collected, held, dropped, or restored from persistence
+- external GLB files that did not originate from the concept-to-provider workflow still need a first-class cleanup path, so Blender cleanup now has to support direct source models as well as provider-generated model passes
+- imported static furniture still needs hidden collider retuning after the art swap when the incoming mesh footprint differs materially from the old blockout; the bed now uses a tighter mattress-height proxy instead of relying on the oversized original collision volume
+- once one crafted pickup visual is proven, sibling crafted items can reuse the same lifecycle-aware imported-visual bridge simply by mapping item ids to the corresponding cleaned family member GLBs
+- the debug overlay FPS readout was previously too optimistic because it was derived from fixed-step update time rather than real render cadence; runtime perf metrics now need to reflect actual rendered frame timing when imported assets get heavy
+- aggressive decimation on messy single-material provider meshes can destroy bottle-like props well before a nominally reasonable triangle target; runtime optimization should step down in stages and preserve every pass so we can retreat to a better quality/perf point instead of guessing
+- when one family member is regenerated later from a cleaner isolated source image, the older runtime version should remain in place until the replacement completes the same cleanup/comparison path; otherwise it becomes too easy to lose a stable baseline while chasing family consistency
+- static furniture swaps can have the same “visible import + hidden authority proxy” need as pickup props, especially when the replaced blockout included a tiny interaction mesh that should remain active but not visible after the visual swap
+- once a static furniture swap proves out, its hidden interaction proxy should usually be widened to the practical footprint of the imported prop rather than preserving a tiny blockout-era hotspot
+- the imported alchemy table and crafted bottle family are now the accepted Phase 12 proof points for static and pickup asset swaps respectively; the bed experiment was intentionally removed rather than carried forward as a known-bad placeholder
+- modeled first-person hands remain deferred because we still do not have a suitable rigged hand/arm asset, but the viewmodel architecture from Phase 8 and the asset cleanup pipeline from Phase 12 now give us a clear path when that asset exists
 
 Validation checklist:
-- [ ] verify at least one imported prop is visible in the castle slice and loaded through the shared asset path
-- [ ] verify the imported asset swap does not break traversal, collision, or interaction readability
-- [ ] verify the balanced graphics preset remains acceptable after the art-swap pass
-- [ ] verify modeled hands, if added this phase, preserve the validated embodiment readability and carry feel
+- [x] verify at least one imported prop is visible in the castle slice and loaded through the shared asset path
+- [x] verify the imported asset swap does not break traversal, collision, or interaction readability
+- [x] verify the balanced graphics preset remains acceptable after the art-swap pass
+- [x] record modeled hands as deferred due to missing suitable rigged assets rather than forcing a low-confidence Phase 12 hand swap
+
+Acceptance summary:
+- user validated the imported crafted bottle family in-world, including seeded, held, dropped, and persisted item behavior
+- user validated the imported alchemy table after scale, visual fallback, and interaction-proxy refinements
+- user agreed to defer the bed swap and modeled-hands asset work so Phase 12 closes on the strongest proven art-swap baseline rather than carrying known-misaligned assets forward
 
 ## Next Phase Preview
 

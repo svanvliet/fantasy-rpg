@@ -8,7 +8,8 @@ import type { Interactable } from "../interactions/types";
 export interface AssetSwapAnchor {
   id: string;
   mount: THREE.Group;
-  fallbackObjects: THREE.Object3D[];
+  hiddenFallbackObjects: THREE.Object3D[];
+  ghostFallbackObjects: THREE.Object3D[];
 }
 
 export interface CastleBlockoutData {
@@ -510,19 +511,19 @@ function addBed(
   const parts: THREE.Object3D[] = [];
   parts.push(addStaticBox(scene, world, rapier, {
     color: 0x5f4933,
-    position: new THREE.Vector3(position.x, position.y + 0.35, position.z),
-    scale: new THREE.Vector3(2.6, 0.7, 4.1)
+    position: new THREE.Vector3(position.x, position.y + 0.18, position.z),
+    scale: new THREE.Vector3(2.08, 0.36, 2.72)
   }));
   parts.push(addStaticBox(scene, world, rapier, {
     color: 0x85735d,
-    position: new THREE.Vector3(position.x, position.y + 0.68, position.z - 0.1),
-    scale: new THREE.Vector3(2.2, 0.28, 3.4),
+    position: new THREE.Vector3(position.x, position.y + 0.34, position.z - 0.04),
+    scale: new THREE.Vector3(1.9, 0.12, 2.34),
     collider: false
   }));
   parts.push(addStaticBox(scene, world, rapier, {
     color: 0x47301f,
-    position: new THREE.Vector3(position.x, position.y + 1.3, position.z - 1.9),
-    scale: new THREE.Vector3(2.8, 1.4, 0.18)
+    position: new THREE.Vector3(position.x, position.y + 0.86, position.z - 1.3),
+    scale: new THREE.Vector3(2.18, 0.9, 0.14)
   }));
   return parts;
 }
@@ -734,7 +735,8 @@ function createAssetSwapAnchor(
   scene: THREE.Scene,
   id: string,
   position: THREE.Vector3,
-  fallbackObjects: THREE.Object3D[]
+  hiddenFallbackObjects: THREE.Object3D[],
+  ghostFallbackObjects: THREE.Object3D[] = []
 ): AssetSwapAnchor {
   const mount = new THREE.Group();
   mount.name = `${id}-asset-anchor`;
@@ -744,7 +746,8 @@ function createAssetSwapAnchor(
   return {
     id,
     mount,
-    fallbackObjects
+    hiddenFallbackObjects,
+    ghostFallbackObjects
   };
 }
 
@@ -904,8 +907,8 @@ export function createCastleBlockout(
   addPickupBottleCollider(world, rapier, alchemyBottle4);
   const alchemyBoard = addStaticBox(scene, world, rapier, {
     color: 0x493325,
-    position: new THREE.Vector3(10.82, alchemyTableSurfaceY + 0.015, 0.42),
-    scale: new THREE.Vector3(0.9, 0.03, 0.26),
+    position: new THREE.Vector3(alchemyTablePosition.x, alchemyTableSurfaceY + 0.03, alchemyTablePosition.z),
+    scale: new THREE.Vector3(2.36, 0.08, 1.12),
     collider: false
   });
   addShelf(scene, world, rapier, new THREE.Vector3(12.65, 0, 4.65), new THREE.Vector3(1.3, 2.5, 0.7), 0x5f4732, 4);
@@ -998,7 +1001,8 @@ export function createCastleBlockout(
       scene,
       "alchemy-table",
       new THREE.Vector3(alchemyTablePosition.x, 0, alchemyTablePosition.z),
-      alchemyTableBlockout
+      [...alchemyTableBlockout, focalArch],
+      [alchemyBoard]
     ),
     createAssetSwapAnchor(scene, "steward-rowan", stewardProxy.position.clone(), [stewardProxy])
   );

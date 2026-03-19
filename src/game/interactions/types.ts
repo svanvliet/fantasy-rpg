@@ -67,6 +67,7 @@ export interface InteractionResult {
 export interface HeldItemState {
   definition: PickupItemDefinition;
   mesh: THREE.Mesh;
+  presentation?: THREE.Object3D;
   linearVelocity: THREE.Vector3;
   localAnchor: THREE.Vector3;
   rotationOffset: THREE.Quaternion;

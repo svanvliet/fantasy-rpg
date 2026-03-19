@@ -1,0 +1,144 @@
+{
+  "id": "2026-03-16-potion-bottle-tincture",
+  "slug": "potion-bottle-tincture",
+  "scope": "single",
+  "intent": "production",
+  "room": "alchemy",
+  "category": "prop",
+  "swapId": null,
+  "intendedUse": "Reusable tincture bottle for concentrated ingredients and potion variants",
+  "approximateSize": "Three related bottle scales: small tincture, medium draught, taller elixir",
+  "moodWords": [
+    "grounded",
+    "warm",
+    "alchemical",
+    "practical"
+  ],
+  "materialGoals": [
+    "glass",
+    "cork",
+    "iron",
+    "worn labels"
+  ],
+  "styleConstraints": [
+    "readable silhouette",
+    "family resemblance",
+    "game-friendly detail",
+    "reusable variants"
+  ],
+  "lineage": {
+    "parentSessionId": "2026-03-15-potion-bottle-family",
+    "parentScope": "family",
+    "childRole": "tincture",
+    "sourceImage": "asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/pass-01/revision-03.png"
+  },
+  "referenceImage": "asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/pass-01/revision-03.png",
+  "referenceMode": "parent-approved-sheet",
+  "selectedConcept": null,
+  "conceptPasses": [],
+  "childAssets": [],
+  "selectedRevision": {
+    "passId": "pass-01",
+    "revisionId": "revision-01"
+  },
+  "revisionPasses": [
+    {
+      "passId": "pass-01",
+      "sourceImage": "asset-workbench/2026-03-16-potion-bottle-tincture/source/tincture-input.png",
+      "generatedAt": "2026-03-16T03:22:16.984Z",
+      "items": [
+        "revision-01"
+      ]
+    }
+  ],
+  "modelPasses": [
+    {
+      "passId": "pass-01",
+      "provider": "meshy",
+      "sourceImage": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/revisions/pass-01/revision-01.png",
+      "submittedAt": "2026-03-16T03:25:35.640Z",
+      "taskId": "019cf4ad-7824-7f33-95ca-0cdada7567c1",
+      "status": "SUCCEEDED",
+      "selectedConcept": null,
+      "selectedRevision": {
+        "passId": "pass-01",
+        "id": "revision-01"
+      },
+      "updatedAt": "2026-03-16T03:29:21.530Z",
+      "progress": 100,
+      "outputs": {
+        "glb": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/models/pass-01/model.glb",
+        "thumbnail": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/models/pass-01/preview.png",
+        "textures": [
+          {
+            "set": 1,
+            "map": "base_color",
+            "file": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/models/pass-01/textures/set-01-base_color.png"
+          }
+        ]
+      }
+    }
+  ],
+  "stage": "cleanup_review",
+  "cleanupPasses": [
+    {
+      "passId": "pass-01",
+      "sourceModelPassId": "pass-01",
+      "sourceType": "provider",
+      "sourceModel": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/models/pass-01/model.glb",
+      "blenderBinary": "../../../../Applications/Blender.app/Contents/MacOS/Blender",
+      "targetHeight": 0.18,
+      "createdAt": "2026-03-16T03:32:39.828Z",
+      "outputs": {
+        "glb": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-01/cleaned-model.glb",
+        "report": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-01/cleanup-report.json",
+        "preview": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-01/preview.png"
+      }
+    },
+    {
+      "passId": "pass-02",
+      "sourceModelPassId": "pass-01",
+      "sourceType": "provider",
+      "sourceModel": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/models/pass-01/model.glb",
+      "blenderBinary": "../../../../Applications/Blender.app/Contents/MacOS/Blender",
+      "targetHeight": 0.18,
+      "maxTriangles": 15000,
+      "createdAt": "2026-03-16T17:30:26.672Z",
+      "outputs": {
+        "glb": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-02/cleaned-model.glb",
+        "report": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-02/cleanup-report.json",
+        "preview": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-02/preview.png"
+      }
+    },
+    {
+      "passId": "pass-03",
+      "sourceModelPassId": "pass-01",
+      "sourceType": "provider",
+      "sourceModel": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/models/pass-01/model.glb",
+      "blenderBinary": "../../../../Applications/Blender.app/Contents/MacOS/Blender",
+      "targetHeight": 0.18,
+      "maxTriangles": 15000,
+      "createdAt": "2026-03-16T17:31:23.620Z",
+      "outputs": {
+        "glb": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-03/cleaned-model.glb",
+        "report": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-03/cleanup-report.json",
+        "preview": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-03/preview.png"
+      }
+    },
+    {
+      "passId": "pass-04",
+      "sourceModelPassId": "pass-01",
+      "sourceType": "provider",
+      "sourceModel": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/models/pass-01/model.glb",
+      "blenderBinary": "../../../../Applications/Blender.app/Contents/MacOS/Blender",
+      "targetHeight": 0.18,
+      "maxTriangles": 50000,
+      "createdAt": "2026-03-16T17:50:20.873Z",
+      "outputs": {
+        "glb": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-04/cleaned-model.glb",
+        "report": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-04/cleanup-report.json",
+        "preview": "asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-04/preview.png"
+      }
+    }
+  ]
+}

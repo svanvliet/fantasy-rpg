@@ -31,7 +31,7 @@ import { createDialoguePanel, type DialoguePanelController } from "../ui/dialogu
 import { createInventoryPanel, type InventoryPanelController } from "../ui/inventoryPanel";
 import { createObjectiveTracker, type ObjectiveTrackerController } from "../ui/objectiveTracker";
 
-const PHASE_LABEL = "Phase 12 - Imported Assets and First Art-Swap Pass";
+const PHASE_LABEL = "Phase 13 - Item Use Effects and Inventory Pressure";
 const FIXED_STEP = 1 / 60;
 const MAX_DELTA = 1 / 15;
 const MAX_SUB_STEPS = 5;
@@ -44,6 +44,29 @@ const DEBUG_REAGENT_RESTOCK = [
   { itemId: "moonwater-vial", quantity: 2 },
   { itemId: "emberflower-oil", quantity: 2 },
   { itemId: "golden-resin-tonic", quantity: 2 }
+] as const;
+const IMPORTED_ITEM_VISUALS = [
+  {
+    itemId: "verdant-restorative",
+    path: "/assets/models/elixir-bottle.glb",
+    uniformScale: 2,
+    positionOffset: new THREE.Vector3(0, -0.22, 0),
+    rotationYRadians: 0
+  },
+  {
+    itemId: "moonveil-tonic",
+    path: "/assets/models/tincture-bottle.glb",
+    uniformScale: 2,
+    positionOffset: new THREE.Vector3(0, -0.22, 0),
+    rotationYRadians: 0
+  },
+  {
+    itemId: "emberguard-draught",
+    path: "/assets/models/draught-bottle.glb",
+    uniformScale: 2,
+    positionOffset: new THREE.Vector3(0, -0.22, 0),
+    rotationYRadians: 0
+  }
 ] as const;
 
 const GRAPHICS_QUALITY_SETTINGS: Record<
@@ -86,9 +109,10 @@ export class GameApp {
   private readonly loop: ReturnType<typeof createFixedStepLoop>;
   private readonly sceneLights: Array<{ light: THREE.Light; baseIntensity: number }> = [];
 
-  private frameCount = 0;
+  private renderFrameCount = 0;
   private fps = 0;
-  private fpsAccumulator = 0;
+  private fpsAccumulatorSeconds = 0;
+  private lastRenderTimeMs = 0;
   private saveDirty = false;
   private dirtySaveAccumulator = 0;
   private autosaveAccumulator = 0;
@@ -277,6 +301,20 @@ export class GameApp {
         app?.queueSave();
       }
     });
+    await Promise.all(
+      IMPORTED_ITEM_VISUALS.map(async (visual) => {
+        const model = await assetCatalog.loadOptionalScene(visual.path);
+        if (!model) {
+          return;
+        }
+
+        interactionSystem.registerImportedItemVisual(visual.itemId, model, {
+          uniformScale: visual.uniformScale,
+          positionOffset: visual.positionOffset,
+          rotationYRadians: visual.rotationYRadians
+        });
+      })
+    );
     const savedState = saveManager.load();
     if (savedState?.inventory) {
       inventoryStore.restore(savedState.inventory);
@@ -364,14 +402,6 @@ export class GameApp {
       playerYaw: playerState.yaw
     });
 
-    this.frameCount += 1;
-    this.fpsAccumulator += deltaSeconds;
-    if (this.fpsAccumulator >= 0.25) {
-      this.fps = this.frameCount / this.fpsAccumulator;
-      this.frameCount = 0;
-      this.fpsAccumulator = 0;
-    }
-
     const interactionState = this.interactionSystem.getDebugState();
     this.viewModelController.update(deltaSeconds, this.camera, {
       ...this.interactionSystem.getViewModelState(),
@@ -415,6 +445,19 @@ export class GameApp {
   }
 
   private render(): void {
+    const nowMs = performance.now();
+    if (this.lastRenderTimeMs > 0) {
+      const deltaSeconds = (nowMs - this.lastRenderTimeMs) / 1000;
+      this.renderFrameCount += 1;
+      this.fpsAccumulatorSeconds += deltaSeconds;
+      if (this.fpsAccumulatorSeconds >= 0.25) {
+        this.fps = this.renderFrameCount / this.fpsAccumulatorSeconds;
+        this.renderFrameCount = 0;
+        this.fpsAccumulatorSeconds = 0;
+      }
+    }
+    this.lastRenderTimeMs = nowMs;
+
     this.renderer.info.reset();
     this.renderer.clear();
     this.renderer.render(this.scene, this.camera);
@@ -561,6 +604,9 @@ export class GameApp {
         if (spec.uniformScale !== undefined) {
           model.scale.setScalar(spec.uniformScale);
         }
+        if (spec.scale) {
+          model.scale.set(...spec.scale);
+        }
 
         if (spec.positionOffset) {
           model.position.set(...spec.positionOffset);
@@ -571,11 +617,51 @@ export class GameApp {
         }
 
         anchor.mount.add(model);
-        anchor.fallbackObjects.forEach((object) => {
-          object.visible = false;
+        anchor.hiddenFallbackObjects.forEach((object) => {
+          this.disableHiddenFallbackObject(object);
+        });
+        anchor.ghostFallbackObjects.forEach((object) => {
+          this.ghostStaticFallbackObject(object);
         });
       })
     );
+  }
+
+  private disableHiddenFallbackObject(object: THREE.Object3D): void {
+    object.userData.assetSwapDisabled = true;
+    object.visible = false;
+  }
+
+  private ghostStaticFallbackObject(object: THREE.Object3D): void {
+    object.userData.assetSwapDisabled = false;
+    object.visible = true;
+    object.traverse((child) => {
+      const mesh = child as THREE.Mesh;
+      if (!mesh.isMesh) {
+        return;
+      }
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+      if (Array.isArray(mesh.material)) {
+        mesh.material = mesh.material.map((entry) => this.createGhostMaterial(entry));
+      } else {
+        mesh.material = this.createGhostMaterial(mesh.material);
+      }
+    });
+  }
+
+  private createGhostMaterial(material: THREE.Material): THREE.Material {
+    const cloned = material.clone();
+    if (!(cloned instanceof THREE.MeshStandardMaterial)) {
+      return cloned;
+    }
+
+    cloned.transparent = true;
+    cloned.opacity = 0;
+    cloned.depthWrite = false;
+    cloned.colorWrite = false;
+    cloned.emissiveIntensity = 0;
+    return cloned;
   }
 }
     const assetCatalog = new AssetCatalog();

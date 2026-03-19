@@ -22,6 +22,8 @@ The playable slice currently includes:
 - persistence for player position, inventory, containers, collected pickups, and dropped loose items
 - a station-gated alchemy loop with authored recipes and crafted outputs
 - steward dialogue, two authored quests, and a lightweight quest tracker HUD
+- imported crafted bottle-family visuals for crafted alchemy outputs
+- an imported alchemy-table visual swap validated against the original gameplay station
 - a live lighting slider in the prototype overlay for Phase 6 room-light tuning
 - live performance telemetry in the prototype overlay, plus a collapsible debug shell for playtest-friendly monitoring
 
@@ -109,6 +111,7 @@ This repo follows a phased implementation model:
 - Phase 9: alchemy loop and item-system depth
 - Phase 10: objectives, dialogue, and quest tracking
 - Phase 11: asset reuse and performance hardening
+- Phase 12: imported assets and first art-swap pass
 
 We record implementation progress, feedback, design decisions, validation checklists, and acceptance status in the implementation plan instead of keeping that process separate from the code.
 Older planning history is archived once a phase cycle closes so the active docs stay compact.
@@ -127,15 +130,16 @@ Accepted phases:
 - Phase 9: alchemy loop and item-system depth
 - Phase 10: lightweight objectives, dialogue, and quest tracking
 - Phase 11: asset reuse, GLB integration groundwork, and performance hardening
+- Phase 12: imported assets, asset-agent workflow, and first art-swap pass
 
 Current active milestone:
-- Phase 12: imported assets and first art-swap pass
+- Phase 13: item use effects and inventory pressure
 
 ## Notes
 
 - The project is currently optimized for modern desktop browsers on Mac and PC.
 - The prototype is intentionally using stylized blockout content and simple UI so system validation can happen before asset-heavy production work.
 - Bundle size is still large for an early prototype and will be revisited in later optimization/polish passes.
-- Real imported art assets are not yet checked into the repo; the current asset work established the loading/caching path so the next cycle can swap them in intentionally.
+- The accepted Phase 12 baseline includes imported crafted bottle visuals and an imported alchemy table, while the bed swap was intentionally deferred until we have a source asset that better fits the slice.
 - Optional world-asset swap filenames and placement expectations are documented in [public/assets/models/README.md](/Users/svanvliet/repos/fantasy-rpg/public/assets/models/README.md).
 - The repo-local prop asset workflow is documented in [docs/prop-asset-agent-usage.md](/Users/svanvliet/repos/fantasy-rpg/docs/prop-asset-agent-usage.md) and can be started with `npm run asset-agent -- init ...`.

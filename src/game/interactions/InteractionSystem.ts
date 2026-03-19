@@ -37,6 +37,13 @@ interface DroppedItem {
   interactable: Interactable;
 }
 
+interface ImportedItemVisualSpec {
+  template: THREE.Object3D;
+  uniformScale?: number;
+  positionOffset?: THREE.Vector3;
+  rotationYRadians?: number;
+}
+
 export interface InteractionSystemOptions {
   camera: THREE.PerspectiveCamera;
   domElement: HTMLElement;
@@ -85,6 +92,7 @@ export class InteractionSystem {
   private readonly heldTargetQuaternion = new THREE.Quaternion();
   private readonly droppedItems: DroppedItem[] = [];
   private readonly initialPickupIds: string[];
+  private readonly importedItemVisuals = new Map<string, ImportedItemVisualSpec>();
   private readonly onStateDirty?: () => void;
 
   private currentTarget: TargetInfo | null = null;
@@ -363,7 +371,10 @@ export class InteractionSystem {
     this.raycaster.far = HOVER_REACH;
 
     const candidates = this.interactables
-      .filter((interactable) => interactable.object.parent !== null)
+      .filter(
+        (interactable) =>
+          interactable.object.parent !== null && interactable.object.userData.assetSwapDisabled !== true
+      )
       .map((interactable) => {
         const intersections = this.raycaster.intersectObject(interactable.object, true);
         if (intersections.length === 0) {
@@ -560,6 +571,49 @@ export class InteractionSystem {
     }
   }
 
+  registerImportedItemVisual(
+    itemId: string,
+    template: THREE.Object3D,
+    options: {
+      uniformScale?: number;
+      positionOffset?: THREE.Vector3;
+      rotationYRadians?: number;
+    } = {}
+  ): void {
+    this.importedItemVisuals.set(itemId, {
+      template,
+      uniformScale: options.uniformScale,
+      positionOffset: options.positionOffset?.clone(),
+      rotationYRadians: options.rotationYRadians
+    });
+
+    this.interactables.forEach((interactable) => {
+      if (interactable.kind !== "pickup") {
+        return;
+      }
+
+      const pickupItemId = interactable.object.userData.itemId as string | undefined;
+      if (pickupItemId !== itemId) {
+        return;
+      }
+
+      this.attachImportedPresentation(interactable.object as THREE.Mesh, itemId);
+    });
+
+    if (this.heldItem?.definition.id === itemId) {
+      this.heldItem.presentation = this.attachImportedPresentation(this.heldItem.mesh, itemId);
+    }
+
+    this.droppedItems.forEach((item) => {
+      const droppedItemId = item.mesh.userData.itemId as string | undefined;
+      if (droppedItemId !== itemId) {
+        return;
+      }
+
+      this.attachImportedPresentation(item.mesh, itemId);
+    });
+  }
+
   private tryDropHeldItem(): void {
     if (!this.heldItem) {
       this.setStatusMessage("You are not holding anything.", 1.4);
@@ -666,6 +720,7 @@ export class InteractionSystem {
     this.heldItem = {
       definition,
       mesh,
+      presentation: mesh.userData.importedPresentation as THREE.Object3D | undefined,
       linearVelocity: new THREE.Vector3(),
       localAnchor: result.pickupLocalAnchor?.clone() ?? new THREE.Vector3(),
       rotationOffset: baseOrientation
@@ -775,7 +830,72 @@ export class InteractionSystem {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.userData.itemId = definition.id;
+    this.attachImportedPresentation(mesh, definition.id);
     return mesh;
+  }
+
+  private attachImportedPresentation(mesh: THREE.Mesh, itemId: string): THREE.Object3D | undefined {
+    const spec = this.importedItemVisuals.get(itemId);
+    const existing = mesh.userData.importedPresentation as THREE.Object3D | undefined;
+    if (existing) {
+      existing.parent?.remove(existing);
+      delete mesh.userData.importedPresentation;
+    }
+
+    if (!spec) {
+      return undefined;
+    }
+
+    const clone = spec.template.clone(true);
+    clone.traverse((child) => {
+      const childMesh = child as THREE.Mesh;
+      if (!childMesh.isMesh) {
+        return;
+      }
+      childMesh.castShadow = true;
+      childMesh.receiveShadow = true;
+    });
+
+    if (spec.uniformScale !== undefined) {
+      clone.scale.setScalar(spec.uniformScale);
+    }
+    if (spec.positionOffset) {
+      clone.position.copy(spec.positionOffset);
+    }
+    if (spec.rotationYRadians) {
+      clone.rotation.y = spec.rotationYRadians;
+    }
+
+    mesh.add(clone);
+    mesh.userData.importedPresentation = clone;
+    this.ghostProxyMesh(mesh, clone);
+    return clone;
+  }
+
+  private ghostProxyMesh(mesh: THREE.Mesh, importedPresentation: THREE.Object3D): void {
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+    if (Array.isArray(mesh.material)) {
+      mesh.material = mesh.material.map((entry) => this.createGhostMaterial(entry));
+    } else {
+      mesh.material = this.createGhostMaterial(mesh.material);
+    }
+
+    importedPresentation.renderOrder = 1;
+  }
+
+  private createGhostMaterial(material: THREE.Material): THREE.Material {
+    const cloned = material.clone();
+    if (!(cloned instanceof THREE.MeshStandardMaterial)) {
+      return cloned;
+    }
+
+    cloned.transparent = true;
+    cloned.opacity = 0;
+    cloned.depthWrite = false;
+    cloned.colorWrite = false;
+    cloned.emissiveIntensity = 0;
+    return cloned;
   }
 
   private createColliderDesc(definition: PickupItemDefinition): RAPIER.ColliderDesc {

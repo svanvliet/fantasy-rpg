@@ -15,5 +15,5 @@
 
 ## Next Deliverable
 - Concept refinement images
-- or first-pass image-to-3D model if the concept is approved
+- or first-pass image-to-3D model once the single asset is approved
 

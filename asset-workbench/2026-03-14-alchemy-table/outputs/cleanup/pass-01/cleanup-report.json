@@ -1,0 +1,24 @@
+{
+  "input": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-14-alchemy-table/outputs/models/pass-01/model.glb",
+  "output": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-14-alchemy-table/outputs/cleanup/pass-01/cleaned-model.glb",
+  "preview": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-14-alchemy-table/outputs/cleanup/pass-01/preview.png",
+  "targetHeight": 0.95,
+  "maxTriangles": null,
+  "initialDimensions": {
+    "x": 1.9110910296440125,
+    "y": 0.8697551190853119,
+    "z": 1.309308111667633
+  },
+  "finalDimensions": {
+    "x": 1.3866381645202637,
+    "y": 0.6310718059539795,
+    "z": 0.949999988079071
+  },
+  "initialTriangles": 11880,
+  "finalTriangles": 11880,
+  "decimate": null,
+  "materialCount": 1,
+  "materials": [
+    "Material_0"
+  ]
+}

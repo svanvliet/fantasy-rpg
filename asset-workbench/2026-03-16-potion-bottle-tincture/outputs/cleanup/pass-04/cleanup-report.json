@@ -1,0 +1,29 @@
+{
+  "input": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-16-potion-bottle-tincture/outputs/models/pass-01/model.glb",
+  "output": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-04/cleaned-model.glb",
+  "preview": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-16-potion-bottle-tincture/outputs/cleanup/pass-04/preview.png",
+  "targetHeight": 0.18,
+  "maxTriangles": 50000,
+  "initialDimensions": {
+    "x": 1.3716300129890442,
+    "y": 1.3715900778770447,
+    "z": 1.8992741703987122
+  },
+  "finalDimensions": {
+    "x": 0.1300562024116516,
+    "y": 0.1300213560461998,
+    "z": 0.1802261299235397
+  },
+  "initialTriangles": 624408,
+  "finalTriangles": 50000,
+  "decimate": {
+    "applied": true,
+    "ratio": 0.08007584784307696,
+    "initialTriangles": 624408,
+    "finalTriangles": 50000
+  },
+  "materialCount": 1,
+  "materials": [
+    "Material_0"
+  ]
+}

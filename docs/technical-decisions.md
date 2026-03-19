@@ -175,12 +175,15 @@
 - Phase: `12`
 - Date: `2026-03-14`
 - Decision:
-  Introduce imported world props through presentation-only swap anchors first, while keeping existing blockout geometry as the current source of collision, interaction, and gameplay authority.
+  Introduce imported world props through presentation-only swaps first, while keeping existing blockout geometry as the current source of collision, interaction, and gameplay authority. Static props should use world swap anchors, while pickup props should attach imported visuals directly to hidden gameplay proxy meshes.
 - Why:
   This lets us validate the asset-loading and caching path immediately without destabilizing traversal, quests, crafting, or persistence when the first real models arrive.
 - Consequences:
   Phase 12 swaps should hide fallback blockout props only after an asset loads successfully.
   Any later move of gameplay or collision authority onto imported assets should be an explicit follow-up decision, not an incidental side effect of art integration.
+  Interactable pickup props should keep a ghosted authority proxy so the blockout interaction mesh remains raycastable and collidable while the imported prop supplies presentation.
+  Imported pickup visuals should follow the full item lifecycle, including seeded placement, hold/carry, drop physics, and persistence restore.
+  Static furniture swaps may also keep ghosted interaction-authority remnants when the old prop included a small dedicated interaction target that should survive the visual replacement without staying visible.
 
 ## TD-015: Asset Generation Workflow Starts With A Repo-Local Prop Agent
 
@@ -200,6 +203,7 @@
   When a refinement image becomes the best asset source, the 3D handoff should point at that selected revision rather than implicitly falling back to the original concept.
   Provider-backed 3D submissions and downloaded outputs should also preserve pass history instead of overwriting the latest generated model state.
   Sessions should explicitly track asset `scope` and `intent` so the workflow can distinguish broad exploration from production-ready asset work.
+  Phase 12 closes with modeled hands intentionally deferred due to asset availability, not because the viewmodel architecture or asset workflow failed.
 
 ## TD-016: Asset Workflow Uses Style Anchors And Reusable Item Families
 
@@ -218,4 +222,21 @@
   Meshy-based 3D passes should preserve not only the primary `.glb`, but also the pre-remeshed source and texture maps when they are available so downstream cleanup stays flexible.
   Family and set sheets should not move directly into 3D by default; they should branch into `single + production` child sessions first.
   When a child asset is derived from an approved family or set sheet, the workflow should preserve the approved sheet as a reference image and use OpenAI image editing/generation with that input for isolated child-asset extraction instead of reimagining the child from scratch.
+  If the user provides a clean isolated final image for a child asset, the workflow should preserve that file as a child-session revision artifact and use it directly for 3D handoff instead of forcing another concept or revision generation step.
   Blender cleanup should be treated as a first-class workflow stage that saves cleaned exports as separate cleanup passes instead of overwriting raw provider outputs.
+  External GLB assets that enter the repo outside the provider workflow should still go through the same cleanup-pass structure rather than being hand-edited in place.
+  Runtime-oriented triangle reduction should happen as an additional cleanup pass with an explicit budget, preserving the higher-fidelity source and earlier cleanup passes for later reuse or higher-end targets.
+  If an earlier family member is later regenerated from a cleaner isolated source, the newer pass should complete the same cleanup and review path before replacing the stable runtime asset.
+
+## TD-017: Imported Pickup Visuals Map To The Gameplay Item They Represent
+
+- Status: `accepted`
+- Phase: `12`
+- Date: `2026-03-15`
+- Decision:
+  Imported pickup visuals should be attached to the gameplay item id they actually represent, while imported static furniture should keep hidden gameplay proxies that are retuned to the imported mesh footprint when needed.
+- Why:
+  The first imported bottle proved the lifecycle bridge worked, but using it on an ingredient item was only a pipeline test. The bed pass also showed that cleanup alone does not guarantee collision and traversal fidelity when the imported mesh proportions differ from the old blockout.
+- Consequences:
+  Crafted items like `emberguard-draught` can use the imported bottle presentation without implying that ingredients share the same visual. Static props such as the bed should continue using hidden authority geometry, but that proxy must be tuned alongside the imported visual so the player does not stand on stale blockout volumes.
+  Once a pickup-family presentation path is proven, sibling crafted items such as `moonveil-tonic` and `verdant-restorative` should map to their own imported family members through item-id-based visual templates rather than bespoke one-off runtime code.

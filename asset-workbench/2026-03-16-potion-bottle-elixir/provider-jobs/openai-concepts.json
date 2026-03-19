@@ -1,0 +1,36 @@
+{
+  "workflow": "openai-image-concepts",
+  "sessionId": "2026-03-16-potion-bottle-elixir",
+  "asset": "potion-bottle-elixir",
+  "scope": "single",
+  "intent": "production",
+  "recommendedOrchestratorModel": "gpt-5-mini",
+  "recommendedImageModel": "gpt-image-1.5",
+  "rationale": "Use a lower-cost orchestration model while keeping image generation on gpt-image-1.5.",
+  "outputDir": "asset-workbench/2026-03-16-potion-bottle-elixir/outputs/concepts",
+  "sourceImage": "asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/pass-01/revision-03.png",
+  "sourceMode": "parent-approved-sheet",
+  "prompts": [
+    {
+      "id": "concept-01",
+      "name": "Faithful Isolated Extraction",
+      "prompt": "Using the provided approved parent concept as the visual source of truth, create a single isolated fantasy RPG prop concept for a potion bottle elixir. Preserve the approved style, materials, and silhouette language from the source image while extracting only this one asset onto a plain background. This child asset represents the elixir member of the parent concept. Keep the object centered, non-overlapping, and fully readable for downstream 3D generation. Materials should read as glass, cork, iron, worn labels. Style constraints: readable silhouette, family resemblance, game-friendly detail, reusable variants. Intended use: Reusable elixir bottle for premium crafted mixtures and rare loot."
+    },
+    {
+      "id": "concept-02",
+      "name": "Cleaner Production Candidate",
+      "prompt": "Using the provided approved parent concept as reference, generate a cleaner production-ready isolated concept of a potion bottle elixir. Preserve the approved art direction and reusable components, but simplify clutter, remove overlap, and make the asset stand on its own on a plain background. Keep the materials glass, cork, iron, worn labels, the mood grounded, warm, alchemical, practical, and the silhouette game-readable for first-person distance."
+    },
+    {
+      "id": "concept-03",
+      "name": "Extraction With Strong Material Separation",
+      "prompt": "Create an isolated extraction of a potion bottle elixir from the approved family or set concept reference. Preserve family resemblance but ensure this specific prop reads cleanly as its own asset. Use a plain background, no environment, no extra props, and no overlap. Push clear material separation using glass, cork, iron, worn labels and keep the form usable for future .glb generation and cleanup."
+    }
+  ],
+  "notes": [
+    "Generate 3 concepts first and review before moving to 3D.",
+    "Keep concepts isolated on plain backgrounds for stronger downstream 3D generation.",
+    "If using Responses, prefer the image_generation tool with a mainline reasoning model orchestrating revisions.",
+    "When a reference image is present, treat concept generation as a style-preserving extraction/edit pass rather than a net-new concept pass."
+  ]
+}

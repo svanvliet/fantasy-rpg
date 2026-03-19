@@ -1,0 +1,20 @@
+{
+  "input": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-15-bed-import/source/bed-raw.glb",
+  "output": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-15-bed-import/outputs/cleanup/pass-01/cleaned-model.glb",
+  "preview": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-15-bed-import/outputs/cleanup/pass-01/preview.png",
+  "targetHeight": 2.0,
+  "initialDimensions": {
+    "x": 1.5779410004615784,
+    "y": 2.002795994281769,
+    "z": 1.4550729990005493
+  },
+  "finalDimensions": {
+    "x": 2.168882131576538,
+    "y": 2.7528460025787354,
+    "z": 2.0
+  },
+  "materialCount": 1,
+  "materials": [
+    "Material_0"
+  ]
+}

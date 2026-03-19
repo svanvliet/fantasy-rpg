@@ -1,0 +1,20 @@
+{
+  "input": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-16-potion-bottle-elixir/outputs/models/pass-01/model.glb",
+  "output": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-16-potion-bottle-elixir/outputs/cleanup/pass-01/cleaned-model.glb",
+  "preview": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-16-potion-bottle-elixir/outputs/cleanup/pass-01/preview.png",
+  "targetHeight": 0.28,
+  "initialDimensions": {
+    "x": 0.9564340114593506,
+    "y": 0.956476092338562,
+    "z": 1.8991641998291016
+  },
+  "finalDimensions": {
+    "x": 0.14101020991802216,
+    "y": 0.1410164088010788,
+    "z": 0.2800000011920929
+  },
+  "materialCount": 1,
+  "materials": [
+    "Material_0"
+  ]
+}

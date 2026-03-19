@@ -87,6 +87,7 @@
 - Use `set` sessions for broad exploration and branching, not for direct 3D generation unless we explicitly want one fused decorative set.
 - When a `family` or `set` session produces an approved concept or revision, branch a `single + production` child session for the first real production candidate before moving into 3D.
 - For child extraction work, preserve the approved parent concept or revision image as the source of truth and use it as an input image for OpenAI image editing/generation so the isolated child asset keeps the approved visual language.
+- If the user supplies a refined or final asset image directly, preserve that file inside the matching `asset-workbench/` session and register it as a revision pass instead of forcing a fresh concept or revision generation step.
 - Prefer generating 3D assets only for props we actually expect to use in the game slice. Broad exploration sheets should stay at the concept stage until we intentionally promote a specific child asset into production.
 - Preserve pass history for both concept and revision batches. Do not overwrite prior image outputs when generating a new batch.
 - Preserve provider-backed model history too. Do not overwrite prior Meshy or other provider outputs when generating a new 3D pass.
@@ -98,4 +99,7 @@
   - preview image
   - texture maps
 - When running Blender cleanup on generated assets, preserve the raw provider outputs and save the cleaned result as a separate cleanup pass rather than overwriting the generated model.
-- Keep gameplay authority separate from imported art unless we explicitly decide otherwise; initial asset work should continue to attach through the existing Phase 12 presentation-swap path.
+- Blender cleanup must also support externally sourced GLBs that enter the repo outside the provider workflow; preserve the raw source and create a separate cleanup pass for the runtime candidate.
+- Keep gameplay authority separate from imported art unless we explicitly decide otherwise.
+- Use static world swap anchors for non-interactive props and furniture.
+- Use hidden gameplay proxies with attached imported visuals for pickup props so the imported art follows seeded, held, dropped, and restored states without taking over interaction or physics authority.

@@ -70,5 +70,7 @@ For each asset request, produce:
 - If a child asset is being extracted from a family or set sheet, prefer using the approved parent image as an input image for OpenAI editing/generation so the child preserves the approved style while becoming isolated.
 - Treat Blender cleanup as required before an asset is considered ready for the game slice.
 - Preserve raw provider outputs and write Blender-cleaned exports into separate cleanup passes so review history stays intact.
+- When an asset is too dense for runtime, create a lower-triangle cleanup pass for the game and keep the earlier higher-fidelity source/cleanup passes intact for future use.
+- If a GLB is sourced externally rather than generated through Meshy, preserve that raw source inside the session and run cleanup with `--source-model` instead of trying to force it through a fake provider pass.
 - When a real asset is requested, remember that gameplay authority still stays with the existing blockout objects until we explicitly change that architecture.
 - Prefer reusable prop families and shared material language over generating many unrelated unique props when the gameplay does not require uniqueness.

@@ -1,6 +1,8 @@
 # Alchemy Table Asset Brief
 
 - Session id: `2026-03-14-alchemy-table`
+- Scope: `single`
+- Intent: `production`
 - Room: `alchemy`
 - Category: `furniture`
 - Swap id: `alchemy-table`
@@ -18,6 +20,6 @@
 - Preserve the current swap path expectations documented in `public/assets/models/README.md`.
 
 ## Current Workflow State
-- Stage: `refinement`
+- Stage: `cleanup_review`
 - Selected concept: `concept-01`
 

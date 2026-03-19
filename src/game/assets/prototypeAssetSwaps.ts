@@ -2,23 +2,17 @@ export interface PrototypeAssetSwapSpec {
   id: string;
   path: string;
   uniformScale?: number;
+  scale?: [number, number, number];
   positionOffset?: [number, number, number];
   rotationYDegrees?: number;
 }
 
 export const PROTOTYPE_ASSET_SWAPS = {
-  bed: {
-    id: "bed",
-    path: "/assets/models/bed.glb",
-    uniformScale: 1,
-    positionOffset: [0, 0, 0],
-    rotationYDegrees: 0
-  },
   alchemyTable: {
     id: "alchemy-table",
     path: "/assets/models/alchemy-table.glb",
-    uniformScale: 1,
-    positionOffset: [0, 0, 0],
+    scale: [2.02, 1.5, 1.47],
+    positionOffset: [0, 0.02, 0],
     rotationYDegrees: 0
   },
   steward: {

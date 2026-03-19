@@ -84,6 +84,16 @@ npm run asset-agent -- check-meshy --session asset-workbench/2026-03-15-potion-b
 npm run asset-agent -- cleanup-blender --session asset-workbench/2026-03-15-potion-bottle-draught --blender /Applications/Blender.app/Contents/MacOS/Blender --target-height 0.22
 ```
 
+### Run a Blender cleanup pass with a runtime triangle budget
+```bash
+npm run asset-agent -- cleanup-blender --session asset-workbench/2026-03-16-potion-bottle-tincture --blender /Applications/Blender.app/Contents/MacOS/Blender --target-height 0.18 --max-triangles 15000
+```
+
+### Run a Blender cleanup pass on an external GLB that did not come from Meshy
+```bash
+npm run asset-agent -- cleanup-blender --session asset-workbench/2026-03-15-bed-import --blender /Applications/Blender.app/Contents/MacOS/Blender --source-model asset-workbench/2026-03-15-bed-import/source/bed-raw.glb --target-height 2.0
+```
+
 ## What gets created
 - `session.json`
 - `01-brief.md`
@@ -109,6 +119,8 @@ npm run asset-agent -- cleanup-blender --session asset-workbench/2026-03-15-poti
 - The child session then uses OpenAI image editing/generation with that approved parent image as input to create isolated single-asset concept candidates.
 - This is preferred over treating the whole family/set sheet as a single direct-to-3D source.
 - We preserve the approved source sheet and the child session lineage so the workflow stays auditable.
+- If the user already has a clean isolated final image for a child asset, preserve that file inside the child session and register it as a revision pass instead of generating a redundant refinement batch.
+- In that case, treat the supplied image as the approved revision source for `prepare-3d` and provider submission.
 
 ## Family Assets Versus Single Props
 - Some sessions are best treated as **family concept sessions** rather than immediate single-model sessions.
@@ -156,6 +168,7 @@ npm run asset-agent -- cleanup-blender --session asset-workbench/2026-03-15-poti
 
 ## Blender Cleanup
 - Provider outputs should stay untouched in `outputs/models/pass-XX/`.
+- Externally sourced GLBs should also stay untouched. Preserve the raw source in the session before cleanup.
 - Blender cleanup should write a separate cleaned export in `outputs/cleanup/pass-XX/` so raw provider artifacts remain available for comparison or rollback.
 - The current cleanup command:
   - imports the generated `.glb`
@@ -164,6 +177,7 @@ npm run asset-agent -- cleanup-blender --session asset-workbench/2026-03-15-poti
   - optionally normalizes the height for gameplay validation
   - exports a separate cleaned `.glb`
   - writes a cleanup report and preview render
+- If `--source-model` is provided, the cleanup pass is treated as an external-source cleanup rather than a provider-model cleanup.
 
 ## Provider Keys
 - `OPENAI_API_KEY` powers concept and revision generation.

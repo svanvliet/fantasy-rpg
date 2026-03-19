@@ -136,6 +136,14 @@
       "childRole": "draught",
       "sourceImage": "asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/pass-01/revision-03.png",
       "createdAt": "2026-03-15T18:09:53.447Z"
+    },
+    {
+      "sessionId": "2026-03-16-potion-bottle-tincture",
+      "slug": "potion-bottle-tincture",
+      "childRole": "tincture",
+      "sourceImage": "asset-workbench/2026-03-15-potion-bottle-family/outputs/revisions/pass-01/revision-03.png",
+      "createdAt": "2026-03-16T03:19:15.827Z"
     }
-  ]
+  ],
+  "cleanupPasses": []
 }

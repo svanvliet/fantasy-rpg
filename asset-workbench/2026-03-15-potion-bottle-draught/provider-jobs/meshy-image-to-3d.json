@@ -3,13 +3,13 @@
   "sessionId": "2026-03-15-potion-bottle-draught",
   "asset": "potion-bottle-draught",
   "preferredInput": "approved-revision-image",
-  "sourceImage": "asset-workbench/2026-03-15-potion-bottle-draught/outputs/revisions/pass-01/revision-01.png",
+  "sourceImage": "asset-workbench/2026-03-15-potion-bottle-draught/outputs/revisions/pass-02/revision-01.png",
   "approvedConcept": {
     "passId": "pass-01",
     "id": "concept-02"
   },
   "approvedRevision": {
-    "passId": "pass-01",
+    "passId": "pass-02",
     "id": "revision-01"
   },
   "meshSettings": {

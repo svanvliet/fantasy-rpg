@@ -20,10 +20,6 @@ Design a visually rich but game-readable alchemy table prop for a candle-lit med
 
 Generate a prop concept sheet image showing one clean three-quarter angle of an alchemy table. Prioritize bold silhouette, readable proportions, and game-friendly simplicity for a first-person fantasy RPG. The piece belongs in the alchemy room and should feel grounded, warm, alchemical, practical. Materials should be wood, iron, worn finish. Background should be simple and uncluttered. Avoid over-detailing and avoid decorative noise that would hurt gameplay readability.
 
-### concept-04: Castle Utility Variant
-
-Create a grounded castle-utility variant of an alchemy table for a warm interior fantasy RPG slice. Show the prop alone, centered, with a clean background and coherent lighting. Focus on the practical version of the object rather than an ornate hero prop. Style constraints: readable silhouette, game-friendly detail, no ornate overload. Materials: wood, iron, worn finish. Mood: grounded, warm, alchemical, practical. Intended use: Primary alchemy crafting table for the castle slice.
-
 ## Approved Concept
 
 - Selected concept: `concept-01`

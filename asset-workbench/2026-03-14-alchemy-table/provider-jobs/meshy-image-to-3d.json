@@ -2,10 +2,38 @@
   "workflow": "meshy-image-to-3d",
   "sessionId": "2026-03-14-alchemy-table",
   "asset": "alchemy-table",
-  "preferredInput": "approved-concept-image",
+  "preferredInput": "approved-revision-image",
+  "sourceImage": "asset-workbench/2026-03-14-alchemy-table/outputs/revisions/pass-01/revision-01.png",
+  "approvedConcept": {
+    "passId": "pass-01",
+    "id": "concept-01"
+  },
+  "approvedRevision": {
+    "passId": "pass-01",
+    "id": "revision-01"
+  },
+  "meshSettings": {
+    "model_type": "standard",
+    "ai_model": "latest",
+    "topology": "triangle",
+    "target_polycount": 12000,
+    "symmetry_mode": "off",
+    "should_remesh": true,
+    "save_pre_remeshed_model": true,
+    "should_texture": true,
+    "enable_pbr": true,
+    "image_enhancement": false,
+    "remove_lighting": true
+  },
   "recommendedOutputFormat": "glb",
+  "extractionNotes": [
+    "simplify tabletop clutter",
+    "preserve the painterly grounded style",
+    "use this concept as the alchemy prop style anchor"
+  ],
   "notes": [
     "Use the approved concept image or revised concept set as the 3D source.",
+    "If the source contains a prop family, preserve isolation and component reuse from the approved revision instead of allowing the generated output to merge pieces together.",
     "Keep the polycount and topology appropriate for a game prop, not a cinematic sculpt.",
     "Clean up the result in Blender before moving it into public/assets/models."
   ],

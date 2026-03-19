@@ -18,6 +18,7 @@ def parse_args():
     parser.add_argument("--report", required=True)
     parser.add_argument("--preview", required=False)
     parser.add_argument("--target-height", required=False, type=float, default=None)
+    parser.add_argument("--max-triangles", required=False, type=int, default=None)
     return parser.parse_args(argv)
 
 
@@ -152,6 +153,47 @@ def setup_preview(scene, obj, preview_path):
     bpy.ops.render.render(write_still=True)
 
 
+def triangle_count(obj):
+    bpy.context.view_layer.update()
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    evaluated = obj.evaluated_get(depsgraph)
+    mesh = evaluated.to_mesh()
+    try:
+        mesh.calc_loop_triangles()
+        return len(mesh.loop_triangles)
+    finally:
+        evaluated.to_mesh_clear()
+
+
+def decimate_to_max_triangles(obj, max_triangles):
+    if not max_triangles:
+        return None
+
+    initial_triangles = triangle_count(obj)
+    if initial_triangles <= max_triangles:
+        return {
+            "applied": False,
+            "ratio": 1.0,
+            "initialTriangles": initial_triangles,
+            "finalTriangles": initial_triangles,
+        }
+
+    ratio = max(min(max_triangles / initial_triangles, 1.0), 0.01)
+    modifier = obj.modifiers.new(name="CodexDecimate", type="DECIMATE")
+    modifier.decimate_type = "COLLAPSE"
+    modifier.ratio = ratio
+    modifier.use_collapse_triangulate = True
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.modifier_apply(modifier=modifier.name)
+    final_triangles = triangle_count(obj)
+    return {
+        "applied": True,
+        "ratio": ratio,
+        "initialTriangles": initial_triangles,
+        "finalTriangles": final_triangles,
+    }
+
+
 def main():
     args = parse_args()
     input_path = Path(args.input).resolve()
@@ -168,11 +210,14 @@ def main():
     obj = import_model(input_path)
     initial_bounds = world_bounds(obj)
     initial_dimensions = dimensions_from_bounds(initial_bounds)
+    initial_triangles = triangle_count(obj)
 
     align_to_ground(obj)
     scale_to_target_height(obj, args.target_height)
+    decimate_report = decimate_to_max_triangles(obj, args.max_triangles)
     final_bounds = world_bounds(obj)
     final_dimensions = dimensions_from_bounds(final_bounds)
+    final_triangles = triangle_count(obj)
 
     bpy.ops.export_scene.gltf(
         filepath=str(output_path),
@@ -191,8 +236,12 @@ def main():
         "output": str(output_path),
         "preview": str(preview_path) if preview_path else None,
         "targetHeight": args.target_height,
+        "maxTriangles": args.max_triangles,
         "initialDimensions": initial_dimensions,
         "finalDimensions": final_dimensions,
+        "initialTriangles": initial_triangles,
+        "finalTriangles": final_triangles,
+        "decimate": decimate_report,
         "materialCount": len(materials),
         "materials": materials,
     }

@@ -36,6 +36,7 @@ function createPickupInteractable(
   definition: PickupItemDefinition,
   description: string
 ): Interactable {
+  object.userData.itemId = definition.id;
   return {
     id,
     object,

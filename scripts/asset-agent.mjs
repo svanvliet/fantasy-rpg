@@ -1826,6 +1826,30 @@ function getModelPass(paths, session, explicitPassId = null) {
   };
 }
 
+function resolveCleanupSource(args, paths, session) {
+  if (args["source-model"]) {
+    const sourceModel = resolvePath(args["source-model"]);
+    if (!fs.existsSync(sourceModel)) {
+      fail(`Could not find source model at ${toRelative(sourceModel)}.`);
+    }
+    return {
+      sourceModelPassId: null,
+      sourceModel,
+      sourceType: "external",
+      pass: null,
+    };
+  }
+
+  const { passId: sourceModelPassId, pass } = getModelPass(paths, session, args.pass);
+  const sourceModel = resolveCleanupSourceModel(args, pass);
+  return {
+    sourceModelPassId,
+    sourceModel,
+    sourceType: "provider",
+    pass,
+  };
+}
+
 async function checkMeshy(args) {
   if (!args.session) fail("The check-meshy command requires --session.");
   const apiKey = process.env.MESHY_API_KEY;
@@ -1904,7 +1928,6 @@ function cleanupWithBlender(args) {
   if (!args.session) fail("The cleanup-blender command requires --session.");
   const { sessionDir, session } = loadSession(args.session);
   const paths = getSessionPaths(sessionDir);
-  const { passId: sourceModelPassId, pass } = getModelPass(paths, session, args.pass);
   const blenderBinary = args.blender || process.env.BLENDER_BIN || process.env.BLENDER_BINARY;
   if (!blenderBinary) {
     fail("Set BLENDER_BIN or pass --blender with the Blender executable path before running cleanup-blender.");
@@ -1915,7 +1938,7 @@ function cleanupWithBlender(args) {
     fail(`Could not find Blender binary at ${toRelative(resolvedBlenderBinary)}.`);
   }
 
-  const sourceModel = resolveCleanupSourceModel(args, pass);
+  const { sourceModelPassId, sourceModel, sourceType } = resolveCleanupSource(args, paths, session);
   const cleanupPassId = getNextCleanupPassId(paths);
   const cleanupDir = path.join(paths.cleanupOutputDir, cleanupPassId);
   ensureDir(cleanupDir);
@@ -1924,6 +1947,7 @@ function cleanupWithBlender(args) {
   const reportFile = path.join(cleanupDir, "cleanup-report.json");
   const previewFile = path.join(cleanupDir, "preview.png");
   const targetHeight = args["target-height"] || "0.22";
+  const maxTriangles = args["max-triangles"] || null;
 
   const blenderArgs = [
     "--background",
@@ -1939,6 +1963,10 @@ function cleanupWithBlender(args) {
     "--target-height",
     targetHeight,
   ];
+
+  if (maxTriangles) {
+    blenderArgs.push("--max-triangles", maxTriangles);
+  }
 
   if (!Object.prototype.hasOwnProperty.call(args, "skip-preview")) {
     blenderArgs.push("--preview", previewFile);
@@ -1958,9 +1986,11 @@ function cleanupWithBlender(args) {
   session.cleanupPasses.push({
     passId: cleanupPassId,
     sourceModelPassId,
+    sourceType,
     sourceModel: toRelative(sourceModel),
     blenderBinary: toRelative(resolvedBlenderBinary),
     targetHeight: Number.parseFloat(targetHeight),
+    maxTriangles: maxTriangles ? Number.parseInt(maxTriangles, 10) : null,
     createdAt: new Date().toISOString(),
     outputs: {
       glb: toRelative(outputGlb),
