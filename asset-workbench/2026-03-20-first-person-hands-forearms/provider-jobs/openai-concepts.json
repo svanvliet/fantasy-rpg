@@ -1,0 +1,35 @@
+{
+  "workflow": "openai-image-concepts",
+  "sessionId": "2026-03-20-first-person-hands-forearms",
+  "asset": "first-person-hands-forearms",
+  "scope": "single",
+  "intent": "exploration",
+  "recommendedOrchestratorModel": "gpt-5-mini",
+  "recommendedImageModel": "gpt-image-1.5",
+  "rationale": "Use a lower-cost orchestration model while keeping image generation on gpt-image-1.5.",
+  "outputDir": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/concepts",
+  "sourceImage": null,
+  "sourceMode": null,
+  "prompts": [
+    {
+      "id": "concept-01",
+      "name": "Grounded Hero Three-Quarter",
+      "prompt": "Create a single isolated fantasy RPG prop concept for a first person hands forearms used in the viewmodel room. Show a strong three-quarter view on a clean dark neutral background. The prop should feel grounded, crafted, stylized, warm, readable. Materials should read as stylized skin, leather wraps, cloth accents, simple forged metal details. Keep the silhouette readable from first-person gameplay distance. Style constraints: readable first-person silhouette, game-friendly detail, no ornate overload, not photoreal, clear wrist and forearm shapes for future rigging. Approximate real-world size: Needs confirmation during concept review. Intended use: First-person hands and forearms aesthetic study for the castle slice viewmodel; generate one coherent paired left/right design per image; validate stylized look only, not rigging. No extra scene clutter, no character, no text, no watermark."
+    },
+    {
+      "id": "concept-02",
+      "name": "Craft Detail With Clear Materials",
+      "prompt": "Design a visually rich but game-readable first person hands forearms prop for a candle-lit medieval fantasy interior. Isolate the object against a plain background. Emphasize practical construction, believable joinery, and clear material breakup using stylized skin, leather wraps, cloth accents, simple forged metal details. Mood should feel grounded, crafted, stylized, warm, readable. Keep the object centered, with no environment and no additional props. Style constraints: readable first-person silhouette, game-friendly detail, no ornate overload, not photoreal, clear wrist and forearm shapes for future rigging. Intended use: First-person hands and forearms aesthetic study for the castle slice viewmodel; generate one coherent paired left/right design per image; validate stylized look only, not rigging."
+    },
+    {
+      "id": "concept-03",
+      "name": "Readable Gameplay Silhouette",
+      "prompt": "Generate a prop concept sheet image showing one clean three-quarter angle of a first person hands forearms. Prioritize bold silhouette, readable proportions, and game-friendly simplicity for a first-person fantasy RPG. The piece belongs in the viewmodel room and should feel grounded, crafted, stylized, warm, readable. Materials should be stylized skin, leather wraps, cloth accents, simple forged metal details. Background should be simple and uncluttered. Avoid over-detailing and avoid decorative noise that would hurt gameplay readability."
+    }
+  ],
+  "notes": [
+    "Generate 3 concepts first and review before moving to 3D.",
+    "Keep concepts isolated on plain backgrounds for stronger downstream 3D generation.",
+    "If using Responses, prefer the image_generation tool with a mainline reasoning model orchestrating revisions."
+  ]
+}

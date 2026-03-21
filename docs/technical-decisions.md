@@ -197,6 +197,7 @@
 - Consequences:
   The first asset-agent work should target environment props and furniture.
   Humanoid hands remain deferred until we have a suitable rigged asset and a stable import/cleanup path.
+  Concept-only hands exploration is still allowed when the goal is aesthetic validation rather than production rigging, but it should remain explicitly separate from the runtime hand pipeline.
   The workflow should be callable through a checked-in repo-local command path rather than living only as a prose process.
   Routine concept and revision runs should prefer a lower-cost orchestration model while keeping the image model strong.
   Concept and revision outputs should be preserved as explicit passes so design review history remains auditable across iterations.
@@ -222,11 +223,13 @@
   Meshy-based 3D passes should preserve not only the primary `.glb`, but also the pre-remeshed source and texture maps when they are available so downstream cleanup stays flexible.
   Family and set sheets should not move directly into 3D by default; they should branch into `single + production` child sessions first.
   When a child asset is derived from an approved family or set sheet, the workflow should preserve the approved sheet as a reference image and use OpenAI image editing/generation with that input for isolated child-asset extraction instead of reimagining the child from scratch.
+  Paired left/right hands studies should follow the same rule: approve the paired style study first, then branch isolated left/right child sessions before any 3D generation.
   If the user provides a clean isolated final image for a child asset, the workflow should preserve that file as a child-session revision artifact and use it directly for 3D handoff instead of forcing another concept or revision generation step.
   Blender cleanup should be treated as a first-class workflow stage that saves cleaned exports as separate cleanup passes instead of overwriting raw provider outputs.
   External GLB assets that enter the repo outside the provider workflow should still go through the same cleanup-pass structure rather than being hand-edited in place.
   Runtime-oriented triangle reduction should happen as an additional cleanup pass with an explicit budget, preserving the higher-fidelity source and earlier cleanup passes for later reuse or higher-end targets.
   If an earlier family member is later regenerated from a cleaner isolated source, the newer pass should complete the same cleanup and review path before replacing the stable runtime asset.
+  If hand child-mesh generation remains anatomically unreliable, it is acceptable to stop paid generation and use a mirrored local placeholder derived from the approved left-hand mesh as a temporary viewmodel blocker until a real riggable source asset is available.
 
 ## TD-017: Imported Pickup Visuals Map To The Gameplay Item They Represent
 

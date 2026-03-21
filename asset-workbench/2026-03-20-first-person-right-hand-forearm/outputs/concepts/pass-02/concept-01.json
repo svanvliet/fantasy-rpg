@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-01",
+  "name": "Faithful Isolated Extraction",
+  "prompt": "Using the provided approved parent concept as the visual source of truth, create a single isolated fantasy RPG prop concept for a first person right hand forearm. Preserve the approved style, materials, and silhouette language from the source image while extracting only this one asset onto a plain background. This child asset represents the right-hand member of the parent concept. Keep the object centered, non-overlapping, and fully readable for downstream 3D generation. Materials should read as stylized skin, leather wraps, cloth accents, simple forged metal details. Style constraints: readable first-person silhouette, game-friendly detail, no ornate overload, not photoreal, clear wrist and forearm shapes for future rigging. Intended use: Isolated right hand and forearm candidate derived from approved paired hands concept for aesthetic and proportion mesh exploration.",
+  "responseId": "resp_046e2b55b7d314740069bdafad3d1c8194a2f0a06a0f8ee5b4",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/revisions/pass-01/revision-03.png"
+}

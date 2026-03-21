@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-03",
+  "name": "Refined Castle Variant",
+  "prompt": "Design one cleaner, slightly more refined variation of first-person fantasy RPG forearms and hands for a castle-slice prototype. Show one paired left/right design on a plain background with clearer silhouettes, simplified wrapping or brace details, and a coherent stylized skin treatment that feels handcrafted rather than photoreal. Keep the mood grounded, crafted, stylized, warm, and readable. Do not show multiple options, concept sheets, or annotated callouts in the same image.",
+  "responseId": "resp_02aae3a06709255d0069bd66b62a5481a3b2691eac0b2c6b70",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": null
+}

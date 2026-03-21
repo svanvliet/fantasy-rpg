@@ -286,6 +286,7 @@ export class GameApp {
       spawnPosition: room.spawnPosition
     });
     const viewModelController = new ViewModelController();
+    await viewModelController.loadPlaceholderHands(assetCatalog);
     interactionSystem = new InteractionSystem({
       camera,
       domElement: renderer.domElement,

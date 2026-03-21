@@ -34,4 +34,14 @@ That means:
 
 If a file is missing, the prototype will keep using the existing blockout prop.
 
+The first-person viewmodel can also load an optional placeholder hand source:
+
+- `first-person-left-hand.glb`
+
+The current placeholder flow uses that left-hand source for both sides:
+- the left hand uses the GLB directly
+- the right hand mirrors the same source at runtime
+
+This is only a temporary visual-blocking path for the old primitive hand rig. It is not a production rigging workflow.
+
 The earlier `bed.glb` experiment was removed after playtest because it did not fit the visual theme or collision footprint closely enough. The bed swap can be revisited later through the same cleanup workflow when we have a better source asset.

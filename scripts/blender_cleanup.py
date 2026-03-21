@@ -19,6 +19,7 @@ def parse_args():
     parser.add_argument("--preview", required=False)
     parser.add_argument("--target-height", required=False, type=float, default=None)
     parser.add_argument("--max-triangles", required=False, type=int, default=None)
+    parser.add_argument("--mirror-axis", required=False, choices=["x", "y", "z"], default=None)
     return parser.parse_args(argv)
 
 
@@ -108,6 +109,29 @@ def scale_to_target_height(obj, target_height):
         return
     scale_factor = target_height / current_height
     obj.scale *= scale_factor
+    bpy.context.view_layer.update()
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+
+
+def mirror_object(obj, axis):
+    if not axis:
+        return
+
+    scale = Vector((1.0, 1.0, 1.0))
+    if axis == "x":
+        scale.x = -1.0
+    elif axis == "y":
+        scale.y = -1.0
+    elif axis == "z":
+        scale.z = -1.0
+
+    obj.scale = Vector(
+        (
+            obj.scale.x * scale.x,
+            obj.scale.y * scale.y,
+            obj.scale.z * scale.z,
+        )
+    )
     bpy.context.view_layer.update()
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
@@ -214,6 +238,8 @@ def main():
 
     align_to_ground(obj)
     scale_to_target_height(obj, args.target_height)
+    mirror_object(obj, args.mirror_axis)
+    align_to_ground(obj)
     decimate_report = decimate_to_max_triangles(obj, args.max_triangles)
     final_bounds = world_bounds(obj)
     final_dimensions = dimensions_from_bounds(final_bounds)
@@ -237,6 +263,7 @@ def main():
         "preview": str(preview_path) if preview_path else None,
         "targetHeight": args.target_height,
         "maxTriangles": args.max_triangles,
+        "mirrorAxis": args.mirror_axis,
         "initialDimensions": initial_dimensions,
         "finalDimensions": final_dimensions,
         "initialTriangles": initial_triangles,

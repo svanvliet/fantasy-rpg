@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-02",
+  "name": "Set With Clear Child Opportunities",
+  "prompt": "Generate a prop set exploration image for first person hands forearms that suggests multiple future assets or families rather than one fused object. Keep items readable and separated enough that single assets or families could later be extracted. Use a plain background and preserve a grounded, crafted, stylized, warm, readable fantasy RPG material language with wood, iron, worn finish.",
+  "responseId": "resp_0fea34ca5fc593630069bd62287580819084b282333bfa012b",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": null
+}

@@ -1,0 +1,136 @@
+{
+  "id": "2026-03-20-first-person-left-hand-forearm",
+  "slug": "first-person-left-hand-forearm",
+  "scope": "single",
+  "intent": "production",
+  "room": "viewmodel",
+  "category": "viewmodel-hand",
+  "swapId": null,
+  "intendedUse": "Isolated left hand and forearm candidate derived from approved paired hands concept for aesthetic and proportion mesh exploration.",
+  "approximateSize": "Needs confirmation during concept review.",
+  "moodWords": [
+    "grounded",
+    "crafted",
+    "stylized",
+    "warm",
+    "readable"
+  ],
+  "materialGoals": [
+    "stylized skin",
+    "leather wraps",
+    "cloth accents",
+    "simple forged metal details"
+  ],
+  "styleConstraints": [
+    "readable first-person silhouette",
+    "game-friendly detail",
+    "no ornate overload",
+    "not photoreal",
+    "clear wrist and forearm shapes for future rigging"
+  ],
+  "lineage": {
+    "parentSessionId": "2026-03-20-first-person-hands-forearms",
+    "parentScope": "single",
+    "childRole": "left-hand",
+    "sourceImage": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/revisions/pass-01/revision-03.png"
+  },
+  "referenceImage": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/revisions/pass-01/revision-03.png",
+  "referenceMode": "parent-approved-sheet",
+  "selectedConcept": {
+    "passId": "pass-01",
+    "id": "concept-03",
+    "revisionNotes": [
+      "clean isolated left-hand extraction from approved paired revision",
+      "promote directly to first mesh pass"
+    ]
+  },
+  "conceptPasses": [
+    {
+      "passId": "pass-01",
+      "generatedAt": "2026-03-20T18:25:50.832Z",
+      "items": [
+        "concept-01",
+        "concept-02",
+        "concept-03"
+      ]
+    }
+  ],
+  "childAssets": [],
+  "selectedRevision": null,
+  "revisionPasses": [],
+  "modelPasses": [
+    {
+      "passId": "pass-01",
+      "provider": "meshy",
+      "sourceImage": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/concepts/pass-01/concept-03.png",
+      "submittedAt": "2026-03-20T18:31:32.699Z",
+      "taskId": "019d0c84-4d7a-73b4-bb1a-43d07f79b80c",
+      "status": "SUCCEEDED",
+      "meshSettings": {
+        "model_type": "standard",
+        "ai_model": "latest",
+        "topology": "triangle",
+        "target_polycount": 12000,
+        "symmetry_mode": "off",
+        "should_remesh": true,
+        "save_pre_remeshed_model": true,
+        "should_texture": true,
+        "enable_pbr": true,
+        "image_enhancement": false,
+        "remove_lighting": true
+      },
+      "selectedConcept": {
+        "passId": "pass-01",
+        "id": "concept-03"
+      },
+      "selectedRevision": null,
+      "updatedAt": "2026-03-20T18:36:39.853Z",
+      "progress": 100,
+      "outputs": {
+        "glb": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/models/pass-01/model.glb",
+        "preRemeshedGlb": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/models/pass-01/pre-remeshed-model.glb",
+        "thumbnail": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/models/pass-01/preview.png",
+        "textures": [
+          {
+            "set": 1,
+            "map": "base_color",
+            "file": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/models/pass-01/textures/set-01-base_color.png"
+          },
+          {
+            "set": 1,
+            "map": "metallic",
+            "file": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/models/pass-01/textures/set-01-metallic.png"
+          },
+          {
+            "set": 1,
+            "map": "roughness",
+            "file": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/models/pass-01/textures/set-01-roughness.png"
+          },
+          {
+            "set": 1,
+            "map": "normal",
+            "file": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/models/pass-01/textures/set-01-normal.png"
+          }
+        ]
+      }
+    }
+  ],
+  "stage": "cleanup_review",
+  "cleanupPasses": [
+    {
+      "passId": "pass-01",
+      "sourceModelPassId": "pass-01",
+      "sourceType": "provider",
+      "sourceModel": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/models/pass-01/model.glb",
+      "blenderBinary": "../../../../Applications/Blender.app/Contents/MacOS/Blender",
+      "targetHeight": 0.42,
+      "maxTriangles": null,
+      "createdAt": "2026-03-20T18:39:38.366Z",
+      "outputs": {
+        "glb": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/cleanup/pass-01/cleaned-model.glb",
+        "report": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/cleanup/pass-01/cleanup-report.json",
+        "preview": "asset-workbench/2026-03-20-first-person-left-hand-forearm/outputs/cleanup/pass-01/preview.png"
+      }
+    }
+  ]
+}

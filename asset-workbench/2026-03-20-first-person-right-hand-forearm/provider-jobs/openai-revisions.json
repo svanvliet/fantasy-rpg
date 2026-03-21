@@ -1,0 +1,14 @@
+{
+  "workflow": "openai-image-revisions",
+  "sessionId": "2026-03-20-first-person-right-hand-forearm",
+  "asset": "first-person-right-hand-forearm",
+  "recommendedOrchestratorModel": "gpt-5-mini",
+  "recommendedImageModel": "gpt-image-1.5",
+  "selectedConcept": "concept-02",
+  "outputDir": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/revisions",
+  "prompt": "Revise the approved First Person Right Hand Forearm concept while preserving its overall identity. Apply these revision notes: corrected anatomical right-hand extraction after first pass returned mirrored side; promote to replacement mesh pass. Keep the object isolated on a plain background, centered in frame, and readable for a first-person fantasy RPG. Produce a clean three-quarter view with stronger material separation and a clearer gameplay silhouette.",
+  "notes": [
+    "Preserve the chosen concept identity.",
+    "Aim for a cleaner, centered, gameplay-readable three-quarter view."
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-03",
+  "name": "Worldbuilding Sheet",
+  "prompt": "Design a worldbuilding prop sheet for first person hands forearms in a first-person fantasy RPG. Treat this as style and content exploration for later child assets, not direct-to-3D output. Keep the background simple, props legible, and visual language coherent with wood, iron, worn finish materials and grounded, crafted, stylized, warm, readable mood.",
+  "responseId": "resp_056a1e6d783f3cc20069bd6392379881a1aaf7da78f8092750",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": null
+}

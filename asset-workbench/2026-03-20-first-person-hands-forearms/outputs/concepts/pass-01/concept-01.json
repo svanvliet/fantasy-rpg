@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-01",
+  "name": "Theme Exploration Set",
+  "prompt": "Create a broad fantasy RPG prop exploration sheet for first person hands forearms in the viewmodel room. This is a thematic exploration, not a single production asset. Show multiple candidate props or prop groupings on a plain background with enough separation to identify distinct asset opportunities. Mood should feel grounded, crafted, stylized, warm, readable; materials should read as wood, iron, worn finish; style constraints: readable silhouette, game-friendly detail, no ornate overload.",
+  "responseId": "resp_0838a52f0c82b6c30069bd61eb774c81a2b64948f88745e054",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": null
+}

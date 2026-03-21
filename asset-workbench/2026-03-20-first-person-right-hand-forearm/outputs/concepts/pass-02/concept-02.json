@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-02",
+  "name": "Cleaner Production Candidate",
+  "prompt": "Using the provided approved parent concept as reference, generate a cleaner production-ready isolated concept of a first person right hand forearm. Preserve the approved art direction and reusable components, but simplify clutter, remove overlap, and make the asset stand on its own on a plain background. Keep the materials stylized skin, leather wraps, cloth accents, simple forged metal details, the mood grounded, crafted, stylized, warm, readable, and the silhouette game-readable for first-person distance.",
+  "responseId": "resp_019353a13a1e22750069bdafdf1bd08194bec5c134039e4fbc",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/revisions/pass-01/revision-03.png"
+}

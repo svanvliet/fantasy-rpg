@@ -30,6 +30,8 @@
 - Balanced graphics remains the default evaluation preset.
 - Persistence is intentionally browser-local and explicit.
 - The first-person carry model, interaction key split, and station-gated crafting flow are now stable constraints.
+- Stylized first-person hands are now validated at the concept level, but production hands remain deferred until we have a suitable rigged asset and a clearer left/right asset plan.
+- Hands exploration should now follow a paired-study-to-child-asset flow: approve a paired left/right style study first, then branch isolated `single + production` left/right child sessions before any 3D generation.
 
 ## Current Phase
 
@@ -164,6 +166,17 @@ Preview:
 - add one simple player combat model
 - add one hostile target or encounter space
 - validate combat readability, movement under pressure, and persistence behavior around encounters
+
+## Active Exploration Notes
+
+### Pre-Phase 13 Hands Aesthetic Study
+- Approved paired-hands aesthetic anchor: [revision-03.png](/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-20-first-person-hands-forearms/outputs/revisions/pass-01/revision-03.png)
+- Branched isolated child production sessions for:
+  - [2026-03-20-first-person-right-hand-forearm](/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-20-first-person-right-hand-forearm)
+  - [2026-03-20-first-person-left-hand-forearm](/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-20-first-person-left-hand-forearm)
+- Promoted isolated concept picks directly into first Meshy passes so we can validate stylized hand/forearm mesh feasibility without turning this work into a full rigging effort before Phase 13 starts.
+- The first isolated right-hand extraction came back as the wrong anatomical side, so the asset-agent prompts were tightened to state handedness explicitly and forbid mirrored outputs before generating the replacement right-hand pass.
+- Even after the prompt fix, AI-generated right-hand meshes remained anatomically unreliable. For temporary in-engine validation, we are instead using the good left-hand placeholder mesh and mirroring it locally for the right side, while keeping rigged production hands deferred.
 
 ## Deferred Backlog
 - formal third-person camera support

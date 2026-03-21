@@ -1,5 +1,6 @@
 import * as THREE from "three";
 
+import { AssetCatalog } from "../assets/AssetCatalog";
 import type { ViewModelFrameState } from "./types";
 
 const CAMERA_NEAR = 0.01;
@@ -10,7 +11,9 @@ const ARM_SCALE = 0.828;
 interface ArmRig {
   pivot: THREE.Group;
   forearm: THREE.Mesh;
+  cuff: THREE.Mesh;
   hand: THREE.Mesh;
+  importedRoot: THREE.Group;
 }
 
 interface ArmPose {
@@ -56,6 +59,16 @@ export class ViewModelController {
     this.root.add(this.leftArm.pivot, this.rightArm.pivot);
   }
 
+  async loadPlaceholderHands(assetCatalog: AssetCatalog): Promise<void> {
+    const source = await assetCatalog.loadOptionalScene("/assets/models/first-person-left-hand.glb");
+    if (!source) {
+      return;
+    }
+
+    this.attachImportedHand(this.leftArm, source.clone(true), "left");
+    this.attachImportedHand(this.rightArm, source.clone(true), "right");
+  }
+
   handleResize(sourceCamera: THREE.PerspectiveCamera): void {
     this.camera.fov = sourceCamera.fov;
     this.camera.aspect = sourceCamera.aspect;
@@ -98,8 +111,12 @@ export class ViewModelController {
     this.leftArm.pivot.quaternion.slerp(this.leftTargetQuaternion, lerpAlpha);
 
     const handOpenness = state.pointerLocked ? 1 : 0.92;
-    this.rightArm.hand.scale.setScalar(handOpenness);
-    this.leftArm.hand.scale.setScalar(handOpenness);
+    if (!this.rightArm.importedRoot.visible) {
+      this.rightArm.hand.scale.setScalar(handOpenness);
+    }
+    if (!this.leftArm.importedRoot.visible) {
+      this.leftArm.hand.scale.setScalar(handOpenness);
+    }
   }
 
   render(renderer: THREE.WebGLRenderer): void {
@@ -113,6 +130,9 @@ export class ViewModelController {
 
   private createArmRig(side: "left" | "right"): ArmRig {
     const pivot = new THREE.Group();
+    const importedRoot = new THREE.Group();
+    importedRoot.visible = false;
+    pivot.add(importedRoot);
 
     const sleeve = new THREE.Mesh(
       new THREE.BoxGeometry(0.13, 0.4, 0.13),
@@ -158,8 +178,40 @@ export class ViewModelController {
     return {
       pivot,
       forearm: sleeve,
-      hand
+      cuff,
+      hand,
+      importedRoot
     };
+  }
+
+  private attachImportedHand(arm: ArmRig, model: THREE.Object3D, side: "left" | "right"): void {
+    arm.importedRoot.clear();
+
+    model.traverse((object) => {
+      object.castShadow = false;
+      object.receiveShadow = false;
+      object.frustumCulled = false;
+      if (!(object instanceof THREE.Mesh)) {
+        return;
+      }
+
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      materials.forEach((material) => {
+        material.side = THREE.DoubleSide;
+      });
+    });
+
+    if (side === "right") {
+      model.scale.x *= -1;
+    }
+
+    model.position.set(0, -0.42, 0);
+    arm.importedRoot.add(model);
+    arm.importedRoot.visible = true;
+
+    arm.forearm.visible = false;
+    arm.cuff.visible = false;
+    arm.hand.visible = false;
   }
 
   private getEngagementWeight(state: ViewModelFrameState): number {

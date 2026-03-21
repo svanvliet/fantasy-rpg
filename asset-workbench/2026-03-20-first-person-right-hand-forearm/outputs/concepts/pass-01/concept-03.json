@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-03",
+  "name": "Extraction With Strong Material Separation",
+  "prompt": "Create an isolated extraction of a first person right hand forearm from the approved family or set concept reference. Preserve family resemblance but ensure this specific prop reads cleanly as its own asset. Use a plain background, no environment, no extra props, and no overlap. Push clear material separation using stylized skin, leather wraps, cloth accents, simple forged metal details and keep the form usable for future .glb generation and cleanup.",
+  "responseId": "resp_0d7e48814539deb90069bd90fe3e54819dab422efc92ad4087",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/revisions/pass-01/revision-03.png"
+}

@@ -1,0 +1,11 @@
+{
+  "promptId": "concept-02",
+  "name": "Rugged Adventurer Variant",
+  "prompt": "Design one variation of first-person fantasy RPG forearms and hands that feels slightly more rugged and adventuring-oriented while staying in the same warm stylized castle-fantasy visual family. Show one paired left/right design only, on a plain background, with clear readable shapes, simple wraps or cuffs, and restrained forged-metal accents. Keep it suitable for later viewmodel development, but this pass is still concept-only. Do not show other alternatives in the same image.",
+  "responseId": "resp_075fa068ee4fba6b0069bd66929ee8819692fb80ad34494c75",
+  "model": "gpt-5-mini",
+  "imageModel": "gpt-image-1.5",
+  "size": "1024x1024",
+  "quality": "medium",
+  "referenceImage": null
+}

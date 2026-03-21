@@ -1,0 +1,94 @@
+{
+  "id": "2026-03-20-first-person-hands-forearms",
+  "slug": "first-person-hands-forearms",
+  "scope": "single",
+  "intent": "exploration",
+  "room": "viewmodel",
+  "category": "style-study",
+  "swapId": null,
+  "intendedUse": "First-person hands and forearms aesthetic study for the castle slice viewmodel; generate one coherent paired left/right design per image; validate stylized look only, not rigging.",
+  "approximateSize": "Needs confirmation during concept review.",
+  "moodWords": [
+    "grounded",
+    "crafted",
+    "stylized",
+    "warm",
+    "readable"
+  ],
+  "materialGoals": [
+    "stylized skin",
+    "leather wraps",
+    "cloth accents",
+    "simple forged metal details"
+  ],
+  "styleConstraints": [
+    "readable first-person silhouette",
+    "game-friendly detail",
+    "no ornate overload",
+    "not photoreal",
+    "clear wrist and forearm shapes for future rigging"
+  ],
+  "lineage": null,
+  "referenceImage": null,
+  "referenceMode": null,
+  "selectedConcept": {
+    "passId": "pass-03",
+    "id": "concept-03",
+    "revisionNotes": [
+      "less glove coverage",
+      "more visible hand anatomy",
+      "simpler wrist wrapping",
+      "preserve warm painterly castle-fantasy style",
+      "first-person readable",
+      "not photoreal"
+    ]
+  },
+  "conceptPasses": [
+    {
+      "passId": "pass-02",
+      "generatedAt": "2026-03-20T15:12:07.720Z",
+      "items": [
+        "concept-01",
+        "concept-02",
+        "concept-03"
+      ]
+    },
+    {
+      "passId": "pass-03",
+      "generatedAt": "2026-03-20T15:25:15.198Z",
+      "items": [
+        "concept-01",
+        "concept-02",
+        "concept-03"
+      ]
+    }
+  ],
+  "childAssets": [
+    {
+      "sessionId": "2026-03-20-first-person-right-hand-forearm",
+      "slug": "first-person-right-hand-forearm",
+      "childRole": "right-hand",
+      "sourceImage": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/revisions/pass-01/revision-03.png",
+      "createdAt": "2026-03-20T18:21:51.766Z"
+    }
+  ],
+  "selectedRevision": {
+    "passId": "pass-01",
+    "revisionId": "revision-03"
+  },
+  "revisionPasses": [
+    {
+      "passId": "pass-01",
+      "sourceImage": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/concepts/pass-03/concept-03.png",
+      "generatedAt": "2026-03-20T17:15:13.201Z",
+      "items": [
+        "revision-01",
+        "revision-02",
+        "revision-03"
+      ]
+    }
+  ],
+  "modelPasses": [],
+  "stage": "3d_ready",
+  "cleanupPasses": []
+}

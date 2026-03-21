@@ -1,0 +1,24 @@
+{
+  "input": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-02/model.glb",
+  "output": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/cleanup/pass-02/cleaned-model.glb",
+  "preview": "/Users/svanvliet/repos/fantasy-rpg/asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/cleanup/pass-02/preview.png",
+  "targetHeight": 0.42,
+  "maxTriangles": null,
+  "initialDimensions": {
+    "x": 1.0972709655761719,
+    "y": 0.967619001865387,
+    "z": 1.9106902480125427
+  },
+  "finalDimensions": {
+    "x": 0.24119754135608673,
+    "y": 0.21269798278808594,
+    "z": 0.41999998688697815
+  },
+  "initialTriangles": 11978,
+  "finalTriangles": 11978,
+  "decimate": null,
+  "materialCount": 1,
+  "materials": [
+    "Material_0"
+  ]
+}

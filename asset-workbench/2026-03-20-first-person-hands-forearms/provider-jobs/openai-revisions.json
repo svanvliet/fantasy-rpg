@@ -1,0 +1,14 @@
+{
+  "workflow": "openai-image-revisions",
+  "sessionId": "2026-03-20-first-person-hands-forearms",
+  "asset": "first-person-hands-forearms",
+  "recommendedOrchestratorModel": "gpt-5-mini",
+  "recommendedImageModel": "gpt-image-1.5",
+  "selectedConcept": "concept-03",
+  "outputDir": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/revisions",
+  "prompt": "Revise the approved First Person Hands Forearms concept while preserving its overall identity. Apply these revision notes: less glove coverage; more visible hand anatomy; simpler wrist wrapping; preserve warm painterly castle-fantasy style; first-person readable; not photoreal. Keep the object isolated on a plain background, centered in frame, and readable for a first-person fantasy RPG. Produce a clean three-quarter view with stronger material separation and a clearer gameplay silhouette.",
+  "notes": [
+    "Preserve the chosen concept identity.",
+    "Aim for a cleaner, centered, gameplay-readable three-quarter view."
+  ]
+}

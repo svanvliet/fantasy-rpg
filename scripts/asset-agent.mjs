@@ -260,24 +260,31 @@ function makeConceptPrompts(session) {
   const roomClause = session.room;
 
   if (session.referenceImage && session.scope === "single") {
-    const childRoleClause = session.lineage?.childRole
-      ? `This child asset represents the ${session.lineage.childRole} member of the parent concept.`
+    const childRole = session.lineage?.childRole || "";
+    const childRoleClause = childRole
+      ? `This child asset represents the ${childRole} member of the parent concept.`
       : "";
+    const handednessClause =
+      childRole === "right-hand"
+        ? "This must be an anatomical right hand and forearm. Do not mirror the asset and do not return a left hand."
+        : childRole === "left-hand"
+          ? "This must be an anatomical left hand and forearm. Do not mirror the asset and do not return a right hand."
+          : "";
     return [
       {
         id: "concept-01",
         name: "Faithful Isolated Extraction",
-        prompt: `Using the provided approved parent concept as the visual source of truth, create a single isolated fantasy RPG prop concept for ${assetPhrase}. Preserve the approved style, materials, and silhouette language from the source image while extracting only this one asset onto a plain background. ${childRoleClause} Keep the object centered, non-overlapping, and fully readable for downstream 3D generation. Materials should read as ${materialClause}. Style constraints: ${styleClause}. Intended use: ${useClause}`,
+        prompt: `Using the provided approved parent concept as the visual source of truth, create a single isolated fantasy RPG prop concept for ${assetPhrase}. Preserve the approved style, materials, and silhouette language from the source image while extracting only this one asset onto a plain background. ${childRoleClause} ${handednessClause} Keep the object centered, non-overlapping, and fully readable for downstream 3D generation. Materials should read as ${materialClause}. Style constraints: ${styleClause}. Intended use: ${useClause}`,
       },
       {
         id: "concept-02",
         name: "Cleaner Production Candidate",
-        prompt: `Using the provided approved parent concept as reference, generate a cleaner production-ready isolated concept of ${assetPhrase}. Preserve the approved art direction and reusable components, but simplify clutter, remove overlap, and make the asset stand on its own on a plain background. Keep the materials ${materialClause}, the mood ${tone}, and the silhouette game-readable for first-person distance.`,
+        prompt: `Using the provided approved parent concept as reference, generate a cleaner production-ready isolated concept of ${assetPhrase}. Preserve the approved art direction and reusable components, but simplify clutter, remove overlap, and make the asset stand on its own on a plain background. ${handednessClause} Keep the materials ${materialClause}, the mood ${tone}, and the silhouette game-readable for first-person distance.`,
       },
       {
         id: "concept-03",
         name: "Extraction With Strong Material Separation",
-        prompt: `Create an isolated extraction of ${assetPhrase} from the approved family or set concept reference. Preserve family resemblance but ensure this specific prop reads cleanly as its own asset. Use a plain background, no environment, no extra props, and no overlap. Push clear material separation using ${materialClause} and keep the form usable for future .glb generation and cleanup.`,
+        prompt: `Create an isolated extraction of ${assetPhrase} from the approved family or set concept reference. Preserve family resemblance but ensure this specific prop reads cleanly as its own asset. ${handednessClause} Use a plain background, no environment, no extra props, and no overlap. Push clear material separation using ${materialClause} and keep the form usable for future .glb generation and cleanup.`,
       },
     ];
   }
@@ -1425,38 +1432,62 @@ async function generateConcepts(args) {
           },
         ]
       : promptSpec.prompt;
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        input,
-        tools: [
-          {
-            type: "image_generation",
-            model: imageModel,
-            size,
-            quality,
-            background: "opaque",
-            action: referenceImageFile ? "edit" : "generate",
-            ...(referenceImageFile ? { input_fidelity: "high" } : {}),
-          },
-        ],
-      }),
-    });
+    let payload = null;
+    let imageCall = null;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`OpenAI image generation failed for ${promptSpec.id}: ${errorText}`);
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input,
+          tools: [
+            {
+              type: "image_generation",
+              model: imageModel,
+              size,
+              quality,
+              background: "opaque",
+              action: referenceImageFile ? "edit" : "generate",
+              ...(referenceImageFile ? { input_fidelity: "high" } : {}),
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`OpenAI image generation failed for ${promptSpec.id}: ${errorText}`);
+      }
+
+      payload = await response.json();
+      imageCall = getImageCall(payload.output ?? []);
+      if (imageCall) {
+        break;
+      }
     }
 
-    const payload = await response.json();
-    const imageCall = getImageCall(payload.output ?? []);
     if (!imageCall) {
-      throw new Error(`No image_generation_call returned for ${promptSpec.id}.`);
+      const metadataFile = path.join(passDir, `${promptSpec.id}.json`);
+      writeJson(metadataFile, {
+        promptId: promptSpec.id,
+        name: promptSpec.name,
+        prompt: promptSpec.prompt,
+        responseId: payload?.id ?? null,
+        model,
+        imageModel,
+        size,
+        quality,
+        referenceImage: referenceImageFile ? toRelative(referenceImageFile) : null,
+        skipped: true,
+        reason: "No image_generation_call returned after retry.",
+      });
+      console.warn(`Skipping ${promptSpec.id}; no image_generation_call returned after retry.`);
+      continue;
     }
 
     const imageBuffer = decodeImageResult(imageCall.result);

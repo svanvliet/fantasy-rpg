@@ -1,0 +1,215 @@
+{
+  "id": "2026-03-20-first-person-right-hand-forearm",
+  "slug": "first-person-right-hand-forearm",
+  "scope": "single",
+  "intent": "production",
+  "room": "viewmodel",
+  "category": "viewmodel-hand",
+  "swapId": null,
+  "intendedUse": "Isolated right hand and forearm candidate derived from approved paired hands concept for aesthetic and proportion mesh exploration.",
+  "approximateSize": "Needs confirmation during concept review.",
+  "moodWords": [
+    "grounded",
+    "crafted",
+    "stylized",
+    "warm",
+    "readable"
+  ],
+  "materialGoals": [
+    "stylized skin",
+    "leather wraps",
+    "cloth accents",
+    "simple forged metal details"
+  ],
+  "styleConstraints": [
+    "readable first-person silhouette",
+    "game-friendly detail",
+    "no ornate overload",
+    "not photoreal",
+    "clear wrist and forearm shapes for future rigging"
+  ],
+  "lineage": {
+    "parentSessionId": "2026-03-20-first-person-hands-forearms",
+    "parentScope": "single",
+    "childRole": "right-hand",
+    "sourceImage": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/revisions/pass-01/revision-03.png"
+  },
+  "referenceImage": "asset-workbench/2026-03-20-first-person-hands-forearms/outputs/revisions/pass-01/revision-03.png",
+  "referenceMode": "parent-approved-sheet",
+  "selectedConcept": {
+    "passId": "pass-02",
+    "id": "concept-02",
+    "revisionNotes": [
+      "corrected anatomical right-hand extraction after first pass returned mirrored side",
+      "promote to replacement mesh pass"
+    ]
+  },
+  "conceptPasses": [
+    {
+      "passId": "pass-01",
+      "generatedAt": "2026-03-20T18:25:47.206Z",
+      "items": [
+        "concept-01",
+        "concept-02",
+        "concept-03"
+      ]
+    },
+    {
+      "passId": "pass-02",
+      "generatedAt": "2026-03-20T20:38:18.637Z",
+      "items": [
+        "concept-01",
+        "concept-02",
+        "concept-03"
+      ]
+    }
+  ],
+  "childAssets": [],
+  "selectedRevision": null,
+  "revisionPasses": [],
+  "modelPasses": [
+    {
+      "passId": "pass-01",
+      "provider": "meshy",
+      "sourceImage": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/concepts/pass-01/concept-02.png",
+      "submittedAt": "2026-03-20T18:31:32.862Z",
+      "taskId": "019d0c84-4d7e-7cf1-aed5-535a5d5ae368",
+      "status": "SUCCEEDED",
+      "meshSettings": {
+        "model_type": "standard",
+        "ai_model": "latest",
+        "topology": "triangle",
+        "target_polycount": 12000,
+        "symmetry_mode": "off",
+        "should_remesh": true,
+        "save_pre_remeshed_model": true,
+        "should_texture": true,
+        "enable_pbr": true,
+        "image_enhancement": false,
+        "remove_lighting": true
+      },
+      "selectedConcept": {
+        "passId": "pass-01",
+        "id": "concept-02"
+      },
+      "selectedRevision": null,
+      "updatedAt": "2026-03-20T18:36:39.936Z",
+      "progress": 100,
+      "outputs": {
+        "glb": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-01/model.glb",
+        "preRemeshedGlb": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-01/pre-remeshed-model.glb",
+        "thumbnail": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-01/preview.png",
+        "textures": [
+          {
+            "set": 1,
+            "map": "base_color",
+            "file": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-01/textures/set-01-base_color.png"
+          },
+          {
+            "set": 1,
+            "map": "metallic",
+            "file": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-01/textures/set-01-metallic.png"
+          },
+          {
+            "set": 1,
+            "map": "roughness",
+            "file": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-01/textures/set-01-roughness.png"
+          },
+          {
+            "set": 1,
+            "map": "normal",
+            "file": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-01/textures/set-01-normal.png"
+          }
+        ]
+      }
+    },
+    {
+      "passId": "pass-02",
+      "provider": "meshy",
+      "sourceImage": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/concepts/pass-02/concept-02.png",
+      "submittedAt": "2026-03-20T20:42:06.889Z",
+      "taskId": "019d0cfb-d962-7371-b645-5da34f42bc42",
+      "status": "SUCCEEDED",
+      "meshSettings": {
+        "model_type": "standard",
+        "ai_model": "latest",
+        "topology": "triangle",
+        "target_polycount": 12000,
+        "symmetry_mode": "off",
+        "should_remesh": true,
+        "save_pre_remeshed_model": true,
+        "should_texture": true,
+        "enable_pbr": true,
+        "image_enhancement": false,
+        "remove_lighting": true
+      },
+      "selectedConcept": {
+        "passId": "pass-02",
+        "id": "concept-02"
+      },
+      "selectedRevision": null,
+      "updatedAt": "2026-03-21T16:07:38.252Z",
+      "progress": 100,
+      "outputs": {
+        "glb": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-02/model.glb",
+        "preRemeshedGlb": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-02/pre-remeshed-model.glb",
+        "thumbnail": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-02/preview.png",
+        "textures": [
+          {
+            "set": 1,
+            "map": "base_color",
+            "file": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-02/textures/set-01-base_color.png"
+          },
+          {
+            "set": 1,
+            "map": "metallic",
+            "file": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-02/textures/set-01-metallic.png"
+          },
+          {
+            "set": 1,
+            "map": "roughness",
+            "file": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-02/textures/set-01-roughness.png"
+          },
+          {
+            "set": 1,
+            "map": "normal",
+            "file": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-02/textures/set-01-normal.png"
+          }
+        ]
+      }
+    }
+  ],
+  "stage": "cleanup_review",
+  "cleanupPasses": [
+    {
+      "passId": "pass-01",
+      "sourceModelPassId": "pass-01",
+      "sourceType": "provider",
+      "sourceModel": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-01/model.glb",
+      "blenderBinary": "../../../../Applications/Blender.app/Contents/MacOS/Blender",
+      "targetHeight": 0.42,
+      "maxTriangles": null,
+      "createdAt": "2026-03-20T18:39:37.933Z",
+      "outputs": {
+        "glb": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/cleanup/pass-01/cleaned-model.glb",
+        "report": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/cleanup/pass-01/cleanup-report.json",
+        "preview": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/cleanup/pass-01/preview.png"
+      }
+    },
+    {
+      "passId": "pass-02",
+      "sourceModelPassId": "pass-02",
+      "sourceType": "provider",
+      "sourceModel": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/models/pass-02/model.glb",
+      "blenderBinary": "../../../../Applications/Blender.app/Contents/MacOS/Blender",
+      "targetHeight": 0.42,
+      "maxTriangles": null,
+      "createdAt": "2026-03-21T16:09:27.707Z",
+      "outputs": {
+        "glb": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/cleanup/pass-02/cleaned-model.glb",
+        "report": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/cleanup/pass-02/cleanup-report.json",
+        "preview": "asset-workbench/2026-03-20-first-person-right-hand-forearm/outputs/cleanup/pass-02/preview.png"
+      }
+    }
+  ]
+}
