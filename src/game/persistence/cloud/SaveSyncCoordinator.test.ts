@@ -77,6 +77,10 @@ class ManualScheduler {
     this.callbacks.clear();
     pending.forEach((callback) => callback());
   }
+
+  pendingCount(): number {
+    return this.callbacks.size;
+  }
 }
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -184,6 +188,61 @@ describe("SaveSyncCoordinator push behaviour", () => {
     await coordinator.syncNow();
 
     expect(provider.pushes).toHaveLength(1);
+  });
+
+  it("does not reschedule the debounce on repeated saves (autosave heartbeat)", async () => {
+    const provider = new FakeProvider();
+    const { coordinator, scheduler } = makeCoordinator(provider);
+    await coordinator.resolveInitialState(null);
+
+    coordinator.notifySaved({ savedAt: "2026-07-01T00:00:01.000Z", value: "a" });
+    coordinator.notifySaved({ savedAt: "2026-07-01T00:00:02.000Z", value: "b" });
+    coordinator.notifySaved({ savedAt: "2026-07-01T00:00:03.000Z", value: "c" });
+
+    // A single timer stays armed rather than being reset on every save.
+    expect(scheduler.pendingCount()).toBe(1);
+
+    scheduler.runPending();
+    await flush();
+
+    expect(provider.pushes).toHaveLength(1);
+    expect(provider.pushes[0].savedAt).toBe("2026-07-01T00:00:03.000Z");
+  });
+
+  it("skips uploads with unchanged content and forces on syncNow", async () => {
+    const provider = new FakeProvider();
+    const scheduler = new ManualScheduler();
+    const coordinator = new SaveSyncCoordinator<TestState>({
+      provider,
+      ...stateOptions(),
+      // Content key ignores the volatile timestamp.
+      getContentKey: (state) => state.value,
+      now: () => Date.parse("2026-07-01T00:00:00.000Z"),
+      schedule: scheduler.schedule,
+      cancel: scheduler.cancel
+    });
+    await coordinator.resolveInitialState(null);
+
+    coordinator.notifySaved({ savedAt: "2026-07-01T00:00:01.000Z", value: "pos-A" });
+    scheduler.runPending();
+    await flush();
+    expect(provider.pushes).toHaveLength(1);
+
+    // Heartbeat re-save with identical content but a new timestamp is skipped.
+    coordinator.notifySaved({ savedAt: "2026-07-01T00:00:02.000Z", value: "pos-A" });
+    scheduler.runPending();
+    await flush();
+    expect(provider.pushes).toHaveLength(1);
+
+    // Manual sync forces an upload even when content is unchanged.
+    await coordinator.syncNow();
+    expect(provider.pushes).toHaveLength(2);
+
+    // A real content change uploads again.
+    coordinator.notifySaved({ savedAt: "2026-07-01T00:00:03.000Z", value: "pos-B" });
+    scheduler.runPending();
+    await flush();
+    expect(provider.pushes).toHaveLength(3);
   });
 
   it("keeps the state dirty and reports error when a push fails", async () => {

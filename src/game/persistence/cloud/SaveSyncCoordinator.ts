@@ -20,6 +20,13 @@ export interface SaveSyncCoordinatorOptions<T> {
   deserialize: (serialized: string) => T | null;
   /** Extract the ISO-8601 timestamp used for newer-wins reconciliation. */
   getSavedAt: (state: T) => string;
+  /**
+   * Optional content signature that ignores volatile fields (e.g. the save
+   * timestamp). When two consecutive saves share a content key the push is
+   * skipped, so the game's periodic autosave heartbeat does not upload
+   * identical payloads. Defaults to the full serialized form.
+   */
+  getContentKey?: (state: T) => string;
   /** Debounce window for autosave-driven pushes. Default 4000ms. */
   debounceMs?: number;
   /** How long to wait for the startup cloud pull before falling back. Default 3000ms. */
@@ -54,6 +61,7 @@ export class SaveSyncCoordinator<T> {
   private readonly serialize: (state: T) => string;
   private readonly deserialize: (serialized: string) => T | null;
   private readonly getSavedAt: (state: T) => string;
+  private readonly getContentKey: (state: T) => string;
   private readonly debounceMs: number;
   private readonly pullTimeoutMs: number;
   private readonly now: () => number;
@@ -65,6 +73,7 @@ export class SaveSyncCoordinator<T> {
 
   private latestState: T | null = null;
   private dirty = false;
+  private lastPushedContentKey: string | null = null;
   private debounceHandle: ReturnType<typeof setTimeout> | null = null;
   private pushChain: Promise<void> = Promise.resolve();
 
@@ -73,6 +82,7 @@ export class SaveSyncCoordinator<T> {
     this.serialize = options.serialize;
     this.deserialize = options.deserialize;
     this.getSavedAt = options.getSavedAt;
+    this.getContentKey = options.getContentKey ?? options.serialize;
     this.debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
     this.pullTimeoutMs = options.pullTimeoutMs ?? DEFAULT_PULL_TIMEOUT_MS;
     this.now = options.now ?? (() => Date.now());
@@ -119,9 +129,14 @@ export class SaveSyncCoordinator<T> {
 
       if (cloud) {
         const cloudState = this.deserialize(cloud.serialized);
-        if (cloudState && (!local || cloud.savedAt > this.getSavedAt(local))) {
-          chosen = cloudState;
-          source = "cloud";
+        if (cloudState) {
+          // Record what the cloud already holds so the post-restore autosave
+          // heartbeat doesn't immediately re-upload identical content.
+          this.lastPushedContentKey = this.getContentKey(cloudState);
+          if (!local || cloud.savedAt > this.getSavedAt(local)) {
+            chosen = cloudState;
+            source = "cloud";
+          }
         }
       }
 
@@ -145,13 +160,16 @@ export class SaveSyncCoordinator<T> {
       return;
     }
     this.dirty = true;
-    if (this.debounceHandle !== null) {
-      this.cancel(this.debounceHandle);
+    // Anchor the debounce to the first pending change. Rescheduling on every
+    // call would let the game's ~1.1s autosave heartbeat perpetually reset the
+    // timer so it never fires; instead we let the first timer elapse and push
+    // whatever the latest state is at that point.
+    if (this.debounceHandle === null) {
+      this.debounceHandle = this.schedule(() => {
+        this.debounceHandle = null;
+        void this.pushLatest();
+      }, this.debounceMs);
     }
-    this.debounceHandle = this.schedule(() => {
-      this.debounceHandle = null;
-      void this.pushLatest();
-    }, this.debounceMs);
   }
 
   /** Force any pending push immediately (best-effort; used on quit). */
@@ -166,14 +184,14 @@ export class SaveSyncCoordinator<T> {
     await this.pushLatest();
   }
 
-  /** Push the latest known state now, regardless of dirty state (manual button). */
+  /** Push the latest known state now, regardless of dirty/dedupe state (manual button). */
   async syncNow(): Promise<void> {
     if (this.debounceHandle !== null) {
       this.cancel(this.debounceHandle);
       this.debounceHandle = null;
     }
     this.dirty = true;
-    await this.pushLatest();
+    await this.pushLatest(true);
   }
 
   /**
@@ -187,6 +205,7 @@ export class SaveSyncCoordinator<T> {
     }
     this.dirty = false;
     this.latestState = null;
+    this.lastPushedContentKey = null;
     if (!this.provider.isConfigured()) {
       return;
     }
@@ -199,17 +218,24 @@ export class SaveSyncCoordinator<T> {
     }
   }
 
-  private pushLatest(): Promise<void> {
+  private pushLatest(force = false): Promise<void> {
     // Serialize pushes so overlapping triggers never race on the same file.
-    this.pushChain = this.pushChain.then(() => this.doPush());
+    this.pushChain = this.pushChain.then(() => this.doPush(force));
     return this.pushChain;
   }
 
-  private async doPush(): Promise<void> {
+  private async doPush(force: boolean): Promise<void> {
     if (!this.dirty || !this.provider.isConfigured() || this.latestState === null) {
       return;
     }
     const state = this.latestState;
+    const contentKey = this.getContentKey(state);
+    // Skip uploads that would duplicate what the cloud already holds. The
+    // manual "Sync now" button forces a push regardless.
+    if (!force && contentKey === this.lastPushedContentKey) {
+      this.dirty = false;
+      return;
+    }
     this.dirty = false;
     this.setStatus("syncing");
     try {
@@ -217,6 +243,7 @@ export class SaveSyncCoordinator<T> {
         savedAt: this.getSavedAt(state),
         serialized: this.serialize(state)
       });
+      this.lastPushedContentKey = contentKey;
       this.setStatus("synced", { lastSyncedAt: this.nowIso() });
     } catch (error) {
       this.dirty = true;

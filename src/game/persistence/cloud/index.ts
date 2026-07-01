@@ -58,7 +58,10 @@ export function createCloudSave(
     provider,
     serialize: serializeSave,
     deserialize: deserializeSave,
-    getSavedAt: (state) => state.savedAt
+    getSavedAt: (state) => state.savedAt,
+    // Ignore the volatile savedAt timestamp so the ~1.1s autosave heartbeat
+    // does not upload identical saves repeatedly.
+    getContentKey: (state) => JSON.stringify({ ...state, savedAt: "" })
   });
 
   return { coordinator, enabled };
