@@ -173,6 +173,48 @@ canvas {
   cursor: pointer;
 }
 
+.debug-cloud {
+  grid-template-columns: auto 1fr auto;
+}
+
+.debug-cloud .debug-cloud-label {
+  color: #aa9a7e;
+}
+
+.debug-cloud .debug-cloud-status {
+  color: #f8f1e7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.debug-cloud .debug-cloud-status[data-status="synced"] {
+  color: #9ccf8f;
+}
+
+.debug-cloud .debug-cloud-status[data-status="syncing"] {
+  color: #d8c07a;
+}
+
+.debug-cloud .debug-cloud-status[data-status="error"] {
+  color: #d98d7a;
+}
+
+.debug-cloud button {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(255, 220, 170, 0.14);
+  border-radius: 8px;
+  background: rgba(36, 26, 18, 0.92);
+  color: #f4e8d6;
+  font: inherit;
+  cursor: pointer;
+}
+
+.debug-cloud button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .debug-overlay dt {
   color: #aa9a7e;
 }

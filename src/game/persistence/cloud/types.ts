@@ -46,6 +46,8 @@ export interface CloudSaveProvider {
   pull(): Promise<CloudSaveEnvelope | null>;
   /** Overwrite the cloud save with the given payload. */
   push(envelope: CloudSaveEnvelope): Promise<void>;
+  /** Remove the cloud save entirely (used when the player resets progress). */
+  clear(): Promise<void>;
 }
 
 /** Identity/authentication context resolved for the current player. */

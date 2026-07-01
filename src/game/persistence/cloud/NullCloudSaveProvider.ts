@@ -17,4 +17,8 @@ export class NullCloudSaveProvider implements CloudSaveProvider {
   async push(): Promise<void> {
     // Intentionally does nothing.
   }
+
+  async clear(): Promise<void> {
+    // Intentionally does nothing.
+  }
 }

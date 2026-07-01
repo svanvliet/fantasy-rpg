@@ -14,7 +14,8 @@ import { CONTAINER_SEEDS, ITEM_DEFINITIONS } from "./inventory/prototypeContent"
 import { InteractionSystem } from "./interactions/InteractionSystem";
 import { ObjectiveSystem } from "./objectives/ObjectiveSystem";
 import { STEWARD_OBJECTIVES } from "./objectives/prototypeObjectives";
-import { SaveManager } from "./persistence/SaveManager";
+import { SaveManager, type GameSaveState } from "./persistence/SaveManager";
+import { createCloudSave, type SaveSyncCoordinator } from "./persistence/cloud";
 import { PlayerController } from "./player/PlayerController";
 import { ViewModelController } from "./viewmodel/ViewModelController";
 import {
@@ -106,6 +107,7 @@ export class GameApp {
   private readonly interactionSystem: InteractionSystem;
   private readonly viewModelController: ViewModelController;
   private readonly saveManager: SaveManager;
+  private readonly cloudCoordinator: SaveSyncCoordinator<GameSaveState>;
   private readonly loop: ReturnType<typeof createFixedStepLoop>;
   private readonly sceneLights: Array<{ light: THREE.Light; baseIntensity: number }> = [];
 
@@ -137,7 +139,8 @@ export class GameApp {
     player: PlayerController,
     interactionSystem: InteractionSystem,
     viewModelController: ViewModelController,
-    saveManager: SaveManager
+    saveManager: SaveManager,
+    cloudCoordinator: SaveSyncCoordinator<GameSaveState>
   ) {
     this.mount = mount;
     this.renderer = renderer;
@@ -156,6 +159,7 @@ export class GameApp {
     this.interactionSystem = interactionSystem;
     this.viewModelController = viewModelController;
     this.saveManager = saveManager;
+    this.cloudCoordinator = cloudCoordinator;
 
     this.loop = createFixedStepLoop({
       fixedStep: FIXED_STEP,
@@ -220,12 +224,16 @@ export class GameApp {
       },
       onRestockReagents: () => {
         app?.restockReagents();
+      },
+      onCloudSyncNow: () => {
+        void app?.syncCloudNow();
       }
     });
     const inventoryStore = new InventoryStore(ITEM_DEFINITIONS);
     const alchemySystem = new AlchemySystem(inventoryStore, ALCHEMY_RECIPES, ALCHEMY_STATION_TITLE);
     const objectiveSystem = new ObjectiveSystem(inventoryStore, STEWARD_OBJECTIVES);
     const saveManager = new SaveManager(window.localStorage);
+    const cloudSave = createCloudSave(window.localStorage);
     let inventoryPanel!: InventoryPanelController;
     let alchemyPanel!: AlchemyPanelController;
     let dialoguePanel!: DialoguePanelController;
@@ -316,7 +324,12 @@ export class GameApp {
         });
       })
     );
-    const savedState = saveManager.load();
+    const localState = saveManager.load();
+    const resolved = await cloudSave.coordinator.resolveInitialState(localState);
+    const savedState = resolved.state;
+    if (resolved.source === "cloud") {
+      console.info("Cloud save was newer than local; restoring from cloud.");
+    }
     if (savedState?.inventory) {
       inventoryStore.restore(savedState.inventory);
     }
@@ -378,8 +391,12 @@ export class GameApp {
       player,
       interactionSystem,
       viewModelController,
-      saveManager
+      saveManager,
+      cloudSave.coordinator
     );
+    cloudSave.coordinator.subscribe((snapshot) => {
+      overlay.setCloudSaveStatus(snapshot);
+    });
     await app.applyOptionalAssetSwaps(room.assetSwapAnchors);
     app.queueSave();
     return app;
@@ -485,6 +502,7 @@ export class GameApp {
       }
       this.player.clearTransientInput();
       this.persistState();
+      void this.cloudCoordinator.flush();
     }
   }
 
@@ -493,6 +511,7 @@ export class GameApp {
       return;
     }
     this.persistState();
+    void this.cloudCoordinator.flush();
   }
 
   private queueSave(): void {
@@ -504,14 +523,16 @@ export class GameApp {
     if (this.resettingProgress) {
       return;
     }
-    this.saveManager.save({
+    const state: GameSaveState = {
       version: 1,
       savedAt: new Date().toISOString(),
       player: this.player.getPersistenceState(),
       inventory: this.inventoryStore.getSaveState(),
       interaction: this.interactionSystem.getPersistenceState(),
       objective: this.objectiveSystem.getSaveState()
-    });
+    };
+    this.saveManager.save(state);
+    this.cloudCoordinator.notifySaved(state);
     this.saveDirty = false;
     this.dirtySaveAccumulator = 0;
     this.autosaveAccumulator = 0;
@@ -558,7 +579,21 @@ export class GameApp {
     this.dirtySaveAccumulator = 0;
     this.autosaveAccumulator = 0;
     this.saveManager.clear();
-    window.location.reload();
+    // Clear the cloud copy first so a stale cloud save can't win reconciliation
+    // on reload; reload regardless of the cloud result so reset stays reliable.
+    void this.cloudCoordinator
+      .clearCloud()
+      .catch((error: unknown) => {
+        console.warn("Failed to clear cloud save during reset.", error);
+      })
+      .finally(() => {
+        window.location.reload();
+      });
+  }
+
+  private async syncCloudNow(): Promise<void> {
+    this.persistState();
+    await this.cloudCoordinator.syncNow();
   }
 
   private restockReagents(): void {

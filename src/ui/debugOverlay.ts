@@ -1,3 +1,5 @@
+import type { CloudSaveStatusSnapshot } from "../game/persistence/cloud";
+
 export interface DebugOverlayMetrics {
   camera: string;
   fps: number;
@@ -20,6 +22,7 @@ export interface DebugOverlayOptions {
   onGraphicsQualityChange?: (value: GraphicsQuality) => void;
   onResetProgress?: () => void;
   onRestockReagents?: () => void;
+  onCloudSyncNow?: () => void;
 }
 
 export interface DebugOverlayController {
@@ -27,6 +30,7 @@ export interface DebugOverlayController {
   setHint(message: string): void;
   setLightingLevel(value: number): void;
   setGraphicsQuality(value: GraphicsQuality): void;
+  setCloudSaveStatus(snapshot: CloudSaveStatusSnapshot): void;
 }
 
 export type GraphicsQuality = "performance" | "balanced" | "quality";
@@ -77,6 +81,11 @@ export function createDebugOverlay(
         </select>
         <span data-key="graphicsQuality"></span>
       </div>
+      <div class="debug-control debug-cloud">
+        <span class="debug-cloud-label">Cloud Save</span>
+        <span data-key="cloudStatus" class="debug-cloud-status">disabled</span>
+        <button type="button" data-action="cloud-sync" disabled>Sync now</button>
+      </div>
       <div class="debug-actions">
         <button type="button" data-action="restock">Add Reagents</button>
         <button type="button" data-action="reset">Reset Progress</button>
@@ -122,6 +131,10 @@ export function createDebugOverlay(
   });
   overlay.querySelector<HTMLButtonElement>('[data-action="reset"]')?.addEventListener("click", () => {
     options.onResetProgress?.();
+  });
+  const cloudSyncButton = overlay.querySelector<HTMLButtonElement>('[data-action="cloud-sync"]')!;
+  cloudSyncButton.addEventListener("click", () => {
+    options.onCloudSyncNow?.();
   });
   collapseButton.addEventListener("click", () => {
     const collapsed = overlay.classList.toggle("is-collapsed");
@@ -169,6 +182,26 @@ export function createDebugOverlay(
     setGraphicsQuality(value) {
       graphicsQualitySelect.value = value;
       fields.get("graphicsQuality")!.textContent = value;
+    },
+    setCloudSaveStatus(snapshot) {
+      const statusField = fields.get("cloudStatus")!;
+      const labels: Record<CloudSaveStatusSnapshot["status"], string> = {
+        disabled: "disabled",
+        idle: "idle",
+        syncing: "syncing…",
+        synced: "synced",
+        error: "error"
+      };
+      let text = labels[snapshot.status];
+      if (snapshot.status === "synced" && snapshot.lastSyncedAt) {
+        text += ` · ${new Date(snapshot.lastSyncedAt).toLocaleTimeString()}`;
+      } else if (snapshot.status === "error" && snapshot.lastError) {
+        text += `: ${snapshot.lastError}`;
+      }
+      statusField.textContent = text;
+      statusField.dataset.status = snapshot.status;
+      cloudSyncButton.disabled =
+        snapshot.status === "disabled" || snapshot.status === "syncing";
     }
   };
 }

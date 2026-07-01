@@ -59,7 +59,14 @@ interface PlayFabGlobal {
     ) => void;
     GetFiles: (
       request: { Entity: { Id: string; Type: string } },
-      callback: PlayFabCallback<{ Metadata?: Record<string, { DownloadUrl?: string }> }>
+      callback: PlayFabCallback<{
+        ProfileVersion: number;
+        Metadata?: Record<string, { DownloadUrl?: string }>;
+      }>
+    ) => void;
+    DeleteFiles: (
+      request: { Entity: { Id: string; Type: string }; FileNames: string[]; ProfileVersion: number },
+      callback: PlayFabCallback<unknown>
     ) => void;
   };
 }
@@ -194,9 +201,10 @@ export class PlayFabClient {
     const sdk = await ensureSdkLoaded();
     const target = { Id: entity.id, Type: entity.type };
 
-    const files = await promisify<{ Metadata?: Record<string, { DownloadUrl?: string }> }>(
-      (callback) => sdk.DataApi.GetFiles({ Entity: target }, callback)
-    );
+    const files = await promisify<{
+      ProfileVersion: number;
+      Metadata?: Record<string, { DownloadUrl?: string }>;
+    }>((callback) => sdk.DataApi.GetFiles({ Entity: target }, callback));
 
     const downloadUrl = files.Metadata?.[fileName]?.DownloadUrl;
     if (!downloadUrl) {
@@ -211,5 +219,27 @@ export class PlayFabClient {
       throw new Error(`Save download failed with status ${response.status}.`);
     }
     return response.text();
+  }
+
+  /** Delete the named entity file if it exists (no-op when already absent). */
+  async deleteFile(entity: PlayFabEntity, fileName: string): Promise<void> {
+    const sdk = await ensureSdkLoaded();
+    const target = { Id: entity.id, Type: entity.type };
+
+    const files = await promisify<{
+      ProfileVersion: number;
+      Metadata?: Record<string, { DownloadUrl?: string }>;
+    }>((callback) => sdk.DataApi.GetFiles({ Entity: target }, callback));
+
+    if (!files.Metadata?.[fileName]) {
+      return;
+    }
+
+    await promisify<unknown>((callback) =>
+      sdk.DataApi.DeleteFiles(
+        { Entity: target, FileNames: [fileName], ProfileVersion: files.ProfileVersion },
+        callback
+      )
+    );
   }
 }
