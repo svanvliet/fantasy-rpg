@@ -26,6 +26,7 @@ The playable slice currently includes:
 - an imported alchemy-table visual swap validated against the original gameplay station
 - a live lighting slider in the prototype overlay for Phase 6 room-light tuning
 - live performance telemetry in the prototype overlay, plus a collapsible debug shell for playtest-friendly monitoring
+- optional PlayFab cloud backup of the local save (local-first; disabled unless a Title ID is configured)
 
 ## Tech Stack
 
@@ -67,6 +68,33 @@ Run tests:
 npm run test
 ```
 
+## Cloud Save (optional)
+
+The prototype saves to browser `localStorage` by default. Cloud backup to
+[PlayFab](https://playfab.com/) is an opt-in layer that stays local-first: the
+local save remains the synchronous source of truth, and the cloud copy is used
+as a backup and for cross-session/device restore (newer save wins on startup).
+
+Cloud save is fully disabled unless a PlayFab Title ID is provided. To enable it,
+set the following environment variable (e.g. in a git-ignored `.env` file at the
+repo root) and restart the dev server:
+
+```bash
+# Required — enables cloud save. Found in the PlayFab Game Manager.
+VITE_PLAYFAB_TITLE_ID=YOUR_TITLE_ID
+
+# Optional overrides (defaults shown).
+# VITE_PLAYFAB_SAVE_FILE=save-v1.json
+# VITE_PLAYFAB_DEVICE_ID_KEY=fantasy-rpg-playfab-device-id
+```
+
+When configured, the prototype logs in anonymously (a per-device id is generated
+and stored locally), stores the save as a PlayFab Entity File, and pushes on the
+existing autosave triggers. The debug overlay shows a cloud-save status line and
+a `Sync now` button. See
+[docs/technical-decisions.md](/Users/svanvliet/repos/fantasy-rpg/docs/technical-decisions.md)
+(TD-018 – TD-020) for the design rationale.
+
 ## Controls
 
 - `Click` captures mouse look
@@ -83,6 +111,7 @@ npm run test
 - `Graphics` control in the overlay switches between performance, balanced, and quality rendering presets
 - `Add Reagents` in the overlay restocks alchemy inputs for testing
 - `Reset Progress` in the overlay clears local prototype progress and reloads the seeded slice
+- `Sync now` in the overlay forces a cloud-save push when PlayFab cloud save is configured
 - `Collapse` in the overlay hides the full debug body while keeping a compact summary visible
 
 ## Project Structure
@@ -138,6 +167,7 @@ Current active milestone:
 ## Notes
 
 - The project is currently optimized for modern desktop browsers on Mac and PC.
+- Cloud save (PlayFab) is optional and off by default; set `VITE_PLAYFAB_TITLE_ID` to enable it. See the Cloud Save section above.
 - The prototype is intentionally using stylized blockout content and simple UI so system validation can happen before asset-heavy production work.
 - Bundle size is still large for an early prototype and will be revisited in later optimization/polish passes.
 - The accepted Phase 12 baseline includes imported crafted bottle visuals and an imported alchemy table, while the bed swap was intentionally deferred until we have a source asset that better fits the slice.

@@ -243,3 +243,39 @@
 - Consequences:
   Crafted items like `emberguard-draught` can use the imported bottle presentation without implying that ingredients share the same visual. Static props such as the bed should continue using hidden authority geometry, but that proxy must be tuned alongside the imported visual so the player does not stand on stale blockout volumes.
   Once a pickup-family presentation path is proven, sibling crafted items such as `moonveil-tonic` and `verdant-restorative` should map to their own imported family members through item-id-based visual templates rather than bespoke one-off runtime code.
+
+## TD-018: Cloud Save Is Local-First Behind Swappable Seams
+
+- Status: `internally_validated`
+- Phase: `Infra: Cloud Save`
+- Date: `2026-07-01`
+- Decision:
+  Add PlayFab cloud save as an opt-in layer on top of the existing local `SaveManager`. `localStorage` stays the synchronous source of truth; a `SaveSyncCoordinator` reconciles local vs cloud at startup by newer-wins timestamp, then pushes debounced off the existing autosave triggers. Gameplay never blocks on the network. The backend and identity strategy sit behind `CloudSaveProvider` and `IdentityProvider` interfaces, and the feature no-ops (via `NullCloudSaveProvider`) when `VITE_PLAYFAB_TITLE_ID` is unset.
+- Why:
+  We wanted the fastest path to cloud backup without coupling PlayFab into gameplay or risking the proven local-first feel, and with room to harden (real accounts, slots, conflict UI) over time.
+- Consequences:
+  New save-adjacent work should go through `SaveManager` (local) and the coordinator (cloud); nothing in gameplay should import PlayFab types directly. `beforeunload` cannot await async, so the on-quit push is best-effort, backed by the debounced autosave push and a `visibilitychange:hidden` flush. Reset Progress must also clear the cloud copy so a stale cloud save cannot win reconciliation on reload.
+
+## TD-019: Anonymous Device Identity Now, Account-Ready Later
+
+- Status: `internally_validated`
+- Phase: `Infra: Cloud Save`
+- Date: `2026-07-01`
+- Decision:
+  Authenticate to PlayFab with an anonymous, device-scoped `LoginWithCustomID`, where the custom id is a random device id persisted in `localStorage`, exposed through the shared `IdentityProvider` contract.
+- Why:
+  Anonymous device login is the lowest-friction way to get cloud save working (no login UI), while the interface keeps a clean path to real accounts.
+- Consequences:
+  Adding real accounts later (email, Xbox, etc.) means providing another `IdentityProvider` implementation with no changes to the cloud provider or coordinator. Saves are tied to the device id until an account-linking flow exists, so clearing that key or switching devices currently starts a new anonymous identity.
+
+## TD-020: PlayFab Entity Files Via The Browser SDK
+
+- Status: `internally_validated`
+- Phase: `Infra: Cloud Save`
+- Date: `2026-07-01`
+- Decision:
+  Store the save as a single JSON Entity File on the player's `title_player_account` entity using the official `playfab-web-sdk`. The SDK is loaded lazily by injecting its classic scripts (resolved via Vite `?url`) so they share `window.PlayFab`, keeping the SDK out of the main bundle until cloud save is actually used.
+- Why:
+  Entity Files have no meaningful size ceiling for our payload, so the growing save (dropped items, containers, quests) needs no rework. The web SDK is authored as shared-global browser scripts that do not survive ES-module bundling, so script injection is the clean way to consume it under Vite.
+- Consequences:
+  The save file name is configurable (`VITE_PLAYFAB_SAVE_FILE`, default `save-v1.json`). Cloud writes use PlayFab InitiateFileUploads → blob PUT → FinalizeFileUploads; reads use GetFiles → download URL; reset uses DeleteFiles. Migrating to Entity Objects or another store would only touch `PlayFabCloudSaveProvider`/`PlayFabClient`.

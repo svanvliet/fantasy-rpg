@@ -22,6 +22,7 @@
 | 13 | planned | Add item use effects, inventory pressure, and stronger item-management choices |
 | 14 | planned | Expand quest breadth and world reactivity with additional NPCs, rewards, and clearer multi-quest structure |
 | 15 | planned | Add a first combat graybox loop and validate encounter feel inside the castle slice |
+| Infra: Cloud Save | internally_validated | Add opt-in PlayFab cloud backup of the existing local save, local-first and behind swappable seams |
 
 ## Current Known Issues And Constraints
 - The slice is still visually blockout-heavy and does not yet prove a production-ready art pipeline.
@@ -29,6 +30,7 @@
 - Imported pickup props should continue to preserve gameplay authority on the existing interactable mesh until we deliberately migrate that authority later.
 - Balanced graphics remains the default evaluation preset.
 - Persistence is intentionally browser-local and explicit.
+- Cloud save (PlayFab) is an opt-in backup layer on top of the local save; when `VITE_PLAYFAB_TITLE_ID` is unset the whole feature no-ops and the prototype behaves exactly as local-only.
 - The first-person carry model, interaction key split, and station-gated crafting flow are now stable constraints.
 - Stylized first-person hands are now validated at the concept level, but production hands remain deferred until we have a suitable rigged asset and a clearer left/right asset plan.
 - Hands exploration should now follow a paired-study-to-child-asset flow: approve a paired left/right style study first, then branch isolated `single + production` left/right child sessions before any 3D generation.
@@ -137,6 +139,57 @@ Acceptance summary:
 - user validated the imported crafted bottle family in-world, including seeded, held, dropped, and persisted item behavior
 - user validated the imported alchemy table after scale, visual fallback, and interaction-proxy refinements
 - user agreed to defer the bed swap and modeled-hands asset work so Phase 12 closes on the strongest proven art-swap baseline rather than carrying known-misaligned assets forward
+
+## Infrastructure Workstream: PlayFab Cloud Save (MVP)
+
+Objective:
+- Back up the existing single-slot local save to PlayFab so progress survives beyond one browser/device, without hard-coding PlayFab into the game or blocking gameplay on the network.
+
+Scope decisions (user-confirmed):
+- Title ID already exists; supplied via `VITE_PLAYFAB_TITLE_ID` (graceful no-op when unset).
+- Anonymous device login now (`LoginWithCustomID`), designed so real accounts can be added later.
+- Local-first: `localStorage` stays the synchronous source of truth; cloud is backup/sync.
+- Single save slot; push on existing autosave triggers + on quit, debounced.
+- Reconcile at startup by newer-wins timestamp (local vs cloud).
+- Official PlayFab SDK (`playfab-web-sdk`); save stored in PlayFab Entity Files (future-proof for larger saves).
+- Debug overlay shows a cloud-save status line plus a manual "Sync now" button.
+
+Implementation approach:
+- New `src/game/persistence/cloud/` module built on swappable seams so the backend and identity strategy can each evolve independently:
+  - `CloudSaveProvider` / `IdentityProvider` contracts (no PlayFab references in gameplay).
+  - `AnonymousDeviceIdentityProvider` (device id persisted in localStorage) — future account providers drop in with no coordinator changes.
+  - `PlayFabClient` (loads the browser SDK via `?url` classic-script injection, sharing `window.PlayFab`) + `PlayFabCloudSaveProvider` (Entity Files read/write/delete).
+  - `NullCloudSaveProvider` for the disabled path.
+  - `SaveSyncCoordinator`: startup reconcile, debounced push, quit flush, manual sync, and cloud-clear on reset; emits status for the overlay.
+- `SaveManager` (local layer) is unchanged in behavior.
+- `GameApp` reconciles cloud↔local before restoring stores, pushes after each local persist, flushes on visibility/unload, and clears the cloud copy on Reset Progress.
+
+Important interfaces:
+- `SaveManager`, `GameSaveState`
+- `CloudSaveProvider`, `IdentityProvider`, `SaveSyncCoordinator`
+- `DebugOverlayController.setCloudSaveStatus`
+
+Known MVP gaps (intentional, deferred):
+- Real accounts, multiple slots, and explicit conflict-resolution UI are out of scope.
+- `beforeunload` cannot await async work, so the final on-quit push is best-effort; the debounced autosave push plus the `visibilitychange:hidden` flush cover the common cases.
+
+Internal validation results:
+- `npx tsc --noEmit` passes.
+- `npm run build` succeeds; the PlayFab SDK is emitted as separate script assets, kept out of the main bundle until injected.
+- `npm run test` passes (38 tests, incl. 19 new: config resolution, coordinator newer-wins/debounce/flush/syncNow/clearCloud/error-retry/disabled, and identity device-id/login-caching).
+
+Validation checklist:
+- [x] cloud save fully no-ops and the prototype runs unchanged when `VITE_PLAYFAB_TITLE_ID` is unset
+- [x] startup reconcile chooses the newer of local vs cloud by timestamp (unit-verified)
+- [x] pushes are debounced off existing autosave triggers and flushed on quit/visibility
+- [x] Reset Progress also clears the cloud copy so a stale cloud save cannot win on reload
+- [x] overlay exposes cloud status + a manual "Sync now" button
+- [ ] user configures a live `VITE_PLAYFAB_TITLE_ID` and confirms a real login + Entity File round trip
+- [ ] user confirms cross-session/device restore (save on one session, restore in another)
+- [ ] user confirms Reset Progress clears both local and cloud and starts fresh
+
+Current implementation status:
+- `internally_validated`
 
 ## Next Phase Preview
 
