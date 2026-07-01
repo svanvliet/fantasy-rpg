@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "latest",
+    "playfab-web-sdk": "^1.205.251205",
     "three": "latest"
   },
   "devDependencies": {
